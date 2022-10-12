@@ -44,5 +44,5 @@ class GenerateVulkanTypeValidationFiles(Command):
         files = update(self.vk_directory)
         print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)))
         parser = RegistryParser(*[x for x in files if str(x).endswith('.xml')])
-        parser.parse_handle_type_nodes()
+        parser.parse_enums()
         j = 0
