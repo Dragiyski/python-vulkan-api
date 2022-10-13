@@ -18,14 +18,20 @@ basic_ctypes = {
     'bool': 'ctypes.c_bool',
     'unsigned int': 'ctypes.c_uint',
     'unsigned long': 'ctypes.c_ulong',
+    'unsigned long int': 'ctypes.c_ulong',
     'unsigned short': 'ctypes.c_ushort',
+    'unsigned short int': 'ctypes.c_ushort',
     'unsigned char': 'ctypes.c_ubyte',
     'unsigned long long': 'ctypes.c_ulonglong',
+    'unsigned long long int': 'ctypes.c_ulonglong',
     'int': 'ctypes.c_int',
     'long': 'ctypes.c_long',
+    'long int': 'ctypes.c_long',
     'short': 'ctypes.c_short',
+    'short int': 'ctypes.c_short',
     'char': 'ctypes.c_byte',
-    'long long': 'ctypes.c_longlong'
+    'long long': 'ctypes.c_longlong',
+    'long long int': 'ctypes.c_longlong'
 }
 
 # Predefined platform types that might be used directly (not as pointer).
