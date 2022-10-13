@@ -59,12 +59,15 @@ class RegistryParser:
         self.enum_value_map = {}
         self.bitmask_value_map = {}
         self.struct_map = {}
-        self._state = {}
+        self.const_map = {}
+        self.struct_map = {}
+        self.command_map = {}
         self.parse_basetype_nodes = self._parse_basetypes_nodes
         self.parse_bitmask_type_nodes = self._parse_bitmask_type_nodes
         self.parse_handle_type_nodes = self._parse_handle_type_nodes
         self.parse_enums = self._parse_enums
         self.parse_defines = self._parse_defines
+        self.parse_structs = self._parse_structs
 
     def _parse_defines(self):
         for xml in self.xml:
@@ -189,10 +192,9 @@ class RegistryParser:
         name_node = node.get('name')
         RegistryParseError.check(name_node is not None)
         name = name_node.get_text()
-        definition = {
-            'name': name,
-            'type_node': node
-        }
+        definition = dict()
+        for attr_name, attr_value in node.attributes.items():
+            definition[f'@{attr_name}'] = attr_value
         for attr_name in ['requires', 'bitvalues']:
             if node.has_attribute(attr_name):
                 RegistryParseError.check('bits' not in definition)
@@ -217,10 +219,9 @@ class RegistryParser:
             return
         RegistryParseError.check(name not in self.ctypes)
         RegistryParseError.check(name not in self.basetype_map)
-        definition = {
-            'name': name,
-            'node': node
-        }
+        definition = dict()
+        for attr_name, attr_value in node.attributes.items():
+            definition[f'@{attr_name}'] = attr_value
         ast = self.cparser.parse(code)
         RegistryParseError.check(len(ast.ext) == 1)
         typedef = ast.ext[0]
@@ -263,13 +264,9 @@ class RegistryParser:
         name = node.get('name').get_text()
         ctype = node.get('type').get_text()
         RegistryParseError.check(ctype in handle_ctypes)
-        definition = {
-            'name': name,
-            'ctype': ctype,
-            'object_type': node.get_attribute('objtypeenum')
-        }
-        if node.has_attribute('parent'):
-            definition['parent'] = node.get_attribute('parent')
+        definition = dict()
+        for attr_name, attr_value in node.attributes.items():
+            definition[f'@{attr_name}'] = attr_value
         ctype = handle_ctypes[ctype]
         RegistryParseError.check(name not in self.ctypes)
         RegistryParseError.check(name not in self.handle_map)
@@ -349,6 +346,7 @@ class RegistryParser:
                         for enum_node in req_node.get_all('enum'):
                             self._parse_ext_enum_node(ext_node, enum_node)
         self.parse_enums = self._parse_noop
+        return self
 
     def _parse_ext_enum_node(self, ext_node, enum_node):
         RegistryParseError.check(enum_node.has_attribute('name'))
@@ -394,22 +392,32 @@ class RegistryParser:
         # This does not apply to <enums> of type bitmask
         ctype = self.ctypes[enums_name] = 'ctypes.c_int'
         definition = self.enum_map[enums_name] = {
-            'name': enums_name,
             'ctype': ctype,
-            'values': {}
+            'alias': {},
+            'values': {},
+            'items': {}
         }
+        for attr_name, attr_value in enums_node.attributes.items():
+            definition[f'@{attr_name}'] = attr_value
         for enum_node in enums_node.get_all('enum'):
             RegistryParseError.check(enum_node.has_attribute('name'))
             enum_name = enum_node.get_attribute('name')
             if enum_node.has_attribute('alias'):
                 RegistryParseError.check(enum_name not in self.alias)
                 self.alias[enum_name] = enum_node.get_attribute('alias')
-                return
+                continue
             value = self._get_enum_value(enum_node)
             RegistryParseError.check(enum_name not in self.value_map)
             RegistryParseError.check(enum_name not in self.enum_value_map)
             RegistryParseError.check(enum_name not in definition['values'])
+            RegistryParseError.check(enum_name not in definition['items'])
+            item_definition = {
+                'value': value
+            }
+            for attr_name, attr_value in enum_node.attributes.items():
+                item_definition[f'@{attr_name}'] = attr_value
             definition['values'][enum_name] = value
+            definition['items'][enum_name] = item_definition
             self.value_map[enum_name] = value
             self.enum_value_map[enum_name] = enums_name
 
@@ -421,22 +429,33 @@ class RegistryParser:
         # This does not apply to <enums> of type bitmask
         ctype = self.ctypes[enums_name] = 'ctypes.c_uint64' if enums_node.get_attribute('bitwidth') == 64 else 'ctypes.c_uint32'
         definition = self.bitmask_bit_map[enums_name] = {
-            'name': enums_name,
             'ctype': ctype,
-            'values': {}
+            'alias': {},
+            'values': {},
+            'items': {}
         }
+        for attr_name, attr_value in enums_node.attributes.items():
+            definition[f'@{attr_name}'] = attr_value
         for enum_node in enums_node.get_all('enum'):
             RegistryParseError.check(enum_node.has_attribute('name'))
             enum_name = enum_node.get_attribute('name')
             if enum_node.has_attribute('alias'):
                 RegistryParseError.check(enum_name not in self.alias)
                 self.alias[enum_name] = enum_node.get_attribute('alias')
-                return
+                definition['alias'][enum_name] = enum_node.get_attribute('alias')
+                continue
             value = self._get_enum_value(enum_node)
             RegistryParseError.check(enum_name not in self.value_map)
             RegistryParseError.check(enum_name not in self.bitmask_value_map)
             RegistryParseError.check(enum_name not in definition['values'])
+            RegistryParseError.check(enum_name not in definition['items'])
+            item_definition = {
+                'value': value
+            }
+            for attr_name, attr_value in enum_node.attributes.items():
+                item_definition[f'@{attr_name}'] = attr_value
             definition['values'][enum_name] = value
+            definition['items'][enum_name] = item_definition
             self.value_map[enum_name] = value
             self.bitmask_value_map[enum_name] = enums_name
 
@@ -448,6 +467,9 @@ class RegistryParser:
                 RegistryParseError.check(name not in self.alias)
                 self.alias[name] = enum_node.get_attribute('alias')
                 continue
+            definition = dict()
+            for attr_name, attr_value in enums_node.attributes.items():
+                definition[f'@{attr_name}'] = attr_value
             RegistryParseError.check(enum_node.has_attribute('type'))
             RegistryParseError.check(enum_node.has_attribute('value'))
             RegistryParseError.check(name not in self.value_map)
@@ -456,6 +478,8 @@ class RegistryParser:
             value = enum_node.get_attribute('value')
             value = self._parse_enum_value(value)
             value = eval(self.ctypes[ctype])(value).value
+            definition['value'] = value
+            self.const_map[name] = definition
             self.value_map[name] = value
 
     def _get_enum_value(self, node):
@@ -494,6 +518,18 @@ class RegistryParser:
                 value = -value
             return value
         return None
+
+    def _parse_structs(self):
+        self.parse_enums()
+        for xml in self.xml:
+            for types_node in xml.get_all('types'):
+                for type_node in xml.get_all('type'):
+                    if type_node.get_attribute('category') == 'struct':
+                        self._parse_struct(node)
+        self.parse_structs = self._parse_noop
+
+    def _parse_struct(self, node):
+        pass
     
     def _preprocess_children_ast(self, parent_node):
         has_substitution = False
