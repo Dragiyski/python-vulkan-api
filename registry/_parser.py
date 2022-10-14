@@ -29,10 +29,16 @@ class RegistryParser:
         from ._platform import basic_ctypes, platform_ctypes
         self.xml = [parse_xml(file, is_file=True) for file in files]
         self.ctypes = {**basic_ctypes, **platform_ctypes}
+        self.foreign_ctypes = set()
         self.alias = {}
 
         class CSparseParser(CParser):
             def _lex_type_lookup_func(parser, name):
+                name = self._resolve_alias(name)
+                if name.startswith('PFN_'):
+                    return True
+                if name in self.foreign_ctypes:
+                    return True
                 return name in self.ctypes
 
         class Code(c_ast.Node):
@@ -155,6 +161,15 @@ class RegistryParser:
                 # All base types must be resolved
                 RegistryParseError.check(typedef['ctype'] in self.ctypes)
                 self.ctypes[name] = self.ctypes[typedef['ctype']]
+
+        for xml in self.xml:
+            for types_node in xml.get_all('types'):
+                for type_node in types_node.get_all('type'):
+                    if type_node.get_attribute('category') in ['basetype', None] and type_node.has_attribute('name'):
+                        name = type_node.get_attribute('name')
+                        if name not in self.ctypes:
+                            self.foreign_ctypes.add(name)
+
         self.parse_basetype_nodes = self._parse_noop
         return self
 
@@ -205,6 +220,8 @@ class RegistryParser:
         RegistryParseError.check(name not in self.ctypes)
         RegistryParseError.check(name not in self.bitmask_map)
         self.ctypes[name] = self.ctypes[definition['ctype']]
+        if name in self.foreign_ctypes:
+            self.foreign_ctypes.remove(name)
         self.bitmask_map[name] = definition
 
     def _parse_basetype_node(self, node):
@@ -249,6 +266,9 @@ class RegistryParser:
                 ctype = definition['ctype']
             if ctype in self.ctypes:
                 self.ctypes[name] = self.ctypes[ctype]
+        
+        if name in self.foreign_ctypes:
+            self.foreign_ctypes.remove(name)
         self.basetype_map[name] = definition
 
     def _parse_handle_type_node(self, node):
@@ -391,6 +411,8 @@ class RegistryParser:
         # Currently the XML does not specify type of enums, they all seems to fallback to the default type: int
         # This does not apply to <enums> of type bitmask
         ctype = self.ctypes[enums_name] = 'ctypes.c_int'
+        if enums_name in self.foreign_ctypes:
+            self.foreign_ctypes.remove(enums_name)
         definition = self.enum_map[enums_name] = {
             'ctype': ctype,
             'alias': {},
@@ -428,6 +450,8 @@ class RegistryParser:
         # Currently the XML does not specify type of enums, they all seems to fallback to the default type: int
         # This does not apply to <enums> of type bitmask
         ctype = self.ctypes[enums_name] = 'ctypes.c_uint64' if enums_node.get_attribute('bitwidth') == 64 else 'ctypes.c_uint32'
+        if enums_name in self.foreign_ctypes:
+            self.foreign_ctypes.remove(enums_name)
         definition = self.bitmask_bit_map[enums_name] = {
             'ctype': ctype,
             'alias': {},
@@ -521,20 +545,182 @@ class RegistryParser:
 
     def _parse_structs(self):
         self.parse_enums()
+        self.parse_handle_type_nodes()
         for xml in self.xml:
             for types_node in xml.get_all('types'):
-                for type_node in xml.get_all('type'):
-                    if type_node.get_attribute('category') == 'struct':
-                        self._parse_struct(node)
+                for type_node in types_node.get_all('type'):
+                    if type_node.get_attribute('category') in ['struct', 'union']:
+                        self._parse_struct(type_node)
+        for struct_name, struct_definition in self.struct_map.items():
+            self._resolve_struct_members(struct_name, struct_definition)
         self.parse_structs = self._parse_noop
 
     def _parse_struct(self, struct_node):
+        # <type category="struct/union"> attributes: {'alias', 'returnedonly', 'category', 'allowduplicate', 'comment', 'structextends', 'name'}
+        # <member> attributes: {'objecttype', 'limittype', 'values', 'optional', 'len', 'altlen', 'selector', 'externsync', 'noautovalidity'}
+        # <member> children: {'enum', 'type', 'comment', 'name'}
+
+        # struct.@returnedonly - an indicator that the given struct is only used as out parameter. The app never need to initialize such structure.
+        # struct.@structextends and structs.@allowduplicate provides semantics of pNext chain. Can be used in validation, but not necessarily.
+
+        # member.@noautovalidity, member.@limittype, member.@externsync, member.@optional - define semantic checks
+        # member.@len/member.@altlen: specify that the member is an array with length specified in the property defined by @len
+        # In C arrays are defined by two properties: pointer to the first element and length.
+        # The structure will contain two members defining the array, where the pointer to first element member will
+        # have @len attribute specifying the length property.
+        # In certain cases @len can define more complex expression, which is defined as latexmath. In such case, equivalent
+        # C expression will be provided in @altlen
+
+        # member.@selector - specify another member that selects this member type:
+        # Usually the member specified here is of type <type category="uinon"> in a semantic similar to std::variant<types...> in C++
+        # A member can be one different types (including structures) onto a single memory location. Which type is used is determined
+        # by an enum value specified in the @selector.
         RegistryParseError.check(struct_node.has_attribute('name'))
         struct_name = struct_node.get_attribute('name')
         if struct_node.has_attribute('alias'):
             RegistryParseError.check(struct_name not in self.alias)
             self.alias[struct_name] = struct_node.get_attribute('alias')
             return
+        RegistryParseError.check(struct_name not in self.ctypes)
+        RegistryParseError.check(struct_name not in self.struct_map)
+        code = ['%s %s {' % (struct_node.get_attribute('category'), struct_name)]
+        struct_definition = self.struct_map[struct_name] = {
+            'member_map': {},
+            'member_list': [],
+            'has_callback': False,
+            'has_self': False,
+            'requires': set()
+        }
+        for attr_name, attr_value in struct_node.attributes.items():
+            struct_definition[f'@{attr_name}'] = attr_value
+        for member_node in struct_node.get_all('member'):
+            RegistryParseError.check('name' in member_node.children)
+            member_name = member_node.get('name').get_text()
+            member_definition = {
+                'ref_type': 'value'
+            }
+            for attr_name, attr_value in member_node.attributes.items():
+                member_definition[f'@{attr_name}'] = attr_value
+            RegistryParseError.check(member_name not in struct_definition['member_map'])
+            struct_definition['member_map'][member_name] = member_definition
+            line = []
+            for child in member_node.child_nodes:
+                if child.node_type == 'text':
+                    line.append(child.node_value)
+                elif child.node_name == 'comment':
+                    continue # Skip comment nodes
+                elif child.node_name == 'enum':
+                    value_name = child.get_text()
+                    RegistryParseError.check(value_name in self.value_map)
+                    value = self.value_map[value_name]
+                    RegistryParseError.check(type(value) in [int, float])
+                    line.append(str(value))
+                else:
+                    line.append(child.get_text())
+            code.append('    %s;' % (''.join(line)))
+        code.append('};')
+        code = '\n'.join(code)
+        struct_definition['code'] = code
+        self.struct_map[struct_name] = struct_definition
+        if struct_node.get_attribute('category') == 'struct':
+            ctype = 'ctypes.Structure'
+        elif struct_node.get_attribute('category') == 'union':
+            ctype = 'ctypes.Union'
+        else:
+            raise RegistryParseError('Structure type must be either "struct" or "union", got: %s' % struct_node.get_attribute('category'))
+        self.ctypes[struct_name] = {
+            'type': ctype,
+            'fields': []
+        }
+        if struct_name in self.foreign_ctypes:
+            self.foreign_ctypes.remove(struct_name)
+
+    def _resolve_struct_members(self, struct_name, struct_definition):
+        code = struct_definition['code']
+        ast = self.cparser.parse(code)
+        assert len(ast.ext) == 1
+        assert type(ast.ext[0].type) in [c_ast.Struct, c_ast.Union]
+        c_struct = ast.ext[0].type
+        ctypedef = self.ctypes[struct_name]
+        assert isinstance(ctypedef, dict)
+        assert c_struct.name == struct_name
+        for c_struct_decl in c_struct.decls:
+            decl_name = c_struct_decl.name
+            ctype_stack = []
+            assert decl_name in struct_definition['member_map']
+            member_definition = struct_definition['member_map'][decl_name]
+            c_type_decl = c_struct_decl.type
+            while True:
+                if type(c_type_decl) == c_ast.TypeDecl:
+                    if c_type_decl.align is not None:
+                        raise NotImplementedError('C struct individual member alignment is not supproted by ctypes')
+                    c_type_decl_type = c_type_decl.type
+                    if type(c_type_decl_type) == c_ast.IdentifierType:
+                        c_type_name = self._resolve_alias(' '.join(c_type_decl_type.names))
+                        if c_type_name.startswith('PFN_'):
+                            funcptr_name = c_type_name[4:]
+                            struct_definition['requires'].add(funcptr_name)
+                            ctype_stack.append('ctypes.POINTER(%s)')
+                            ctype_stack.append(funcptr_name)
+                        elif c_type_name in self.foreign_ctypes:
+                            RegistryParseError.check(len(ctype_stack) > 0 and ctype_stack[-1] == 'ctypes.POINTER(%s)')
+                            ctype_stack.pop()
+                            ctype_stack.append('ctypes.c_void_p')
+                        else:
+                            RegistryParseError.check(c_type_name in self.ctypes)
+                            if isinstance(self.ctypes[c_type_name], str):
+                                ctype_stack.append(self.ctypes[c_type_name])
+                            elif self.ctypes[c_type_name] is not None:
+                                RegistryParseError.check(c_type_name in self.struct_map)
+                                struct_definition['requires'].add(c_type_name)
+                                ctype_stack.append(c_type_name)
+                            else:
+                                RegistryParseError.check(len(ctype_stack) > 0 and ctype_stack[-1] == 'ctypes.POINTER(%s)')
+                                ctype_stack.pop()
+                                ctype_stack.append('ctypes.c_void_p')
+                    elif type(c_type_decl_type) == c_ast.Struct:
+                        # There shouldn't be any inlined structs in the type declaration
+                        RegistryParseError.check(c_type_decl_type.decls is None)
+                        member_struct_name = self._resolve_alias(c_type_decl_type.name)
+                        if member_struct_name in self.ctypes:
+                            ctype_stack.append(member_struct_name)
+                            if c_type_decl_type.name == struct_name or member_struct_name == struct_name:
+                                struct_definition['has_self'] = True
+                            struct_definition['requires'].add(member_struct_name)
+                        else:
+                            # Pointer to unknown structure fallbacks to void*
+                            # Platform specific structures "ANativeWindow" (Android) will be unknown in the registry,
+                            # defined as basetype incoming from a specific C header.
+                            # It is up to the app to handle those cases (potentially giving the pointer value to another FFI)
+                            RegistryParseError.check(len(ctype_stack) > 0 and ctype_stack[-1] == 'ctypes.POINTER(%s)')
+                            ctype_stack.pop()
+                            ctype_stack.append('ctypes.c_void_p')
+                    else:
+                        raise NotImplementedError('Declaration of type %s not supported, yet' % (type(c_type_decl_type).__name__))
+                    break
+                elif type(c_type_decl) == c_ast.PtrDecl:
+                    is_pointer = True
+                    ctype_stack.append('ctypes.POINTER(%s)')
+                    c_type_decl = c_type_decl.type
+                elif type(c_type_decl) == c_ast.ArrayDecl:
+                    is_pointer = False # Array of pointers is not a pointer
+                    length = self._get_python_value_for_c_ast(c_type_decl.dim)
+                    assert isinstance(length, int)
+                    ctype_stack.append(f'ctypes.ARRAY(%s, {length})')
+                    c_type_decl = c_type_decl.type
+                else:
+                    raise NotImplementedError('Declaration of type %s not supported, yet' % (type(c_type_decl).__name__))
+            ctype = ctype_stack.pop()
+            while len(ctype_stack) > 0:
+                next_ctype = ctype_stack.pop()
+                ctype = next_ctype % ctype
+            if c_struct_decl.bitsize is not None:
+                bitsize = self._get_python_value_for_c_ast(c_struct_decl.bitsize)
+                RegistryParseError.check(isinstance(bitsize, int))
+                field = (decl_name, ctype, bitsize)
+            else:
+                field = (decl_name, ctype)
+            ctypedef['fields'].append(field)
 
     def _preprocess_children_ast(self, parent_node):
         has_substitution = False

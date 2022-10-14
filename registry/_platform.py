@@ -29,7 +29,6 @@ basic_ctypes = {
     'long int': 'ctypes.c_long',
     'short': 'ctypes.c_short',
     'short int': 'ctypes.c_short',
-    'char': 'ctypes.c_byte',
     'long long': 'ctypes.c_longlong',
     'long long int': 'ctypes.c_longlong'
 }
