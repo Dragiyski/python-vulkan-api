@@ -23,6 +23,7 @@ class RegistryParseError(RuntimeError):
                     raise cls(match.group(1)).with_traceback(tb)
             raise cls('RegistryParseError.check() failed')
 
+
 class RegistryParser:
     def __init__(self, *files):
         from ._platform import basic_ctypes, platform_ctypes
@@ -33,12 +34,13 @@ class RegistryParser:
         class CSparseParser(CParser):
             def _lex_type_lookup_func(parser, name):
                 return name in self.ctypes
-            
+
         class Code(c_ast.Node):
             __slots__ = ('code', 'coord', '__weakref__')
+
             def __init__(self, code):
                 self.code = code
-                
+
         def visit_Code(node):
             return node.code
 
@@ -60,7 +62,6 @@ class RegistryParser:
         self.bitmask_value_map = {}
         self.struct_map = {}
         self.const_map = {}
-        self.struct_map = {}
         self.command_map = {}
         self.parse_basetype_nodes = self._parse_basetypes_nodes
         self.parse_bitmask_type_nodes = self._parse_bitmask_type_nodes
@@ -116,7 +117,7 @@ class RegistryParser:
                     'index': arg_index,
                     'name': entry
                 })
-                
+
             RegistryParseError.check(name not in self.macro_args_map)
             self.macro_args_map[name] = {
                 'name': name,
@@ -126,7 +127,7 @@ class RegistryParser:
         else:
             RegistryParseError.check(name not in self.macro_no_args_map)
             self.macro_no_args_map[name] = match.group(2)
-            
+
     def _generate_define_code(self, name, args):
         RegistryParseError.check(name in self.macro_args_map)
         macro = self.macro_args_map[name]
@@ -140,7 +141,6 @@ class RegistryParser:
                 assert isinstance(part, dict)
                 code.append(args[part['index']])
         return ''.join(code)
-        
 
     def _parse_basetypes_nodes(self):
         for xml in self.xml:
@@ -528,9 +528,14 @@ class RegistryParser:
                         self._parse_struct(node)
         self.parse_structs = self._parse_noop
 
-    def _parse_struct(self, node):
-        pass
-    
+    def _parse_struct(self, struct_node):
+        RegistryParseError.check(struct_node.has_attribute('name'))
+        struct_name = struct_node.get_attribute('name')
+        if struct_node.has_attribute('alias'):
+            RegistryParseError.check(struct_name not in self.alias)
+            self.alias[struct_name] = struct_node.get_attribute('alias')
+            return
+
     def _preprocess_children_ast(self, parent_node):
         has_substitution = False
         for name, child_node in parent_node.children():
@@ -547,7 +552,7 @@ class RegistryParser:
             has_substitution_new = self._preprocess_children_ast(child_node)
             has_substitution = has_substitution or has_substitution_new
         return has_substitution
-    
+
     def _preprocess_c_code(self, code):
         ast = self.cparser.parse(code)
         while self._preprocess_children_ast(ast):
