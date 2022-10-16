@@ -3,7 +3,7 @@ import sys
 import ctypes
 from ._xml_parser import parse_xml, Node, get_error_prefix
 from ._platform import handle_ctypes, basic_ctypes
-from pycparser import CParser, c_generator, c_ast
+from pycparser import CParser, c_generator, c_ast, c_lexer
 
 
 class RegistryParseError(RuntimeError):
