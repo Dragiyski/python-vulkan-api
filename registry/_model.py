@@ -7,7 +7,7 @@ from pycparser import CParser, c_generator, c_ast
 
 
 class Model:
-    def XmlSyntaxError(RuntimeError):
+    def XmlParseError(RuntimeError):
         pass
 
     def __init__(self, *files):
@@ -39,7 +39,10 @@ class Model:
                     if types_type_node.get_attribute('category') == 'basetype':
                         if 'name' not in types_type_node.children:
                             continue
-                        self.basetype_map[types_type_node.get('name')] = {
+                        name = types_type_node.get('name')
+                        if name in self.basetype_map:
+                            raise Model.XmlParseError('Duplicate entry "%s" for %s in %s' % (name, 'basetype', make_path(types_type_node)))
+                        self.basetype_map[name] = {
                             'name': types_type_node.get('name'),
                             'node': types_type_node
                         }
@@ -47,7 +50,10 @@ class Model:
                     if types_type_node.get_attribute('category') == 'define':
                         if 'name' not in types_type_node.children:
                             continue
-                        self.macro_map[types_type_node.get('name')] = {
+                        name = types_type_node.get('name')
+                        if name in self.macro_map:
+                            raise Model.XmlParseError('Duplicate entry "%s" for %s in %s' % (name, 'define', make_path(types_type_node)))
+                        self.macro_map[name] = {
                             'name': types_type_node.get('name'),
                             'node': types_type_node
                         }
@@ -55,11 +61,11 @@ class Model:
                     if types_type_node.get_attribute('category') == 'bitmask':
                         if types_type_node.has_attribute('alias'):
                             if not types_type_node.has_attribute('name'):
-                                raise Model.XmlSyntaxError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
+                                raise Model.XmlParseError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
                             self.alias_map[types_type_node.get_attribute('name')] = types_type_node.get_attribute('alias')
                             continue
                         if 'name' not in types_type_node.children:
-                            raise Model.XmlSyntaxError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
+                            raise Model.XmlParseError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
                         name = types_type_node.get_attribute('name')
                         self.bitmask_map[name] = {
                             'name': name,
@@ -69,12 +75,14 @@ class Model:
                     if types_type_node.get_attribute('category') == 'handle':
                         if types_type_node.has_attribute('alias'):
                             if not types_type_node.has_attribute('name'):
-                                raise Model.XmlSyntaxError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
+                                raise Model.XmlParseError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
                             self.alias_map[types_type_node.get_attribute('name')] = types_type_node.get_attribute('alias')
                             continue
                         if 'name' not in types_type_node.children:
-                            raise Model.XmlSyntaxError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
+                            raise Model.XmlParseError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
                         name = types_type_node.get('name').get_text()
+                        if name in self.handle_map:
+                            raise Model.XmlParseError('Duplicate entry "%s" for %s in %s' % (name, 'handle', make_path(types_type_node)))
                         self.handle_map[name] = {
                             'name': name,
                             'node': types_type_node
@@ -83,11 +91,13 @@ class Model:
                     if types_type_node.get_attribute('category') == 'enum':
                         if types_type_node.has_attribute('alias'):
                             if not types_type_node.has_attribute('name'):
-                                raise Model.XmlSyntaxError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
+                                raise Model.XmlParseError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
                             self.alias_map[types_type_node.get_attribute('name')] = types_type_node.get_attribute('alias')
                             continue
                         if not types_type_node.has_attribute('name'):
-                            raise Model.XmlSyntaxError('Missing required attribute @%s in %s' % ('name', make_path(types_type_node)))
+                            raise Model.XmlParseError('Missing required attribute @%s in %s' % ('name', make_path(types_type_node)))
+                        if name in self.handle_map:
+                            raise Model.XmlParseError('Duplicate entry "%s" for %s in %s' % (name, 'enum', make_path(types_type_node)))
                         name = types_type_node.get_attribute('name')
                         self.enum_map[name] = {
                             'name': name,
@@ -97,11 +107,11 @@ class Model:
                     if types_type_node.get_attribute('category') == 'funcpointer':
                         if types_type_node.has_attribute('alias'):
                             if not types_type_node.has_attribute('name'):
-                                raise Model.XmlSyntaxError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
+                                raise Model.XmlParseError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
                             self.alias_map[types_type_node.get_attribute('name')] = types_type_node.get_attribute('alias')
                             continue
                         if 'name' not in types_type_node.children:
-                            raise Model.XmlSyntaxError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
+                            raise Model.XmlParseError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
                         name = types_type_node.get('name').get_text()
                         self.handle_map[name] = {
                             'name': name,
@@ -111,11 +121,11 @@ class Model:
                     if types_type_node.get_attribute('category') in ['struct', 'union']:
                         if types_type_node.has_attribute('alias'):
                             if not types_type_node.has_attribute('name'):
-                                raise Model.XmlSyntaxError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
+                                raise Model.XmlParseError('Missing required attribute @%s for @alias="%s" in %s' % ('name', types_type_node.get_attribute('alias'), make_path(types_type_node)))
                             self.alias_map[types_type_node.get_attribute('name')] = types_type_node.get_attribute('alias')
                             continue
                         if not types_type_node.has_attribute('name'):
-                            raise Model.XmlSyntaxError('Missing required attribute @%s in %s' % ('name', make_path(types_type_node)))
+                            raise Model.XmlParseError('Missing required attribute @%s in %s' % ('name', make_path(types_type_node)))
                         name = types_type_node.get_attribute('name')
                         class_name = 'ctypes.Structure' if types_type_node.get_attribute('category') == 'struct' else 'ctypes.Union'
                         struct = self.struct_map[name] = {
@@ -125,8 +135,8 @@ class Model:
                             'member_list': []
                         }
                         for member_node in types_type_node.get_all('member'):
-                            if 'name' not in types_type_node.children:
-                                raise Model.XmlSyntaxError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
+                            if 'name' not in member_node.children:
+                                raise Model.XmlParseError('Missing required element <%s> in %s' % ('name', make_path(types_type_node)))
                             member_name = member_node.get('name').get_text()
                             member = {
                                 'name': member_name,
@@ -142,7 +152,7 @@ class Model:
                     # List of constants: in this case enums node is meaningless, the constants itself define the values
                     for enum_node in enums_node.get_all('enum'):
                         if not enum_node.has_attribute('name'):
-                                raise Model.XmlSyntaxError('Missing required attribute @%s in %s' % ('name', make_path(enum_node)))
+                                raise Model.XmlParseError('Missing required attribute @%s in %s' % ('name', make_path(enum_node)))
                         name = enum_node.get_attribute('name')
                         if enum_node.has_attribute('alias'):
                             self.alias_map[name] = enum_node.get_attribute('alias')
@@ -151,15 +161,15 @@ class Model:
                             'name': name,
                             'node': enum_node
                         }
-                        continue
+                    continue
                 elif enums_node.get_attribute('type') == 'enum':
                     target_map = self.enum_value_map
                 elif enums_node.get_attribute('type') == 'bitmask':
                     target_map = self.bitmask_value_map
                 else:
-                    raise Model.XmlSyntaxError('Unknown enums @type "%s" in %s' % (enums_node.get_attribute('type'), make_path(enums_node)))
+                    raise Model.XmlParseError('Unknown enums @type "%s" in %s' % (enums_node.get_attribute('type'), make_path(enums_node)))
                 if not enums_node.has_attribute('name'):
-                    raise Model.XmlSyntaxError('Missing required attribute @%s in %s' % ('name', make_path(enums_node)))
+                    raise Model.XmlParseError('Missing required attribute @%s in %s' % ('name', make_path(enums_node)))
                 enums_name = enums_node.get_attribute('name')
                 enums_entry = target_map[enums_name] = {
                     'name': enums_name,
@@ -168,7 +178,7 @@ class Model:
                 }
                 for enum_node in enums_node.get_all('enum'):
                     if not enum_node.has_attribute('name'):
-                        raise Model.XmlSyntaxError('Missing required attribute @%s in %s' % ('name', make_path(enum_node)))
+                        raise Model.XmlParseError('Missing required attribute @%s in %s' % ('name', make_path(enum_node)))
                     enum_name = enum_node.get_attribute('name')
                     if enum_node.has_attribute('alias'):
                         self.alias_map[enum_name] = enum_node.get_attribute('alias')

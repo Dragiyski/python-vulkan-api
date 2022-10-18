@@ -3,6 +3,7 @@ import os
 import urllib.parse
 from setuptools import Command
 from ._parser import RegistryParser
+from ._model import Model
 
 repository_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
 
@@ -43,6 +44,5 @@ class GenerateVulkanTypeValidationFiles(Command):
         from pprint import pformat
         files = update(self.vk_directory)
         print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)))
-        parser = RegistryParser(*[x for x in files if str(x).endswith('.xml')])
-        parser.parse_structs()
+        parser = Model(*[x for x in files if str(x).endswith('.xml')])
         j = 0
