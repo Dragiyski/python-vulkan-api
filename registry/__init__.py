@@ -2,15 +2,13 @@ import pathlib
 import os
 import urllib.parse
 from setuptools import Command
-from ._parser import RegistryParser
-from ._model import Model
+from .generator import Generator
 
 repository_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
 
 setup_files = [
-    'registry/vk.xml',  # The main registry, containing the basic structure data;
+    'registry/vk.xml',  # The main registry, containing the basic structure data
     'registry/video.xml',  # The supplementary registry for video encode/decode
-    'include/vulkan/vk_platform.h',  # Header containing the calling convention for the C functions
 ]
 
 
@@ -44,5 +42,7 @@ class GenerateVulkanTypeValidationFiles(Command):
         from pprint import pformat
         files = update(self.vk_directory)
         print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)))
-        parser = Model(*[x for x in files if str(x).endswith('.xml')])
+        generator = Generator()
+        for file in files:
+            generator.add_xml_file(file)
         j = 0
