@@ -1,6 +1,6 @@
 import re
 from .xml_parser import Node, parse_xml
-from .code import get_preprocessor_lines
+from .code import get_preprocessor_lines, CParser, CPreprocessor
 from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map
 
 class GeneratorError(RuntimeError):
@@ -9,11 +9,15 @@ class GeneratorError(RuntimeError):
         self.__dict__.update(**kwargs)
 
 class Generator:
+
     def __init__(self):
         self.ctype_map = {**basic_ctypes, **platform_ctypes}
         self.object_macro_map = dict(object_macro_map)
         self.func_macro_map = dict(func_macro_map)
         self.root_nodes = []
+        self.alias_map = {}
+        self.cparser = CParser()
+        self.cpreprocessor = CPreprocessor()
         
     def add_xml_file(self, file):
         root_node = parse_xml(file, is_file=True)
@@ -25,10 +29,14 @@ class Generator:
                     if type_node.has_attribute('name'):
                         name = type_node.get_attribute('name')
                     elif 'name' in type_node.children:
+                        if len(type_node.children['name']) > 1:
+                            raise GeneratorError('In <registry>/<types>/<type category="define">: multiple name childrens', node=type_node)
                         name = type_node.get('name').get_text()
                     else:
                         raise GeneratorError('In <registry>/<types>/<type category="define">: missing name', node=type_node)
                     if name not in self.object_macro_map and name not in self.func_macro_map:
+                        code = type_node.get_text()
+                        ast = self.cpreprocessor.process(code)
                         code = get_preprocessor_lines(type_node.get_text())
                         if len(code) > 1:
                             raise GeneratorError('In <registry>/<types>/<type category="define">: unable to parse define node')
@@ -74,3 +82,21 @@ class Generator:
                             if object_macro is None:
                                 raise GeneratorError('In <registry>/<types>/<type category="define">: unable to parse define node')
                             self.object_macro_map[object_macro.group(1)] = object_macro.group(2)
+                
+                elif type_node.get_attribute('category') == 'basetype':
+                    if type_node.has_attribute('alias'):
+                        name = type_node.get_attribute('name')
+                        if name is None:
+                            raise GeneratorError('In <registry>/<types>/<type category="basetype" alias>: Missing attribute @name', node=type_node)
+                        alias = type_node.get_attribute('alias')
+                        if name in self.alias_map:
+                            if self.alias_map[name] != alias:
+                                raise GeneratorError('In <registry>/<types>/<type category="basetype" alias>: Duplicate alias "%s" of "%s", previously declared of "%s"' % (name, alias, self.alias_map[name]), node=type_node)
+                        else:
+                            self.alias_map[name] = alias
+                    else:
+                        if 'name' not in type_node.children:
+                            raise GeneratorError('In <registry>/<types>/<type category="basetype">: Missing child <name>')
+                        elif len(type_node.children['name']) > 1:
+                            raise GeneratorError('In <registry>/<types>/<type category="basetype">: Duplicate child <name>')
+                        name = type_node.get('name').get_text()

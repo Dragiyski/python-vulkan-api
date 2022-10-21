@@ -25,7 +25,7 @@ class CType(dict):
         return '<CType>'
     
 class IncompleteType(CType):
-    def __repr__(self):
+    def __repr__(self, node):
         return '<CType Incomplete>'
 
 class CPlainType(CType):

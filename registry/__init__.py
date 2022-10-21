@@ -42,7 +42,28 @@ class GenerateVulkanTypeValidationFiles(Command):
         from pprint import pformat
         files = update(self.vk_directory)
         print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)))
-        generator = Generator()
-        for file in files:
-            generator.add_xml_file(file)
+        # generator = Generator()
+        # for file in files:
+        #    generator.add_xml_file(file)
+        from .code import CPreprocessor
+        preprocessor = CPreprocessor()
+        code = """#ifndef VK_DEFINE_NON_DISPATCHABLE_HANDLE
+    #if (VK_USE_64_BIT_PTR_DEFINES==1)
+        #if (defined(__cplusplus) && (__cplusplus >= 201103L)) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201103L))
+            #define VK_NULL_HANDLE nullptr
+            if (some > conditional) {
+                code;
+            }
+        #else
+            #define VK_NULL_HANDLE \\
+                ((void*)0)
+        #endif
+    #else
+        #define VK_NULL_HANDLE 0ULL
+    #endif
+#endif
+#ifndef VK_NULL_HANDLE
+    #define VK_NULL_HANDLE 0
+#endif"""
+        preprocessor.process(code)
         j = 0
