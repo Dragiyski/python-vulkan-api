@@ -23,10 +23,12 @@ class CType(dict):
 
     def __repr__(self):
         return '<CType>'
-    
+
+
 class IncompleteType(CType):
     def __repr__(self, node):
         return '<CType Incomplete>'
+
 
 class CPlainType(CType):
     def __init__(self, ctype):
@@ -40,7 +42,7 @@ class CPlainType(CType):
         self._ctype = ctype
         self.__pointer = None
 
-    def to_source(self, prefix='ctypes.'):
+    def to_source(self, *args, prefix='ctypes.', **kwargs):
         return '%s%s' % (prefix, self._ctype)
 
     def make_python_value(self, value):
@@ -74,8 +76,8 @@ class CPointerType(CIntType):
             raise ValueError('Pointer type must be made from another CType')
         self._ctype = ctype
 
-    def to_source(self, prefix='ctypes.'):
-        return '%s%s(%s)' % (prefix, 'POINTER', self._ctype.to_source())
+    def to_source(self, *args, prefix='ctypes.', **kwargs):
+        return '%s%s(%s)' % (prefix, 'POINTER', self._ctype.to_source(*args, prefix=prefix, **kwargs))
 
     def to_python_type(self):
         return int
@@ -88,20 +90,36 @@ class CPointerType(CIntType):
 
 
 class CComplexType(CType):
-    def __init__(self, name: str, ctype: str):
-        if ctype not in ['Structure', 'Union']:
-            raise ValueError('The ctype of complex type must be either "Structure" or "Union"')
-        self._ctype = ctype
+    def __init__(self, name: str, constructor: str):
+        if constructor not in ['Structure', 'Union']:
+            raise ValueError('The constructor of complex type must be either "Structure" or "Union", got "%s"' % constructor)
+        self._constructor = constructor
         self._name = name
+        self.member_list = []
+        self.member_map = {}
 
     def to_source(self):
         return self._name
 
     def ctype(self):
-        return getattr(ctypes, self._ctype)
+        return getattr(ctypes, self._constructor)
 
     def __repr__(self):
-        return "<CType %s(%s)>" % (self._ctype, self._name)
+        return "<CType %s(%s)>" % (self._constructor, self._name)
+
+
+class CFunctionPointerType(CType):
+    def __init__(self, name: str):
+        self._name = name
+        self.constructor = 'CFUNCTION'
+        self.return_type = None
+        self.argument_types = []
+
+    def to_source(self):
+        return self._name
+
+    def __repr__(self):
+        return "<CType %s(%s)>" % ('Function', self._name)
 
 
 class CBooleanType(CPlainType):
@@ -241,6 +259,9 @@ func_macro_map = {
         'template': ['typedef struct ', {'name': 'object', 'index': 0}, '_T* ', {'name': 'object', 'index': 0}, ';']
     }
 }
+handle_type_map = {
+    'VK_DEFINE_HANDLE': ctypes_map['c_void_p']
+}
 
 # vk.xml has preprocessor macros in <types>/<type category="define">
 # Some of those are complex macros meant to run in a C preprocessor depending on:
@@ -251,6 +272,7 @@ func_macro_map = {
 if ctypes.sizeof(ctypes.c_void_p) == 8:
     object_macro_map['VK_USE_64_BIT_PTR_DEFINES'] = '(1)'
     object_macro_map['VK_NULL_HANDLE'] = '((void*)0)'
+    handle_type_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = ctypes_map['c_void_p']
     func_macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = {
         'arguments': ['object'],
         'template': [
@@ -273,6 +295,7 @@ else:
     object_macro_map['VK_USE_64_BIT_PTR_DEFINES'] = '(0)'
     object_macro_map['VK_NULL_HANDLE'] = '(0ULL)'
     func_macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE']
+    handle_type_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = ctypes_map['c_uint64']
     macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = {
         'arguments': ['object'],
         'template': ['typedef uint64_t ', {'name': 'object', 'index': 0, 'string': False}, ';']
