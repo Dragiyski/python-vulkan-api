@@ -46,7 +46,7 @@ class CPlainType(CType):
         return '%s%s' % (prefix, self._ctype)
 
     def make_python_value(self, value):
-        return getattr(ctypes, self.ctype)(value).value
+        return getattr(ctypes, self._ctype)(value).value
 
     def ctype(self):
         return getattr(ctypes, self._ctype)

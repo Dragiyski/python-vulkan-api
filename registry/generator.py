@@ -10,6 +10,15 @@ class GeneratorError(RuntimeError):
         self.__dict__.update(**kwargs)
 
 class Generator:
+    class Code(c_ast.Node):
+            __slots__ = ('code', 'coord', '__weakref__')
+
+            def __init__(self, code):
+                self.code = code
+    
+    class CGenerator(pycparser.c_generator.CGenerator):
+        def visit_Code():
+            return node.code
 
     def __init__(self):
         self.ctypes_map = {**basic_ctypes, **platform_ctypes}
@@ -31,6 +40,7 @@ class Generator:
         self.callback_map = {}
         self.value_map = {}
         self.cparser = CParser()
+        self.cgenerator = CGenerator()
         
     def add_xml_file(self, file):
         root_node = parse_xml(file, is_file=True)
@@ -320,12 +330,101 @@ class Generator:
         # i.e. <enum>VK_STRUCTURE_TYPE_APPLICATION_INFO</enum> instead of <enum>VkStructureType.VK_STRUCTURE_TYPE_APPLICATION_INFO</enum>
         
         for enums_node in root_node.get_all('enums'):
+            if not enums_node.has_attribute('name'):
+                raise GeneratorError('In <registry>/<types>/<enums>: Missing attribute @name')
+            enums_name = enums_node.get_attribute('name')
             enums_type = enums_node.get_attribute('type')
             target_map = None
             if enums_type == 'enum':
                 target_map = self.enum_map
             elif enums_type == 'bitmask':
                 target_map = self.bitmask_map
-            if target_map is None:
-                # This enum contains constant values
-                pass
+            elif enums_type is None:
+                for enum_node in enums_node.get_all('enum'):
+                    enum_name = enum_node.get_attribute('name')
+                    if enum_name is None:
+                        raise GeneratorError('In <registry>/<types>/<enums name="%s">/<enum name="%s">: Missing attribute @name' % (enums_name, enum_name))
+                    if enum_node.has_attribute('alias'):
+                        alias = enum_node.get_attribute('alias')
+                        if enum_name in self.alias_map:
+                            if self.alias_map[enum_name] != alias:
+                                raise GeneratorError('In <registry>/<types>/<enums name="%s">/<enum name="%s" alias>: Duplicate alias "%s" of "%s", previously declared of "%s"' % (enums_name, enum_name, enum_name, alias, self.alias_map[enum_name]), node=type_node)
+                        else:
+                            self.alias_map[enum_name] = alias
+                    else:
+                        ctype = enum_node.get_attribute('type')
+                        if ctype is None:
+                            raise GeneratorError('In <registry>/<types>/<enums name="%s">/<enum name="%s">: Missing attribute @type' % (enums_name, enum_name))
+                        value = enum_node.get_attribute('value')
+                        if ctype is None:
+                            raise GeneratorError('In <registry>/<types>/<enums name="%s">/<enum name="%s">: Missing attribute @value' % (enums_name, enum_name))
+                        value = self.get_c_constant_value(ctype, value)
+            else:
+                raise GeneratorError('In <registry>/<types>/<enums name="%s">: Unknown type "%s"' % (enums_name, enums_type))
+
+    def preprocess_c_ast(self, node):
+        has_substitution = False
+        for name, child_node in parent_node.children():
+            if type(child_node) is pycparser.c_ast.ID and child_node.name in self.object_macro_map:
+                setattr(node, name, Generator.Code(self.object_macro_map[child_node.name]))
+                has_substitution = True
+                continue
+            if type(child_node) is pycparser.c_ast.FuncCall and child_node.name.name in self.func_macro_map:
+                args = [self.cgenerator.visit(x) for x in child_node.args]
+                template = self.func_macro_map[child_node.name.name]
+                code = []
+                for part in template:
+                    if isinstance(part, str):
+                        code.append(part)
+                    else:
+                        assert isinstance(part, dict)
+                        code.append(args[part['index']])
+                code = ''.join(code)
+                setattr(node, name, Generator.Code(code))
+                has_substitution = True
+                continue
+            has_descendant_substitution = self.preprocess_c_ast(child_node)
+            has_substitution = has_substitution or has_descendant_substitution
+        return has_substitution
+
+    def preprocess_c_code(self, code):
+        ast = self.cparser.parse(code)
+        while self.preprocess_c_ast(ast):
+            code = self.cgenerator.visit(ast)
+            ast = self.cparser.parse(code)
+        return code
+
+    def get_c_constant_value(self, ctype, value):
+        assert ctype in self.ctypes_map
+        code = '%s value = %s;' % (ctype, value)
+        code = self.preprocess_c_code(self, code)
+        ast = self.cparser.parse(code)
+        return get_c_ast_const_value(ast.ext[0].init)
+    
+    def get_c_ast_const_value(self, node):
+        node_type = type(node)
+        c_ast = pycparser.c_ast
+        if node_type is c_ast.Constant:
+            if 'int' in node.type:
+                return self.parse_c_int(node.value)
+            if node.type in ['float', 'double']:
+                return self.parse_c_float(node.value)
+            if node.type == 'string':
+                return self.parse_c_string(node.value)
+        elif node_type is c_ast.UnaryOp:
+            if node.op == '~':
+                return ~self.get_c_ast_const_value(node.expr)
+            if node.op == '+':
+                return +self.get_c_ast_const_value(node.expr)
+            if node.op == '-':
+                return -self.get_c_ast_const_value(node.expr)
+        elif node_type is c_ast.BinaryOp:
+            if node.op == '|':
+                return self.get_c_ast_const_value(node.left) | self.get_c_ast_const_value(node.right)
+            if node.op == '<<':
+                return self.get_c_ast_const_value(node.left) << self.get_c_ast_const_value(node.right)
+        elif node_type is c_ast.Cast:
+            target_type = self.cgenerator.visit(node_type.to_type)
+            assert target_type in self.ctypes_map
+            value = self.get_c_ast_const_value(node.expr)
+            return self.ctypes_map[target_type].make_python_value(value)
