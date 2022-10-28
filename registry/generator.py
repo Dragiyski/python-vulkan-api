@@ -42,11 +42,15 @@ class Generator:
         self.value_node_map = {}
         self.bitmask_node_map = {}
         self.handle_node_map = {}
-        self.struct_node_map = {} 
+        self.struct_node_map = {}
         self.union_node_map = {}
         self.callback_node_map = {}
         self.command_node_map = {}
         self.enum_value_map = {}
+        self.enum_map = {}
+        self.bit_map = {}
+        self.bitmask_map = {}
+        self.const_map = {}
         self.cparser = CParser()
         self.cgenerator = Generator.CGenerator()
 
@@ -76,7 +80,7 @@ class Generator:
         if len(node.children['name']) > 1:
             raise self.multiple_children_error(node, 'name')
         return node.get('name').get_text()
-    
+
     def get_node_name_from_attribute(self, node):
         if not node.has_attribute('name'):
             raise Generator.Error('In %s: Missing attribute @name' % self.make_path(node), node=node)
@@ -88,7 +92,7 @@ class Generator:
                 raise Generator.Error('Duplicate alias "%s": The referred alias "%s" does not match previously defined value "%s"' % (name, alias, self.alias_map[alias]))
         else:
             self.alias_map[name] = alias
-    
+
     def save_node_in_map(self, target_map, name, node):
         if name in target_map:
             map_name = None
@@ -112,7 +116,7 @@ class Generator:
                 raise Generator.Error('Duplicate key "%s"' % (name))
             raise Generator.Error('Duplicate key "%s" in self.%s' % (name, map_name))
         target_map[name] = value
-    
+
     def process_alias_node(self, node):
         assert node.has_attribute('alias')
         name = self.get_node_name_from_attribute(node)
@@ -246,7 +250,7 @@ class Generator:
                     else:
                         name = self.get_node_name_from_attribute(type_node)
                         self.save_node_in_map(self.enum_node_map, name, type_node)
-                
+
                 elif category == 'struct':
                     if type_node.has_attribute('alias'):
                         self.process_alias_node(type_node)
@@ -303,10 +307,11 @@ class Generator:
                     proto_node = command_node.get('proto')
                     name = self.get_node_name_from_children(proto_node)
                     self.save_node_in_map(self.command_node_map, name, command_node)
-    
+
     def compile(self):
         self.compile_handle_node_map()
         self.compile_enum_value_map()
+        self.compile_enum_node_map()
 
     def compile_handle_node_map(self):
         for name, node in self.handle_node_map.items():
@@ -320,9 +325,36 @@ class Generator:
             self.enum_value_map[name]['value'] = value
             self.save_value_in_map(self.value_map, name, value)
             if 'enum_name' in source_map:
-                self.save_value_in_map(self.value_enum_map, name, source_map['enum_name'])
+                enum_name = source_map['enum_name']
+                self.save_value_in_map(self.value_enum_map, name, enum_name)
+                assert 'enum_node' in source_map, '"enum_name" and "enum_node" keys must be set together'
+                enum_node = source_map['enum_node']
+                assert enum_node.get_attribute('type') in ['enum', 'bitmask']
+                if enum_node.get_attribute('type') == 'enum':
+                    if enum_name not in self.enum_map:
+                        self.enum_map[enum_name] = {}
+                    if name in self.enum_map[enum_name]:
+                        raise Generator.Error('Duplicate enum value "%s" in enum "%s"' % (name, enum_name))
+                    self.enum_map[enum_name][name] = value
+                elif enum_node.get_attribute('type') == 'bitmask':
+                    if enum_name not in self.bit_map:
+                        self.bit_map[enum_name] = {}
+                    if name in self.bit_map[enum_name]:
+                        raise Generator.Error('Duplicate bitmask bit value "%s" in bitmask bit enum "%s"' % (name, enum_name))
+                    self.bit_map[enum_name][name] = value
+            else:
+                self.save_value_in_map(self.const_map, name, value)
 
-    
+    def compile_enum_node_map(self):
+        for name, node in self.enum_node_map.items():
+            if node.get_attribute('type') == 'bitmask':
+                if node.get_attribute('bitwidth') == '64':
+                    self.save_value_in_map(self.ctypes_map, name, ctypes_map['c_uint64'])
+                else:
+                    self.save_value_in_map(self.ctypes_map, name, ctypes_map['c_uint'])
+            elif node.get_attribute('type') == 'enum':
+                self.save_value_in_map(self.ctypes_map, name, ctypes_map['c_int'])
+
     def get_enum_value(self, node):
         if node.has_attribute('bitpos'):
             bitpos = self.parse_c_int(node.get_attribute('bitpos'))
@@ -331,8 +363,7 @@ class Generator:
             value = self.get_c_constant_value('int', node.get_attribute('value'))
             return value
         raise GeneratorError('Missing enum value: Neither @value, nor @bitpos pressent')
-        
-    
+
     def preprocess_c_ast(self, node):
         has_substitution = False
         for name, child_node in node.children():
@@ -434,8 +465,10 @@ class Generator:
 def subst_unicode_hex(match):
     return chr(int(match.group(1), 16))
 
+
 def subst_unicode_oct(match):
     return chr(int(match.group(1), 8))
+
 
 subst_table = {
     'a': 0x07,
