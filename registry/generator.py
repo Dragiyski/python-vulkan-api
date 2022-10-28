@@ -36,15 +36,16 @@ class Generator:
         self.func_macro_map = dict(func_macro_map)
         self.root_node_list = []
         self.alias_map = {}
+        self.value_map = {}
         self.enum_node_map = {}
         self.value_node_map = {}
         self.bitmask_node_map = {}
         self.handle_node_map = {}
-        self.struct_node_map = {}
+        self.struct_node_map = {} 
         self.union_node_map = {}
         self.callback_node_map = {}
         self.command_node_map = {}
-        self.enum_value_node_map = {}
+        self.enum_value_map = {}
         self.cparser = CParser()
         self.cgenerator = Generator.CGenerator()
 
@@ -101,7 +102,7 @@ class Generator:
     
     def process_alias_node(self, node):
         assert node.has_attribute('alias')
-        name = get_node_name_from_attribute(node)
+        name = self.get_node_name_from_attribute(node)
         alias = node.get_attribute('alias')
         self.save_alias(name, alias)
 
@@ -117,11 +118,13 @@ class Generator:
                     code = type_node.get_text()
                     code = get_preprocessor_lines(code)
                     if len(code) > 1:
-                        raise Generator.Error('In %s: found %d preprocessor lines in <type category="define">' % (self.make_path(type_node), len(code)))
+                        continue
+                        # raise Generator.Error('In %s: found %d preprocessor lines in <type category="define">' % (self.make_path(type_node), len(code)))
                     if len(code) < 1:
                         # Note: Some <type category="define"> nodes might be present but commented out.
                         continue
-                    func_macro = re.fullmatch('\s*#\s*define\s+(\w+)\(([^)]+)\)(.*)', code)
+                    code = code[0]
+                    func_macro = re.fullmatch(r'\s*#\s*define\s+(\w+)\(([^)]+)\)(.*)', code)
                     if func_macro is not None:
                         macro_name = func_macro.group(1)
                         if macro_name != name:
@@ -253,59 +256,40 @@ class Generator:
                         self.save_node_in_map(self.callback_node_map, name, type_node)
 
         for enums_node in root_node.get_all('enums'):
-            if not enums_node.has_attribute('name'):
-                raise GeneratorError('In <registry>/<enums>: Missing attribute @name')
-            enums_name = enums_node.get_attribute('name')
+            enums_name = self.get_node_name_from_attribute(enums_node)
             enums_type = enums_node.get_attribute('type')
-            target_map = None
-            if enums_type == 'enum':
-                target_map = self.enum_value_map
-            elif enums_type == 'bitmask':
-                target_map = self.bitmask_value_map
+            if enums_type in ['enum', 'bitmask']:
+                is_in_enum = True
             elif enums_type is None:
-                target_map = self.const_value_map
+                is_in_enum = False
             else:
-                raise GeneratorError('In <registry>/<enums name="%s">: Unknown type "%s"' % (enums_name, enums_type))
+                raise GeneratorError('In %s: Enum values for name "%s" is of unknown type "%s"' % (self.make_path(enums_node), enums_name, enums_type))
             for enum_node in enums_node.get_all('enum'):
-                enum_name = enum_node.get_attribute('name')
-                if enum_name is None:
-                    raise GeneratorError('In <registry>/<enums name="%s">/<enum name="%s">: Missing attribute @name' % (enums_name, enum_name))
+                enum_name = self.get_node_name_from_attribute(enum_node)
                 if enum_node.has_attribute('alias'):
-                    alias = enum_node.get_attribute('alias')
-                    if enum_name in self.alias_map:
-                        if self.alias_map[enum_name] != alias:
-                            raise GeneratorError('In <registry>/<enums name="%s">/<enum name="%s" alias>: Duplicate alias "%s" of "%s", previously declared of "%s"' % (enums_name, enum_name, enum_name, alias, self.alias_map[enum_name]))
-                    else:
-                        self.alias_map[enum_name] = alias
+                    self.process_alias_node(enum_node)
                 else:
-                    if enum_name in target_map:
-                        raise GeneratorError('In <registry>/<enums name="%s">/<enum name="%s">: Duplicate const value "%s"' % (enums_name, enum_name, enum_name))
-                    target_map[enum_name] = {
-                        'name': enum_name,
-                        'node': enum_node,
-                        'enums_node': enums_node,
-                        'enums_name': enums_name
+                    if enum_name in self.enum_value_map:
+                        raise Generator.Error('In %s: Duplicate <enums> with name "%s"' % enum_name)
+                    self.enum_value_map[enum_name] = {
+                        'value_node': enum_node
                     }
+                    if is_in_enum:
+                        self.enum_value_map[enum_name]['enum_node'] = enums_node
+                        self.enum_value_map[enum_name]['enum_name'] = enums_name
 
         for commands_node in root_node.get_all('commands'):
             for command_node in commands_node.get_all('command'):
                 if command_node.has_attribute('alias'):
-                    name = command_node.get_attribute('name')
-                    if name is None:
-                        raise GeneratorError('In <registry>/<commands>/<command alias>: Missing attribute @name')
-                    if name in self.alias_map:
-                        if self.alias_map[name] != alias:
-                            raise GeneratorError('In <registry>/<commands>/<command alias>: Duplicate alias "%s" of "%s", previously declared of "%s"' % (name, alias, self.alias_map[name]))
-                    else:
-                        self.alias_map[name] = alias
+                    self.process_alias_node(command_node)
                 else:
-                    name = command_node.get('proto').get('name').get_text()
-                    if name in self.command_map:
-                        raise GeneratorError('In <registry>/<commands>/<command name="%s">: Duplicate command' % (name))
-                    self.command_map[name] = {
-                        'name': name,
-                        'node': command_node
-                    }
+                    if 'proto' not in command_node.children:
+                        raise Generator.Error('In %s: Missing child <proto>' % self.make_path(command_node), node=command_node)
+                    if len(command_node.children['proto']) > 1:
+                        raise self.multiple_children_error(command_node, 'proto')
+                    proto_node = command_node.get('proto')
+                    name = self.get_node_name_from_children(proto_node)
+                    self.save_node_in_map(self.command_node_map, name, command_node)
     
     def compile(self):
         self.compile_value_map()
@@ -322,7 +306,7 @@ class Generator:
             self.value_map[name] = value
     
     def compile_enum_value_map(self):
-
+        pass
     
     def get_enum_value(node):
         if node.has_attribute('bitpos'):

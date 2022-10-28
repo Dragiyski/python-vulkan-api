@@ -253,12 +253,7 @@ platform_ctypes = {
 }
 
 object_macro_map = {}
-func_macro_map = {
-    'VK_DEFINE_HANDLE': {
-        'arguments': ['object'],
-        'template': ['typedef struct ', {'name': 'object', 'index': 0}, '_T* ', {'name': 'object', 'index': 0}, ';']
-    }
-}
+func_macro_map = {}
 handle_type_map = {
     'VK_DEFINE_HANDLE': ctypes_map['c_void_p']
 }
