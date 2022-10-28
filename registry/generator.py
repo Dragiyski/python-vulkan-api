@@ -37,6 +37,7 @@ class Generator:
         self.root_node_list = []
         self.alias_map = {}
         self.value_map = {}
+        self.value_enum_map = {}
         self.enum_node_map = {}
         self.value_node_map = {}
         self.bitmask_node_map = {}
@@ -99,6 +100,18 @@ class Generator:
                 raise Generator.Error('In %s: Duplicate key "%s"' % (self.make_path(node), name), node=node)
             raise Generator.Error('In %s: Duplicate key "%s" in self.%s' % (self.make_path(node), name, map_name), node=node)
         target_map[name] = node
+
+    def save_value_in_map(self, target_map, name, value):
+        if name in target_map:
+            map_name = None
+            for key in dir(self):
+                if getattr(self, key) is target_map:
+                    map_name = key
+                    break
+            else:
+                raise Generator.Error('Duplicate key "%s"' % (name))
+            raise Generator.Error('Duplicate key "%s" in self.%s' % (name, map_name))
+        target_map[name] = value
     
     def process_alias_node(self, node):
         assert node.has_attribute('alias')
@@ -292,23 +305,25 @@ class Generator:
                     self.save_node_in_map(self.command_node_map, name, command_node)
     
     def compile(self):
-        self.compile_value_map()
+        self.compile_handle_node_map()
+        self.compile_enum_value_map()
 
-    def compile_value_map(self):
-        self.compile_const_value_map()
-    
-    def compile_const_value_map(self):
-        for name, record in self.const_value_map.items():
-            node = record['node']
-            value = self.get_enum_value(node)
-            if name in self.value_map:
-                raise GeneratorError('Duplicate value "%s"' % name)
-            self.value_map[name] = value
-    
+    def compile_handle_node_map(self):
+        for name, node in self.handle_node_map.items():
+            typedef = node.get('type').get_text()
+            ctype = handle_type_map[typedef]
+            self.save_value_in_map(self.ctypes_map, name, ctype)
+
     def compile_enum_value_map(self):
-        pass
+        for name, source_map in self.enum_value_map.items():
+            value = self.get_enum_value(source_map['value_node'])
+            self.enum_value_map[name]['value'] = value
+            self.save_value_in_map(self.value_map, name, value)
+            if 'enum_name' in source_map:
+                self.save_value_in_map(self.value_enum_map, name, source_map['enum_name'])
+
     
-    def get_enum_value(node):
+    def get_enum_value(self, node):
         if node.has_attribute('bitpos'):
             bitpos = self.parse_c_int(node.get_attribute('bitpos'))
             return 1 << bitpos
@@ -320,7 +335,7 @@ class Generator:
     
     def preprocess_c_ast(self, node):
         has_substitution = False
-        for name, child_node in parent_node.children():
+        for name, child_node in node.children():
             if type(child_node) is pycparser.c_ast.ID and child_node.name in self.object_macro_map:
                 setattr(node, name, Generator.Code(self.object_macro_map[child_node.name]))
                 has_substitution = True
@@ -353,9 +368,9 @@ class Generator:
     def get_c_constant_value(self, ctype, value):
         assert ctype in self.ctypes_map
         code = '%s value = %s;' % (ctype, value)
-        code = self.preprocess_c_code(self, code)
+        code = self.preprocess_c_code(code)
         ast = self.cparser.parse(code)
-        return get_c_ast_const_value(ast.ext[0].init)
+        return self.get_c_ast_const_value(ast.ext[0].init)
 
     def get_c_ast_const_value(self, node):
         node_type = type(node)

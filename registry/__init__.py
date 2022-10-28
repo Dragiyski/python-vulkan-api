@@ -45,4 +45,5 @@ class GenerateVulkanTypeValidationFiles(Command):
         generator = Generator()
         for file in files:
            generator.add_xml_file(file)
+        generator.compile()
         j = 0
