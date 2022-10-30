@@ -20,7 +20,7 @@ class Generator:
             self.code = code
 
     class CGenerator(pycparser.c_generator.CGenerator):
-        def visit_Code():
+        def visit_Code(self, node):
             return node.code
 
     def __init__(self):
@@ -39,6 +39,7 @@ class Generator:
         self.value_map = {}
         self.value_enum_map = {}
         self.enum_node_map = {}
+        self.enums_node_map = {}
         self.value_node_map = {}
         self.bitmask_node_map = {}
         self.handle_node_map = {}
@@ -47,10 +48,8 @@ class Generator:
         self.callback_node_map = {}
         self.command_node_map = {}
         self.enum_value_map = {}
-        self.enum_map = {}
-        self.bit_map = {}
-        self.bitmask_map = {}
         self.const_map = {}
+        self.bit_map = {}
         self.cparser = CParser()
         self.cgenerator = Generator.CGenerator()
 
@@ -203,7 +202,7 @@ class Generator:
                             if words[-1] == 'struct':
                                 self.ctypes_map[name] = CType()
                                 continue
-                            raise GeneratorError('In %s: Basetype "%s" not a typedef or struct' % (self.make_path(type_node), name))
+                            raise Generator.Error('In %s: Basetype "%s" not a typedef or struct' % (self.make_path(type_node), name))
                         words = words[len(words) - words[::-1].index('typedef'):]
                         ctype = ' '.join(words).strip()
                         ptr_count = 0
@@ -215,7 +214,7 @@ class Generator:
                         elif ctype in self.ctypes_map:
                             ctype = self.ctypes_map[ctype]
                         else:
-                            raise GeneratorError('In %s: Basetype "%s" is a typedef to an unknown type "%s"' % (self.make_path(type_node), name, ctype))
+                            raise Generator.Error('In %s: Basetype "%s" is a typedef to an unknown type "%s"' % (self.make_path(type_node), name, ctype))
                         while ptr_count > 0:
                             ctype = ctype.pointer()
                             ptr_count -= 1
@@ -237,6 +236,7 @@ class Generator:
                     else:
                         name = self.get_node_name_from_children(type_node)
                         self.save_node_in_map(self.bitmask_node_map, name, type_node)
+
                 elif category == 'handle':
                     if type_node.has_attribute('alias'):
                         self.process_alias_node(type_node)
@@ -280,7 +280,7 @@ class Generator:
             elif enums_type is None:
                 is_in_enum = False
             else:
-                raise GeneratorError('In %s: Enum values for name "%s" is of unknown type "%s"' % (self.make_path(enums_node), enums_name, enums_type))
+                raise Generator.Error('In %s: Enum values for name "%s" is of unknown type "%s"' % (self.make_path(enums_node), enums_name, enums_type))
             for enum_node in enums_node.get_all('enum'):
                 enum_name = self.get_node_name_from_attribute(enum_node)
                 if enum_node.has_attribute('alias'):
@@ -294,6 +294,7 @@ class Generator:
                     if is_in_enum:
                         self.enum_value_map[enum_name]['enum_node'] = enums_node
                         self.enum_value_map[enum_name]['enum_name'] = enums_name
+            self.save_node_in_map(self.enums_node_map, enums_name, enums_node)
 
         for commands_node in root_node.get_all('commands'):
             for command_node in commands_node.get_all('command'):
@@ -310,8 +311,24 @@ class Generator:
 
     def compile(self):
         self.compile_handle_node_map()
-        self.compile_enum_value_map()
         self.compile_enum_node_map()
+        self.compile_enum_value_map()
+        self.compile_feature_enum_values()
+        # feature nodes have two major roles:
+        # - organize everything specified in <types> and <enums> into relevant block for the specified version.
+        # For exmaple: VK_VERSION_1_0 will include everything in the core vulkan API, VK_VERSION_1_1 will include only stuff
+        # defined from API version 1.1.0 forward, etc.
+        # - feature will perform the same task as extension, extending certain values only specified in that version and referenced by extensions.
+        # For exmaple: VK_FORMAT_G8B8G8R8_422_UNORM will be defined in feature as:
+        # <enum extends="VkFormat" extnumber="157" offset="0" name="VK_FORMAT_G8B8G8R8_422_UNORM"/>
+        # and in extension as:
+        # <enum extends="VkFormat" name="VK_FORMAT_G8B8G8R8_422_UNORM_KHR" alias="VK_FORMAT_G8B8G8R8_422_UNORM"/>
+        #
+        # This will happen often, as Vulkan minor version often adapt something previously specified as an extension,
+        # in this case VK_KHR_sampler_ycbcr_conversion defining YcBcR color space as extension becomes supported natively in version 1.1.
+        # The value is preserved, the suffixed name is preserved as alias to non-suffixed name.
+
+        self.compile_ext_enum_values()
 
     def compile_handle_node_map(self):
         for name, node in self.handle_node_map.items():
@@ -322,39 +339,189 @@ class Generator:
     def compile_enum_value_map(self):
         for name, source_map in self.enum_value_map.items():
             value = self.get_enum_value(source_map['value_node'])
-            self.enum_value_map[name]['value'] = value
-            self.save_value_in_map(self.value_map, name, value)
-            if 'enum_name' in source_map:
-                enum_name = source_map['enum_name']
-                self.save_value_in_map(self.value_enum_map, name, enum_name)
-                assert 'enum_node' in source_map, '"enum_name" and "enum_node" keys must be set together'
-                enum_node = source_map['enum_node']
-                assert enum_node.get_attribute('type') in ['enum', 'bitmask']
-                if enum_node.get_attribute('type') == 'enum':
-                    if enum_name not in self.enum_map:
-                        self.enum_map[enum_name] = {}
-                    if name in self.enum_map[enum_name]:
-                        raise Generator.Error('Duplicate enum value "%s" in enum "%s"' % (name, enum_name))
-                    self.enum_map[enum_name][name] = value
-                elif enum_node.get_attribute('type') == 'bitmask':
-                    if enum_name not in self.bit_map:
-                        self.bit_map[enum_name] = {}
-                    if name in self.bit_map[enum_name]:
-                        raise Generator.Error('Duplicate bitmask bit value "%s" in bitmask bit enum "%s"' % (name, enum_name))
-                    self.bit_map[enum_name][name] = value
+            if 'enum_node' not in source_map:
+                node = source_map['value_node']
+                ctype = node.get_attribute('type')
+                if ctype is None:
+                    raise Generator.Error('Missing type for const node "%s"' % (name))
+                if ctype not in basic_ctypes:
+                    raise Generator.Error('Invalid type "%s" for const node "%s", not in basic C types' % (ctype, name))
+                ctype = basic_ctypes[ctype]
+                value = ctype.make_python_value(value)
             else:
-                self.save_value_in_map(self.const_map, name, value)
+                assert 'enum_name' in source_map
+                assert source_map['enum_name'] in self.ctypes_map
+                self.ctypes_map[source_map['enum_name']].make_python_value(value)
+                self.value_enum_map[name] = source_map['enum_name']
+            source_map['value'] = value
+            self.save_value_in_map(self.value_map, name, value)
 
     def compile_enum_node_map(self):
+        for name, node in self.bitmask_node_map.items():
+            if 'type' not in node.children:
+                raise Generator.Error('In %s: Missing child <type>' % self.make_path(node), node=node)
+            if len(node.children['type']) > 1:
+                raise self.multiple_children_error(node, 'type')
+            ctype = node.get('type').get_text()
+            if ctype not in self.ctypes_map:
+                raise Generator.Error('In %s, name="%s": Child <type> not in the basetypes' % (self.make_path(node), name), node=node)
+            ctype = self.ctypes_map[ctype]
+            self.save_value_in_map(self.ctypes_map, name, ctype)
+            bit_name = None
+            if node.has_attribute('bitvalues'):
+                bit_name = node.get_attribute('bitvalues')
+            elif node.has_attribute('requires'):
+                bit_name = node.get_attribute('requires')
+            if bit_name is not None:
+                if bit_name in self.bit_map:
+                    raise Generator.Error('In %s, name="%s": Bitmask assigns "%s" enum, already assigned by another bitmask "%s"' % (self.make_path(node), name, bit_name, bit_map[bit_name]))
+                self.bit_map[bit_name] = name
         for name, node in self.enum_node_map.items():
-            if node.get_attribute('type') == 'bitmask':
-                if node.get_attribute('bitwidth') == '64':
-                    self.save_value_in_map(self.ctypes_map, name, ctypes_map['c_uint64'])
-                else:
-                    self.save_value_in_map(self.ctypes_map, name, ctypes_map['c_uint'])
-            elif node.get_attribute('type') == 'enum':
-                self.save_value_in_map(self.ctypes_map, name, ctypes_map['c_int'])
+            if name in self.bit_map:
+                assert self.bit_map[name] in self.ctypes_map
+                ctype = self.ctypes_map[self.bit_map[name]]
+            else:
+                ctype = ctypes_map['c_int']
+            assert isinstance(ctype, CType)
+            self.save_value_in_map(self.ctypes_map, name, ctype)
+    
+    def compile_feature_enum_values(self):
+        for root_node in self.root_node_list:
+            for feature_node in root_node.get_all('feature'):
+                feature_name = self.get_node_name_from_attribute(feature_node)
+                for require_node in feature_node.get_all('require'):
+                    for enum_node in require_node.get_all('enum'):
+                        if enum_node.has_attribute('alias'):
+                            self.process_alias_node(enum_node)
+                            continue
+                        enum_name = self.get_node_name_from_attribute(enum_node)
+                        extend_name = None
+                        if enum_node.has_attribute('extends'):
+                            extend_name = enum_node.get_attribute('extends')
+                            if extend_name not in self.enum_node_map:
+                                raise Generator.Error('In %s, extension "%s", enum "%s": Extending non-existent enum "%s"' % (self.make_path(enum_node), ext_name, enum_name, extend_name))
+                        value = self.get_feature_enum_value(enum_node, feature_node)
+                        if value is None:
+                            continue
+                        if enum_name in self.value_map:
+                            if self.value_map[enum_name] != value:
+                                raise Generator.Error('In %s, extension "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (self.make_path(enum_node), feature_name, enum_name, value, self.value_map[enum_name]))
+                            if extend_name is not None and not enum_node.has_attribute('extnumber'):
+                                assert enum_name in self.enum_value_map
+                                self.enum_value_map[enum_name]['value_node'] = enum_node
+                                self.enum_value_map[enum_name]['feature_node'] = feature_node
+                                if 'ext_node' in self.enum_value_map[enum_name]:
+                                    del self.enum_value_map[enum_name]['ext_node']
+                        else:
+                            assert enum_name not in self.enum_value_map
+                            assert enum_name not in self.value_enum_map
+                            self.value_map[enum_name] = value
+                            self.enum_value_map[enum_name] = {
+                                'value_node': enum_node,
+                                'feature_node': feature_node
+                            }
+                            if extend_name is not None:
+                                self.enum_value_map[enum_name]['enum_name'] = extend_name
+                                self.enum_value_map[enum_name]['enum_node'] = self.enum_node_map[extend_name]
+                                self.value_enum_map[enum_name] = extend_name
 
+    def compile_ext_enum_values(self):
+        for root_node in self.root_node_list:
+            for extensions_node in root_node.get_all('extensions'):
+                for ext_node in extensions_node.get_all('extension'):
+                    ext_name = self.get_node_name_from_attribute(ext_node)
+                    for require_node in ext_node.get_all('require'):
+                        for enum_node in require_node.get_all('enum'):
+                            if enum_node.has_attribute('alias'):
+                                self.process_alias_node(enum_node)
+                                continue
+                            enum_name = self.get_node_name_from_attribute(enum_node)
+                            extend_name = None
+                            if enum_node.has_attribute('extends'):
+                                extend_name = enum_node.get_attribute('extends')
+                                if extend_name not in self.enum_node_map:
+                                    raise Generator.Error('In %s, extension "%s", enum "%s": Extending non-existent enum "%s"' % (self.make_path(enum_node), ext_name, enum_name, extend_name))
+                            value = self.get_ext_enum_value(enum_node, ext_node)
+                            if value is None:
+                                continue
+                            if enum_name in self.value_map:
+                                if self.value_map[enum_name] != value:
+                                    raise Generator.Error('In %s, extension "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (self.make_path(enum_node), ext_name, enum_name, value, self.value_map[enum_name]))
+                                if extend_name is not None and not enum_node.has_attribute('extnumber'):
+                                    # Foreign extension reference is accepted by first extension found,
+                                    # but it will be overridden if found with the extension with matching number.
+                                    # For example:
+                                    # <enum offset="0" extends="VkIndexType" extnumber="166" name="VK_INDEX_TYPE_NONE_KHR"/>
+                                    # defined in:
+                                    # <extension name="VK_KHR_acceleration_structure" number="151">
+                                    # can be specified again as:
+                                    # <enum offset="0" extends="VkIndexType" name="VK_INDEX_TYPE_NONE_KHR"/>
+                                    # in:
+                                    # <extension name="VK_NV_ray_tracing" number="166"/>
+                                    # or it can be skipped, while aliased:
+                                    # <enum extends="VkIndexType" name="VK_INDEX_TYPE_NONE_NV" alias="VK_INDEX_TYPE_NONE_KHR"/>
+                                    # In the former case: enum_node will be overridden and extnumber node ignored.
+                                    # In the latter case: enum_node with @extnumber will be stored as value_node
+                                    assert enum_name in self.enum_value_map
+                                    self.enum_value_map[enum_name]['value_node'] = enum_node
+                                    self.enum_value_map[enum_name]['ext_node'] = ext_node
+                                    if 'feature_node' in self.enum_value_map[enum_name]:
+                                        del self.enum_value_map[enum_name]['feature_node']
+                            else:
+                                assert enum_name not in self.enum_value_map
+                                assert enum_name not in self.value_enum_map
+                                self.value_map[enum_name] = value
+                                self.enum_value_map[enum_name] = {
+                                    'value_node': enum_node,
+                                    'ext_node': ext_node
+                                }
+                                if extend_name is not None:
+                                    self.enum_value_map[enum_name]['enum_name'] = extend_name
+                                    self.enum_value_map[enum_name]['enum_node'] = self.enum_node_map[extend_name]
+                                    self.value_enum_map[enum_name] = extend_name
+
+    def get_feature_enum_value(self, enum_node, feature_node):
+        enum_name = self.get_node_name_from_attribute(enum_node)
+        feature_name = self.get_node_name_from_attribute(feature_node)
+        if enum_node.has_attribute('offset'):
+            if enum_node.has_attribute('extnumber'):
+                ext_number = enum_node.get_attribute('extnumber')
+            else:
+                raise Generator.Error('In %s, feature "%s", enum "%s" is defined as @offset, but missing extension number' % (self.make_path(enum_node), feature_name, enum_name))
+            offset = self.parse_c_int(enum_node.get_attribute('offset'))
+            ext_offset = (self.parse_c_int(ext_number) - 1) * 1000
+            base = 1000000000
+            value = base + ext_offset + offset
+        elif enum_node.has_attribute('value') or enum_node.has_attribute('bitpos'):
+            value = self.get_enum_value(enum_node)
+        else:
+            return None
+        if enum_node.get_attribute('dir') == '-':
+            value = -value
+        return value
+
+    def get_ext_enum_value(self, enum_node, ext_node):
+        enum_name = self.get_node_name_from_attribute(enum_node)
+        ext_name = self.get_node_name_from_attribute(ext_node)
+        if enum_node.has_attribute('offset'):
+            if enum_node.has_attribute('extnumber'):
+                ext_number = enum_node.get_attribute('extnumber')
+            elif ext_node.has_attribute('number'):
+                ext_number = ext_node.get_attribute('number')
+            else:
+                raise Generator.Error('In %s, extension "%s", enum "%s" is defined as @offset, but missing extension number' % (self.make_path(enum_node), ext_name, enum_name))
+            offset = self.parse_c_int(enum_node.get_attribute('offset'))
+            ext_offset = (self.parse_c_int(ext_number) - 1) * 1000
+            base = 1000000000
+            value = base + ext_offset + offset
+        elif enum_node.has_attribute('value') or enum_node.has_attribute('bitpos'):
+            value = self.get_enum_value(enum_node)
+        else:
+            return None
+        if enum_node.get_attribute('dir') == '-':
+            value = -value
+        return value
+    
     def get_enum_value(self, node):
         if node.has_attribute('bitpos'):
             bitpos = self.parse_c_int(node.get_attribute('bitpos'))
@@ -362,7 +529,7 @@ class Generator:
         if node.has_attribute('value'):
             value = self.get_c_constant_value('int', node.get_attribute('value'))
             return value
-        raise GeneratorError('Missing enum value: Neither @value, nor @bitpos pressent')
+        raise Generator.Error('Missing enum value: Neither @value, nor @bitpos pressent')
 
     def preprocess_c_ast(self, node):
         has_substitution = False
@@ -373,9 +540,11 @@ class Generator:
                 continue
             if type(child_node) is pycparser.c_ast.FuncCall and child_node.name.name in self.func_macro_map:
                 args = [self.cgenerator.visit(x) for x in child_node.args]
-                template = self.func_macro_map[child_node.name.name]
+                macro = self.func_macro_map[child_node.name.name]
+                if len(macro['arguments']) != len(args):
+                    raise Generator.Error('Macro "%s" accept "%d" arguments, but called with "%d" arguments' % (child_node.name.name, len(macro['arguments'], len(args))))
                 code = []
-                for part in template:
+                for part in macro['template']:
                     if isinstance(part, str):
                         code.append(part)
                     else:
@@ -426,7 +595,7 @@ class Generator:
             if node.op == '<<':
                 return self.get_c_ast_const_value(node.left) << self.get_c_ast_const_value(node.right)
         elif node_type is c_ast.Cast:
-            target_type = self.cgenerator.visit(node_type.to_type)
+            target_type = self.cgenerator.visit(node.to_type)
             assert target_type in self.ctypes_map
             value = self.get_c_ast_const_value(node.expr)
             return self.ctypes_map[target_type].make_python_value(value)
