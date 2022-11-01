@@ -4,7 +4,7 @@ import pycparser.c_ast
 import pycparser.c_generator
 from .xml_parser import Node, parse_xml
 from .code import get_preprocessor_lines
-from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, ctypes_map, handle_type_map, CType, CComplexType, CFunctionPointerType
+from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, ctypes_map, handle_type_map, CType, CComplexType, CArrayType, CFunctionPointerType
 
 
 class Generator:
@@ -30,6 +30,8 @@ class Generator:
             def _lex_type_lookup_func(parser, name):
                 if super()._lex_type_lookup_func(name):
                     return True
+                while name in self.alias_map:
+                    name = self.alias_map[name]
                 return name in self.ctypes_map
 
         self.object_macro_map = dict(object_macro_map)
@@ -43,19 +45,28 @@ class Generator:
         self.value_node_map = {}
         self.bitmask_node_map = {}
         self.handle_node_map = {}
-        self.struct_node_map = {}
-        self.union_node_map = {}
+        self.uncategorized_types = set()
+        self.complex_type_node_map = {}
         self.callback_node_map = {}
         self.command_node_map = {}
         self.enum_value_map = {}
         self.const_map = {}
         self.bit_map = {}
+        self.resolving_complex_type = set()
+        self.delayed_complex_type = set()
         self.cparser = CParser()
         self.cgenerator = Generator.CGenerator()
 
     def make_path(self, node):
         names = []
         while node is not None:
+            exposed_attr = []
+            if node.has_attribute('category'):
+                exposed_attr.append('category="%s"' % node.get_attribute('category'))
+            if node.has_attribute('name'):
+                exposed_attr.append('name="%s"' % node.get_attribute('name'))
+            if node.has_attribute('alias'):
+                exposed_attr.append('alias="%s"' % node.get_attribute('alias'))
             names.append('<%s>' % node.node_name)
             node = node.parent_node
         return '/'.join(names)
@@ -220,6 +231,12 @@ class Generator:
                             ptr_count -= 1
                         self.ctypes_map[name] = ctype
                         continue
+                elif category is None:
+                    if type_node.has_attribute('alias'):
+                        self.process_alias_node(type_node)
+                    else:
+                        name = self.get_node_name_from_attribute(type_node)
+                        self.uncategorized_types.add(name)
 
                 # Note on bitmask: The bitmask define a type and potential aliases, but they do not define any values.
                 # The values are defined by enum name referred by <enums type="bitmask"> node.
@@ -256,14 +273,14 @@ class Generator:
                         self.process_alias_node(type_node)
                     else:
                         name = self.get_node_name_from_attribute(type_node)
-                        self.save_node_in_map(self.struct_node_map, name, type_node)
+                        self.save_node_in_map(self.complex_type_node_map, name, type_node)
 
                 elif category == 'union':
                     if type_node.has_attribute('alias'):
                         self.process_alias_node(type_node)
                     else:
                         name = self.get_node_name_from_attribute(type_node)
-                        self.save_node_in_map(self.union_node_map, name, type_node)
+                        self.save_node_in_map(self.complex_type_node_map, name, type_node)
 
                 elif category == 'funcpointer':
                     if type_node.has_attribute('alias'):
@@ -314,21 +331,20 @@ class Generator:
         self.compile_enum_node_map()
         self.compile_enum_value_map()
         self.compile_feature_enum_values()
-        # feature nodes have two major roles:
-        # - organize everything specified in <types> and <enums> into relevant block for the specified version.
-        # For exmaple: VK_VERSION_1_0 will include everything in the core vulkan API, VK_VERSION_1_1 will include only stuff
-        # defined from API version 1.1.0 forward, etc.
-        # - feature will perform the same task as extension, extending certain values only specified in that version and referenced by extensions.
-        # For exmaple: VK_FORMAT_G8B8G8R8_422_UNORM will be defined in feature as:
-        # <enum extends="VkFormat" extnumber="157" offset="0" name="VK_FORMAT_G8B8G8R8_422_UNORM"/>
-        # and in extension as:
-        # <enum extends="VkFormat" name="VK_FORMAT_G8B8G8R8_422_UNORM_KHR" alias="VK_FORMAT_G8B8G8R8_422_UNORM"/>
-        #
-        # This will happen often, as Vulkan minor version often adapt something previously specified as an extension,
-        # in this case VK_KHR_sampler_ycbcr_conversion defining YcBcR color space as extension becomes supported natively in version 1.1.
-        # The value is preserved, the suffixed name is preserved as alias to non-suffixed name.
-
         self.compile_ext_enum_values()
+        self.compile_callback_node_map()
+        self.compile_uncategorized_types()
+        self.compile_complex_type_node_map()
+
+    def compile_uncategorized_types(self):
+        for name in self.uncategorized_types:
+            if name not in self.ctypes_map and name not in self.complex_type_node_map:
+                self.ctypes_map[name] = CType()
+
+    def compile_callback_node_map(self):
+        for name, node in self.callback_node_map.items():
+            self.ctypes_map[name] = CFunctionPointerType(name)
+            # Arguments and return type to be resolved later...
 
     def compile_handle_node_map(self):
         for name, node in self.handle_node_map.items():
@@ -448,20 +464,6 @@ class Generator:
                                 if self.value_map[enum_name] != value:
                                     raise Generator.Error('In %s, extension "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (self.make_path(enum_node), ext_name, enum_name, value, self.value_map[enum_name]))
                                 if extend_name is not None and not enum_node.has_attribute('extnumber'):
-                                    # Foreign extension reference is accepted by first extension found,
-                                    # but it will be overridden if found with the extension with matching number.
-                                    # For example:
-                                    # <enum offset="0" extends="VkIndexType" extnumber="166" name="VK_INDEX_TYPE_NONE_KHR"/>
-                                    # defined in:
-                                    # <extension name="VK_KHR_acceleration_structure" number="151">
-                                    # can be specified again as:
-                                    # <enum offset="0" extends="VkIndexType" name="VK_INDEX_TYPE_NONE_KHR"/>
-                                    # in:
-                                    # <extension name="VK_NV_ray_tracing" number="166"/>
-                                    # or it can be skipped, while aliased:
-                                    # <enum extends="VkIndexType" name="VK_INDEX_TYPE_NONE_NV" alias="VK_INDEX_TYPE_NONE_KHR"/>
-                                    # In the former case: enum_node will be overridden and extnumber node ignored.
-                                    # In the latter case: enum_node with @extnumber will be stored as value_node
                                     assert enum_name in self.enum_value_map
                                     self.enum_value_map[enum_name]['value_node'] = enum_node
                                     self.enum_value_map[enum_name]['ext_node'] = ext_node
@@ -479,6 +481,134 @@ class Generator:
                                     self.enum_value_map[enum_name]['enum_name'] = extend_name
                                     self.enum_value_map[enum_name]['enum_node'] = self.enum_node_map[extend_name]
                                     self.value_enum_map[enum_name] = extend_name
+
+    def compile_complex_type_node_map(self):
+        for name, node in self.complex_type_node_map.items():
+            self.compile_complex_type(name, node)
+
+    def get_member_code(self, node):
+        code = []
+        for child in node.child_nodes:
+            if child.node_name == 'comment':
+                continue
+            if child.node_name == 'enum':
+                enum_name = child.get_text()
+                if enum_name not in self.value_map:
+                    raise Generator.Error('In %s: Reference to unknown enum "%s"' % (self.make_path(node)))
+                enum_value = self.value_map[enum_name]
+                if isinstance(enum_value, str):
+                    enum_value = self.generate_c_string(enum_value)
+                else:
+                    assert isinstance(enum_value, int) or isinstance(enum_value, float)
+                    enum_value = str(enum_value)
+                code.append(enum_value)
+                continue
+            code.append(child.get_text())
+        return ''.join(code)
+
+    def get_type_from_decl(self, node):
+        if type(node) is pycparser.c_ast.PtrDecl:
+            return self.get_type_from_decl(node.type).pointer()
+        if type(node) is pycparser.c_ast.ArrayDecl:
+            if type(node.dim) != pycparser.c_ast.Constant:
+                raise Generator.Error('Unsupported non-const-expr array')
+            length = self.get_c_ast_const_value(node.dim)
+            return CArrayType(self.get_type_from_decl(node.type), length)
+        if type(node) is pycparser.c_ast.TypeDecl:
+            if type(node.type) is pycparser.c_ast.IdentifierType:
+                type_name = ' '.join(node.type.names)
+            elif type(node.type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]:
+                type_name = node.type.name
+            else:
+                raise NotImplementedError('TODO: C: TypeDecl => %s' % type(node.type).__name__)
+            while type_name in self.alias_map:
+                type_name = self.alias_map[type_name]
+            if type_name not in self.ctypes_map:
+                raise Generator.Error('Reference to undefined type "%s"' % (type_name))
+            return self.ctypes_map[type_name]
+        raise NotImplementedError('TODO: C: %s' % type(node).__name__)
+
+    def resolve_complex_type(self, name, node):
+        assert name in self.ctypes_map
+        ctype = self.ctypes_map[name]
+        assert isinstance(ctype, CComplexType)
+        keyword = 'union' if node.get_attribute('category') == 'union' else 'struct'
+        code = [
+            '%s %s {' % (keyword, name)
+        ]
+        for member_node in node.get_all('member'):
+            code.append('    %s;' % self.get_member_code(member_node))
+        code.append('};')
+        code = '\n'.join(code)
+        code = self.preprocess_c_code(code)
+        ast = self.cparser.parse(code)
+        assert len(ast.ext) == 1
+        assert type(ast.ext[0]) is pycparser.c_ast.Decl
+        assert type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]
+        assert ast.ext[0].type.name == name
+        for decl in ast.ext[0].type.decls:
+            ptr_count = 0
+            array_length = []
+            type_decl = decl.type
+            member_type = self.get_type_from_decl(type_decl)
+            assert decl.name in ctype.member_map
+            ctype.member_map[decl.name]['ctype'] = member_type
+            if decl.bitsize is not None:
+                if type(decl.bitsize) is not pycparser.c_ast.Constant:
+                    raise Generator.Error('In struct %s, member %s: bitsize is not specified as constant' % (name, decl.name))
+                bitsize = self.get_c_ast_const_value(decl.bitsize)
+                if not isinstance(bitsize, int):
+                    raise Generator.Error('In struct %s, member %s: bitsize is not an integer constant' % (name, decl.name))
+                ctype.member_map[decl.name]['bitsize'] = bitsize
+
+    def compile_complex_type(self, name, node):
+        if name in self.ctypes_map:
+            assert isinstance(self.ctypes_map[name], CComplexType)
+            return
+        if name in self.resolving_complex_type:
+            return
+        self.resolving_complex_type.add(name)
+        try:
+            # Step1: Assign Complex Type immediately, as all we need to know is a name and the extending class.
+            # The _fields_ can be added later.
+            constructor = 'Union' if node.get_attribute('category') == 'union' else 'Structure'
+            ctype = self.ctypes_map[name] = CComplexType(name, constructor)
+            # Now that the type is added to the ctype map, ensure all members are also types.
+            # In case of circular type reference, this type is already added to self.ctype_map,
+            # which means the parser will properly return TYPEID for this type.
+            # So delay in resolving is not required, but we can aggregate information about
+            # if separate _fields_ is required and whose type must appear first.
+            # (This might not be necessary, depending on how the code generation is done)
+            ctype['delay_fields'] = False
+            ctype['dependencies'] = []
+            for member_node in node.get_all('member'):
+                member_name = self.get_node_name_from_children(member_node)
+                ctype.member_map[member_name] = {}
+                ctype.member_list.append(member_name)
+                if 'type' not in member_node.children:
+                    raise Generator.Error('In %s, name="%s.%s": Missing attribute @name' % (self.make_path(node), name, member_name), node=member_node)
+                if len(member_node.children['type']) > 1:
+                    raise self.multiple_children_error(member_node, 'type')
+                member_type = member_node.get('type').get_text()
+                while member_type in self.alias_map:
+                    member_type = self.alias_map[member_type]
+                if member_type in self.resolving_complex_type:
+                    assert member_type in self.ctypes_map
+                    assert member_type in self.complex_type_node_map
+                    assert isinstance(self.ctypes_map[member_type], CComplexType)
+                    ctype['delay_fields'] = True
+                    ctype['dependencies'].append(member_type)
+                elif member_type not in self.ctypes_map:
+                    if member_type in self.complex_type_node_map:
+                        self.compile_complex_type(member_type, self.complex_type_node_map[member_type])
+                        assert member_type in self.ctypes_map
+                    else:
+                        # Foreign types must have been resolved at this time (see category="basetype")
+                        raise Generator.Error('In %s, name="%s.%s": Reference to unknow type "%s"' % (self.make_path(node), name, member_name, member_type))
+            self.resolve_complex_type(name, node)
+        finally:
+            self.resolving_complex_type.remove(name)
+
 
     def get_feature_enum_value(self, enum_node, feature_node):
         enum_name = self.get_node_name_from_attribute(enum_node)
@@ -630,6 +760,12 @@ class Generator:
         value = re.sub(r'\\(.)', subst_slash_escape, value)
         return value.encode('utf-8')
 
+    @staticmethod
+    def generate_c_string(value: str):
+        value = REGEXP_SUBST_TABLE.sub(subst_string_c_table, value)
+        value = re.sub(r'[^\u0000-\u007F]', subst_string_unicode_char, value)
+        return '"%s"' % value
+
 
 def subst_unicode_hex(match):
     return chr(int(match.group(1), 16))
@@ -638,6 +774,18 @@ def subst_unicode_hex(match):
 def subst_unicode_oct(match):
     return chr(int(match.group(1), 8))
 
+def subst_string_unicode_char(match):
+    char = match.group(0)
+    code = ord(char)
+    if code < 65535:
+        return r'\u%04X' % code
+    else:
+        return r'\U%08X' % code
+
+def subst_string_c_table(match):
+    char = match.group(0)
+    code = ord(char)
+    return '\\%s' % subst_string_table[code]
 
 subst_table = {
     'a': 0x07,
@@ -653,6 +801,10 @@ subst_table = {
     '"': 0x22,
     '?': 0x3F,
 }
+
+subst_string_table = {v: k for k, v in subst_table.items()}
+
+REGEXP_SUBST_TABLE = re.compile('[%s]' % ''.join(r'\x%02X' % x for x in subst_table.values()))
 
 
 def subst_slash_escape(match):
