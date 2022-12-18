@@ -1,5 +1,5 @@
 from setuptools import setup, Extension, Command
-from registry import GenerateVulkanTypeValidationFiles
+from registry import GenerateVulkanSourceFiles
 
 setup(
     name="vulkan-ctypes",
@@ -7,6 +7,6 @@ setup(
     author="Plamen Dragiyski",
     author_email="plamen@dragiyski.org",
     cmdclass={
-        'vk_ctype_validation': GenerateVulkanTypeValidationFiles
+        'vk_generate_source_files': GenerateVulkanSourceFiles
     }
 )

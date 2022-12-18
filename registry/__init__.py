@@ -1,5 +1,6 @@
 import pathlib
 import os
+import sys
 import urllib.parse
 from setuptools import Command
 from .generator import Generator
@@ -24,26 +25,32 @@ def update(target):
     return files
 
 
-class GenerateVulkanTypeValidationFiles(Command):
+class GenerateVulkanSourceFiles(Command):
     user_options = [
         ('vk-dir=', None, 'Vulkan Headers registry directory')
     ]
-    
+
     def initialize_options(self):
         self.vk_directory = pathlib.Path(os.getcwd()).resolve().joinpath('var/vulkan-headers')
-        
+
     def finalize_options(self):
         if self.vk_directory:
             if not isinstance(self.vk_directory, pathlib.Path):
                 self.vk_directory = pathlib.Path(self.vk_directory)
-    
+
     def run(self):
         # print('Hello from command')
         from pprint import pformat
         files = update(self.vk_directory)
-        print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)))
+        print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)), file=sys.stderr)
         generator = Generator()
         for file in files:
-           generator.add_xml_file(file)
+            generator.add_xml_file(file)
         generator.compile()
-        j = 0
+        combined_source = generator.generate_combined_source()
+        project_dir = pathlib.Path(__file__).resolve().parent.parent
+        src_dir = project_dir.joinpath('src')
+        package_dir = src_dir.joinpath('vulkan_api')
+        package_dir.mkdir(mode=0o755, exist_ok=True, parents=True)
+        with open(package_dir.joinpath('ctypes.py'), 'w') as file:
+            file.write(combined_source)

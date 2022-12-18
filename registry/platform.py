@@ -97,7 +97,7 @@ class CArrayType(CType):
 
     def to_source(self, *args, prefix='ctypes.', **kwargs):
         return '%s%s(%s, %d)' % (prefix, 'ARRAY', self._ctype.to_source(*args, prefix=prefix, **kwargs), self._length)
-    
+
     def pointer(self):
         if self._pointer is None:
             self._pointer = CPointerType(self)
@@ -117,7 +117,7 @@ class CComplexType(CType):
         self.member_map = {}
         self._pointer = None
 
-    def to_source(self):
+    def to_source(self, **kwargs):
         return self._name
 
     def pointer(self):
@@ -141,15 +141,21 @@ class CComplexType(CType):
         return "<CType %s(%s)>" % (self._constructor, self._name)
 
 
-class CFunctionPointerType(CType):
+class CFunctionType(CType):
     def __init__(self, name: str):
         self._name = name
-        self.constructor = 'CFUNCTION'
+        self.constructor = 'ctypes.CFUNCTYPE'
         self.return_type = None
         self.argument_types = []
+        self._pointer = None
 
-    def to_source(self):
+    def to_source(self, **kwargs):
         return self._name
+
+    def pointer(self):
+        if self._pointer is None:
+            self._pointer = CPointerType(self)
+        return self._pointer
 
     def __repr__(self):
         return "<CType %s(%s)>" % ('Function', self._name)
@@ -272,6 +278,7 @@ platform_ctypes = {
     'Window': ctypes_map['c_uint32'],  # X11/Xlib.h: CARD32 => XID
     'RROutput': ctypes_map['c_uint32'],  # X11/extensions/Xrandr.h
     'xcb_window_t': ctypes_map['c_uint32'],  # xcb/xcb.h
+    'xcb_visualid_t': ctypes_map['c_uint32'], # xcb/xcb.h
     'HINSTANCE': ctypes_map['c_void_p'],  # windows.h
     'HWND': ctypes_map['c_void_p'],  # windows.h
     'HMONITOR': ctypes_map['c_void_p'],  # windows.h

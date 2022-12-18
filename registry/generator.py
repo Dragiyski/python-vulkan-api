@@ -1,10 +1,11 @@
 import re
+import os
 import pycparser
 import pycparser.c_ast
 import pycparser.c_generator
 from .xml_parser import Node, parse_xml
 from .code import get_preprocessor_lines
-from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, ctypes_map, handle_type_map, CType, CComplexType, CArrayType, CFunctionPointerType
+from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, ctypes_map, handle_type_map, CType, CPointerType, CComplexType, CArrayType, CFunctionType
 
 
 class Generator:
@@ -335,6 +336,9 @@ class Generator:
         self.compile_callback_node_map()
         self.compile_uncategorized_types()
         self.compile_complex_type_node_map()
+        self.resolve_callback_type_map()
+        self.compile_commands()
+        j = 0
 
     def compile_uncategorized_types(self):
         for name in self.uncategorized_types:
@@ -343,8 +347,62 @@ class Generator:
 
     def compile_callback_node_map(self):
         for name, node in self.callback_node_map.items():
-            self.ctypes_map[name] = CFunctionPointerType(name)
-            # Arguments and return type to be resolved later...
+            assert name.startswith('PFN_')
+            fn_type = self.ctypes_map[name[4:]] = CFunctionType(name[4:])
+            self.ctypes_map[name] = fn_type.pointer()
+            # Arguments and return type are to be resolved after compile_complex_type
+            # Some complex types member might be a function pointer type
+            # Some function pointer arguments might be a complex type
+            # Circular references are allowed (pointer to incomplete type is valid pointer)
+            # To resolve this, all function pointer types are eagerly generated, while complex types
+            # with function pointer type circular can their member delayed:
+            # class SomeComplexType(ctypes.Structure):
+            #   pass
+            # PFN_something = ctypes.POINTER(CFUNCTYPE(SomeComplexType), ...)
+            # SomeComplexType._fields_ = [('circular', PFN_something)]
+
+    def resolve_callback_type_map(self):
+        for name, node in self.callback_node_map.items():
+            code = self.get_member_code(node)
+            code = re.sub(r'\bVKAPI_PTR\b', '', code)
+            code = self.preprocess_c_code(code)
+            ast = self.cparser.parse(code)
+            assert type(ast.ext[0]) == pycparser.c_ast.Typedef
+            assert ast.ext[0].name == name
+            assert type(ast.ext[0].type == pycparser.c_ast.PtrDecl)
+            assert type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl)
+            assert name.startswith('PFN_')
+            assert name in self.ctypes_map
+            assert name[4:] in self.ctypes_map
+            fn_decl = ast.ext[0].type.type
+            ctype = self.ctypes_map[name[4:]]
+            assert isinstance(ctype, CFunctionType)
+            ctype.constructor = 'VKAPI_PTR'
+            for param in fn_decl.args.params:
+                param_ctype = self.get_type_from_decl(param.type)
+                ctype.argument_types.append(param_ctype)
+                if param.name == 'pUserData':
+                    ctype['user_data'] = len(ctype.argument_types) - 1
+            return_ctype = self.get_type_from_decl(fn_decl.type)
+            ctype.return_type = return_ctype
+
+    def compile_commands(self):
+        for name, node in self.command_node_map.items():
+            code = '%s(%s);' % (self.get_member_code(node.get('proto')), ', '. join([self.get_member_code(x) for x in node.get_all('param')]))
+            code = self.preprocess_c_code(code)
+            ast = self.cparser.parse(code)
+            assert type(ast.ext[0]) == pycparser.c_ast.Decl
+            assert type(ast.ext[0].type == pycparser.c_ast.FuncDecl)
+            decl = ast.ext[0].type
+            ctype = CFunctionType(name)
+            ctype.constructor = 'VKAPI_CALL'
+            ctype.return_type = self.get_type_from_decl(decl.type)
+            arg_ctype_list = []
+            for param in decl.args.params:
+                param_ctype = self.get_type_from_decl(param.type)
+                ctype.argument_types.append(param_ctype)
+            assert name not in self.ctypes_map
+            self.ctypes_map[name] = ctype
 
     def compile_handle_node_map(self):
         for name, node in self.handle_node_map.items():
@@ -586,7 +644,7 @@ class Generator:
                 ctype.member_map[member_name] = {}
                 ctype.member_list.append(member_name)
                 if 'type' not in member_node.children:
-                    raise Generator.Error('In %s, name="%s.%s": Missing attribute @name' % (self.make_path(node), name, member_name), node=member_node)
+                    raise Generator.Error('In %s, name="%s.%s": Missing attribute @type' % (self.make_path(node), name, member_name), node=member_node)
                 if len(member_node.children['type']) > 1:
                     raise self.multiple_children_error(member_node, 'type')
                 member_type = member_node.get('type').get_text()
@@ -765,6 +823,156 @@ class Generator:
         value = REGEXP_SUBST_TABLE.sub(subst_string_c_table, value)
         value = re.sub(r'[^\u0000-\u007F]', subst_string_unicode_char, value)
         return '"%s"' % value
+
+    def generate_combined_source(self):
+        source = ['import ctypes', '']
+        exported_names = []
+        current_indent = 0
+
+        def indent(count = current_indent):
+            return ' ' * 4 * count
+
+        # TODO: There should be if/else condition for VKAPI_PTR and VKAPI_CALL
+        # This should be ctypes.WINFUNCTION is it is defined, otherwise ctypes.CFUNCTION
+
+        for name, value in self.value_map.items():
+            from keyword import iskeyword
+            assert name.isidentifier()
+            assert not iskeyword(name)
+            source.append('%s = %r' % (name, value))
+
+        complex_type_has_class = set()
+        complex_type_has_fields = set()
+        func_type_declared = set()
+        func_type_resolving = set()
+
+        def generate_function_type(function_type_name):
+            nonlocal self, source, func_type_declared, func_type_resolving
+            if function_type_name in func_type_declared:
+                return
+            assert function_type_name in self.ctypes_map
+            assert isinstance(self.ctypes_map[function_type_name], CFunctionType)
+            if function_type_name in func_type_resolving:
+                raise Generator.Error('Circular reference in function pointer for function "%s": Incomplete function types not supported, yet' % function_type_name)
+            func_type_resolving.add(function_type_name)
+            try:
+                func_type = self.ctypes_map[function_type_name]
+                args = []
+                if func_type.return_type is self.ctypes_map['void']:
+                    # Special case only for return type of functions
+                    args.append('None')
+                else:
+                    ctype = target_ctype = func_type.return_type
+                    while isinstance(ctype, CPointerType) or isinstance(ctype, CArrayType):
+                        ctype = ctype._ctype
+                    if isinstance(ctype, CComplexType):
+                        generate_complex_type(ctype._name)
+                    elif isinstance(ctype, CFunctionType):
+                        generate_function_type(ctype._name)
+                    args.append(target_ctype.to_source())
+                if len(func_type.argument_types) and func_type.argument_types[0] is self.ctypes_map['void']:
+                    # Single void (unnamed) argument is allowed: void fn(void)
+                    pass
+                else:
+                    for target_ctype in func_type.argument_types:
+                        ctype = target_ctype
+                        while isinstance(ctype, CPointerType) or isinstance(ctype, CArrayType):
+                            ctype = ctype._ctype
+                        if isinstance(ctype, CComplexType):
+                            generate_complex_type(ctype._name)
+                        elif isinstance(ctype, CFunctionType):
+                            generate_function_type(ctype._name)
+                        args.append(target_ctype.to_source())
+                if len(args) <= 1:
+                    source.append('%s = %s(%s)' % (
+                        function_type_name,
+                        func_type.constructor,
+                        args[0] if len(args) >= 1 else ''
+                    ))
+                else:
+                    source.append('%s = %s(' % (function_type_name, func_type.constructor))
+                    for arg in args[:-1]:
+                        source.append('%s%s,' % (indent(1), arg))
+                    source.append('%s%s' % (indent(1), args[-1]))
+                    source.append(')')
+                source.append('')
+                func_type_declared.add(function_type_name)
+            finally:
+                func_type_resolving.remove(function_type_name)
+
+        def generate_complex_type(complex_type_name):
+            nonlocal complex_type_has_class, complex_type_has_fields, self, source, func_type_declared
+            if complex_type_name in complex_type_has_class:
+                return
+            should_delay = False
+            assert complex_type_name in self.ctypes_map
+            assert isinstance(self.ctypes_map[complex_type_name], CComplexType)
+            complex_type = self.ctypes_map[complex_type_name]
+            for definition in complex_type.member_map.values():
+                ctype = definition['ctype']
+                while isinstance(ctype, CPointerType) or isinstance(ctype, CArrayType):
+                    ctype = ctype._ctype
+                if isinstance(ctype, CComplexType) and ctype._name not in complex_type_has_class:
+                    should_delay = True
+                    break
+                if isinstance(ctype, CFunctionType) and ctype._name not in func_type_declared:
+                    should_delay = True
+                    break
+            source.append('class %s(ctypes.%s):' % (complex_type_name, complex_type._constructor))
+            if should_delay:
+                source.append('%spass' % indent(1))
+                source.append('')
+                source.append('')
+                complex_type_has_class.add(complex_type_name)
+                for definition in complex_type.member_map.values():
+                    ctype = definition['ctype']
+                    while isinstance(ctype, CPointerType) or isinstance(ctype, CArrayType):
+                        ctype = ctype._ctype
+                    if isinstance(ctype, CComplexType) and ctype._name not in complex_type_has_class:
+                        generate_complex_type(ctype._name)
+                    if isinstance(ctype, CFunctionType):
+                        generate_function_type(ctype._name)
+                source.append('%s._fields_ = [' % (complex_type_name))
+                for name in complex_type.member_list:
+                    definition = complex_type.member_map[name]
+                    if 'bitsize' in definition:
+                        source.append('%s(%r, %s, %d),' % (indent(1), name, definition['ctype'].to_source(), definition['bitsize']))
+                    else:
+                        source.append('%s(%r, %s),' % (indent(1), name, definition['ctype'].to_source()))
+                source.append(']')
+                source.append('')
+            else:
+                source.append('%s_fields_ = [' % (indent(1)))
+                for name in complex_type.member_list:
+                    definition = complex_type.member_map[name]
+                    if 'bitsize' in definition:
+                        source.append('%s(%r, %s, %d),' % (indent(2), name, definition['ctype'].to_source(), definition['bitsize']))
+                    else:
+                        source.append('%s(%r, %s),' % (indent(2), name, definition['ctype'].to_source()))
+                source.append('%s]' % (indent(1)))
+                source.append('')
+                source.append('')
+                complex_type_has_class.add(complex_type_name)
+            complex_type_has_fields.add(complex_type_name)
+
+        source.append('if hasattr(ctypes, \'WINFUNCTYPE\'):')
+        source.append(f'{indent(1)}VKAPI_CALL = ctypes.WINFUNCTYPE')
+        source.append(f'{indent(1)}VKAPI_PTR = ctypes.WINFUNCTYPE')
+        source.append(f'else:')
+        source.append(f'{indent(1)}VKAPI_CALL = ctypes.CFUNCTYPE')
+        source.append(f'{indent(1)}VKAPI_PTR = ctypes.CFUNCTYPE')
+        source.append(f'')
+
+        for name in self.complex_type_node_map.keys():
+            generate_complex_type(name)
+            exported_names.append(name)
+
+        for name in self.command_node_map.keys():
+            generate_function_type(name)
+
+        source.append('complex_types = %r' % exported_names)
+
+        return os.linesep.join(source)
 
 
 def subst_unicode_hex(match):
