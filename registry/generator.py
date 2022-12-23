@@ -338,7 +338,29 @@ class Generator:
         self.compile_complex_type_node_map()
         self.resolve_callback_type_map()
         self.compile_commands()
-        j = 0
+        self.resolve_enums()
+        
+    def resolve_enums(self):
+        self.value_type_map = {}
+        for name, value in self.value_enum_map.items():
+            if value not in self.value_type_map:
+                self.value_type_map[value] = {}
+            value_type_map = self.value_type_map[value]
+            assert name not in value_type_map
+            value_type_map[name] = self.value_map[name]
+        self.enum_type_map = {}
+        self.bitmask_type_map = {}
+        for name, node in self.enums_node_map.items():
+            if not node.has_attribute('type'):
+                continue
+            enum_type = node.get_attribute('type')
+            if enum_type == 'enum':
+                if name in self.value_type_map:
+                    self.enum_type_map[name] = self.value_type_map[name]
+            elif enum_type == 'bitmask':
+                if name in self.value_type_map:
+                    self.bitmask_type_map[name] = self.value_type_map[name]
+            
 
     def compile_uncategorized_types(self):
         for name in self.uncategorized_types:
@@ -458,7 +480,7 @@ class Generator:
                 ctype = ctypes_map['c_int']
             assert isinstance(ctype, CType)
             self.save_value_in_map(self.ctypes_map, name, ctype)
-    
+
     def compile_feature_enum_values(self):
         for root_node in self.root_node_list:
             for feature_node in root_node.get_all('feature'):
@@ -667,7 +689,6 @@ class Generator:
         finally:
             self.resolving_complex_type.remove(name)
 
-
     def get_feature_enum_value(self, enum_node, feature_node):
         enum_name = self.get_node_name_from_attribute(enum_node)
         feature_name = self.get_node_name_from_attribute(feature_node)
@@ -709,7 +730,7 @@ class Generator:
         if enum_node.get_attribute('dir') == '-':
             value = -value
         return value
-    
+
     def get_enum_value(self, node):
         if node.has_attribute('bitpos'):
             bitpos = self.parse_c_int(node.get_attribute('bitpos'))
@@ -823,13 +844,27 @@ class Generator:
         value = REGEXP_SUBST_TABLE.sub(subst_string_c_table, value)
         value = re.sub(r'[^\u0000-\u007F]', subst_string_unicode_char, value)
         return '"%s"' % value
+    
+    def get_key_name(self, enums_name: str, enum_name: str):
+        lenums_name = enums_name.lower()
+        lenum_parts = enum_name.lower().split('_')
+        while True:
+            part = lenum_parts[0]
+            if lenums_name.startswith(part):
+                part_len = len(part)
+                lenums_name = lenums_name[part_len:]
+                lenum_parts.pop(0)
+            else:
+                break
+        return lenum_parts.join('_')
+            
 
     def generate_combined_source(self):
         source = ['import ctypes', '']
         exported_names = []
         current_indent = 0
 
-        def indent(count = current_indent):
+        def indent(count=current_indent):
             return ' ' * 4 * count
 
         # TODO: There should be if/else condition for VKAPI_PTR and VKAPI_CALL
@@ -982,6 +1017,7 @@ def subst_unicode_hex(match):
 def subst_unicode_oct(match):
     return chr(int(match.group(1), 8))
 
+
 def subst_string_unicode_char(match):
     char = match.group(0)
     code = ord(char)
@@ -990,10 +1026,12 @@ def subst_string_unicode_char(match):
     else:
         return r'\U%08X' % code
 
+
 def subst_string_c_table(match):
     char = match.group(0)
     code = ord(char)
     return '\\%s' % subst_string_table[code]
+
 
 subst_table = {
     'a': 0x07,

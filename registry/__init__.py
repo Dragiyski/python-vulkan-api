@@ -47,10 +47,10 @@ class GenerateVulkanSourceFiles(Command):
         for file in files:
             generator.add_xml_file(file)
         generator.compile()
-        combined_source = generator.generate_combined_source()
-        project_dir = pathlib.Path(__file__).resolve().parent.parent
-        src_dir = project_dir.joinpath('src')
-        package_dir = src_dir.joinpath('vulkan_api')
-        package_dir.mkdir(mode=0o755, exist_ok=True, parents=True)
-        with open(package_dir.joinpath('ctypes.py'), 'w') as file:
-            file.write(combined_source)
+        enum_source = generator.generate_enum_source()
+        # project_dir = pathlib.Path(__file__).resolve().parent.parent
+        # src_dir = project_dir.joinpath('src')
+        # package_dir = src_dir.joinpath('vulkan_api')
+        # package_dir.mkdir(mode=0o755, exist_ok=True, parents=True)
+        # with open(package_dir.joinpath('ctypes.py'), 'w') as file:
+        #     file.write(combined_source)
