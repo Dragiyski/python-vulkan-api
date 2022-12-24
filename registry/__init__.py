@@ -42,12 +42,24 @@ class GenerateVulkanSourceFiles(Command):
         # print('Hello from command')
         from pprint import pformat
         files = update(self.vk_directory)
+        project_dir = pathlib.Path(__file__).resolve().parent.parent
+        src_dir = project_dir.joinpath('src')
+        package_dir = src_dir.joinpath('vulkan_api')
+        package_dir.mkdir(mode=0o755, exist_ok=True, parents=True)
+        enum_source_file = package_dir.joinpath('ctype_enum.py')
+        bitmask_source_file = package_dir.joinpath('ctype_bitmask.py')
         print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)), file=sys.stderr)
         generator = Generator()
         for file in files:
             generator.add_xml_file(file)
         generator.compile()
         enum_source = generator.generate_enum_source()
+        with open(enum_source_file, 'w') as file:
+            file.write(enum_source)
+        del enum_source
+        bitmask_source = generator.generate_bitmask_source()
+        with open(bitmask_source_file, 'w') as file:
+            file.write(bitmask_source)
         # project_dir = pathlib.Path(__file__).resolve().parent.parent
         # src_dir = project_dir.joinpath('src')
         # package_dir = src_dir.joinpath('vulkan_api')

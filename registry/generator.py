@@ -350,16 +350,31 @@ class Generator:
             value_type_map[name] = self.value_map[name]
         self.enum_type_map = {}
         self.bitmask_type_map = {}
-        for name, node in self.enums_node_map.items():
-            if not node.has_attribute('type'):
-                continue
-            enum_type = node.get_attribute('type')
+        for enums_name, enums_node in self.enums_node_map.items():
+            if enums_node.has_attribute('type'):
+                enum_type = enums_node.get_attribute('type')
+            else:
+                enum_type = None
             if enum_type == 'enum':
-                if name in self.value_type_map:
-                    self.enum_type_map[name] = self.value_type_map[name]
+                if enums_name in self.value_type_map:
+                    value_map = self.enum_type_map[enums_name] = self.value_type_map[enums_name]
             elif enum_type == 'bitmask':
-                if name in self.value_type_map:
-                    self.bitmask_type_map[name] = self.value_type_map[name]
+                if enums_name in self.value_type_map:
+                    value_map = self.bitmask_type_map[enums_name] = self.value_type_map[enums_name]
+            else:
+                for enum_node in enums_node.get_all('enum'):
+                    enum_name = enum_node.get_attribute('name')
+                    if enum_node.has_attribute('alias'):
+                        self.const_map[enum_name] = enum_node.get_attribute('alias')
+                    else:
+                        self.const_map[enum_name] = self.value_map[enum_name]
+                continue
+            for enum_node in enums_node.get_all('enum'):
+                if enum_node.has_attribute('alias'):
+                    enum_name = enum_node.get_attribute('name')
+                    enum_alias = enum_node.get_attribute('alias')
+                    value_map[enum_name] = enum_alias
+        j = 0
             
 
     def compile_uncategorized_types(self):
@@ -846,8 +861,8 @@ class Generator:
         return '"%s"' % value
     
     def get_key_name(self, enums_name: str, enum_name: str):
-        lenums_name = enums_name.lower()
-        lenum_parts = enum_name.lower().split('_')
+        lenums_name = enums_name.upper()
+        lenum_parts = enum_name.upper().split('_')
         while True:
             part = lenum_parts[0]
             if lenums_name.startswith(part):
@@ -856,9 +871,44 @@ class Generator:
                 lenum_parts.pop(0)
             else:
                 break
-        return lenum_parts.join('_')
+        return '_'.join(lenum_parts)
+    
+    def generate_enum_source(self):
+        source = [
+            'import ctypes',
+            'from .base_enum import VulkanEnum',
+            ''
+        ]
+        for enum_name, value_map in self.enum_type_map.items():
+            ctype = self.ctypes_map[enum_name].to_source()
+            source.append('class %s(VulkanEnum[%s]):' % (enum_name, ctype))
+            for name, value in value_map.items():
+                if isinstance(value, int):
+                    source.append('    %s = %d' % (name, value))
+            for name, value in value_map.items():
+                if isinstance(value, str):
+                    source.append('    %s = %s' % (name, value))
+            source.append('')
+        return os.linesep.join(source)
             
-
+    def generate_bitmask_source(self):
+        source = [
+            'import ctypes',
+            'from .base_enum import VulkanFlag',
+            ''
+        ]
+        for bitmask_name, value_map in self.bitmask_type_map.items():
+            ctype = self.ctypes_map[bitmask_name].to_source()
+            source.append('class %s(VulkanFlag[%s]):' % (bitmask_name, ctype))
+            for name, value in value_map.items():
+                if isinstance(value, int):
+                    source.append('    %s = %d' % (name, value))
+            for name, value in value_map.items():
+                if isinstance(value, str):
+                    source.append('    %s = %s' % (name, value))
+            source.append('')
+        return os.linesep.join(source)
+    
     def generate_combined_source(self):
         source = ['import ctypes', '']
         exported_names = []
