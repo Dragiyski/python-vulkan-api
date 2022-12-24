@@ -339,7 +339,7 @@ class Generator:
         self.resolve_callback_type_map()
         self.compile_commands()
         self.resolve_enums()
-        
+
     def resolve_enums(self):
         self.value_type_map = {}
         for name, value in self.value_enum_map.items():
@@ -367,7 +367,12 @@ class Generator:
                     if enum_node.has_attribute('alias'):
                         self.const_map[enum_name] = enum_node.get_attribute('alias')
                     else:
-                        self.const_map[enum_name] = self.value_map[enum_name]
+                        assert enum_node.has_attribute('type')
+                        ctype = self.ctypes_map[enum_node.get_attribute('type')]
+                        self.const_map[enum_name] = {
+                            'value': self.value_map[enum_name],
+                            'ctype': ctype
+                        }
                 continue
             for enum_node in enums_node.get_all('enum'):
                 if enum_node.has_attribute('alias'):
@@ -375,7 +380,6 @@ class Generator:
                     enum_alias = enum_node.get_attribute('alias')
                     value_map[enum_name] = enum_alias
         j = 0
-            
 
     def compile_uncategorized_types(self):
         for name in self.uncategorized_types:
@@ -859,7 +863,7 @@ class Generator:
         value = REGEXP_SUBST_TABLE.sub(subst_string_c_table, value)
         value = re.sub(r'[^\u0000-\u007F]', subst_string_unicode_char, value)
         return '"%s"' % value
-    
+
     def get_key_name(self, enums_name: str, enum_name: str):
         lenums_name = enums_name.upper()
         lenum_parts = enum_name.upper().split('_')
@@ -872,7 +876,7 @@ class Generator:
             else:
                 break
         return '_'.join(lenum_parts)
-    
+
     def generate_enum_source(self):
         source = [
             'import ctypes',
@@ -889,8 +893,9 @@ class Generator:
                 if isinstance(value, str):
                     source.append('    %s = %s' % (name, value))
             source.append('')
+        source.append('__all__ = %r' % list(self.enum_type_map.keys()))
         return os.linesep.join(source)
-            
+
     def generate_bitmask_source(self):
         source = [
             'import ctypes',
@@ -907,8 +912,50 @@ class Generator:
                 if isinstance(value, str):
                     source.append('    %s = %s' % (name, value))
             source.append('')
+        source.append('__all__ = %r' % list(self.bitmask_type_map.keys()))
         return os.linesep.join(source)
-    
+
+    def generate_const_source(self):
+        source = [
+            'import ctypes',
+            'from .base_enum import VulkanConst',
+            ''
+        ]
+        for const_name, const_info in self.const_map.items():
+            if isinstance(const_info, dict):
+                ctype = const_info['ctype'].to_source()
+                value = const_info['value']
+                source.append('%s = VulkanConst[%s](%d)' % (const_name, ctype, value))
+
+        for const_name, const_info in self.const_map.items():
+            if isinstance(const_info, str):
+                source.append('%s = %s' % (const_name, const_info))
+
+        source.append('__all__ = %r' % list(self.const_map.keys()))
+
+        return os.linesep.join(source)
+
+    def generate_value_source(self):
+        source = [
+            'from .ctype_const import *',
+            'from .ctype_enum import *',
+            'from .ctype_bitmask import *',
+            ''
+        ]
+
+        names = list(self.const_map.keys())
+        for type_map in [self.enum_type_map, self.bitmask_type_map]:
+            for enum_name, value_map in type_map.items():
+                for name in value_map.keys():
+                    names.append(name)
+                    source.append('%s = %s.%s' % (name, enum_name, name))
+        
+        source.append('')
+        source.append('__all__ = %r' % names)
+        
+        return os.linesep.join(source)
+
+
     def generate_combined_source(self):
         source = ['import ctypes', '']
         exported_names = []

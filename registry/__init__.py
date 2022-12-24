@@ -48,6 +48,8 @@ class GenerateVulkanSourceFiles(Command):
         package_dir.mkdir(mode=0o755, exist_ok=True, parents=True)
         enum_source_file = package_dir.joinpath('ctype_enum.py')
         bitmask_source_file = package_dir.joinpath('ctype_bitmask.py')
+        const_source_file = package_dir.joinpath('ctype_const.py')
+        vk_values_source_file = package_dir.joinpath('vk_values.py')
         print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)), file=sys.stderr)
         generator = Generator()
         for file in files:
@@ -60,6 +62,15 @@ class GenerateVulkanSourceFiles(Command):
         bitmask_source = generator.generate_bitmask_source()
         with open(bitmask_source_file, 'w') as file:
             file.write(bitmask_source)
+        del bitmask_source
+        const_source = generator.generate_const_source()
+        with open(const_source_file, 'w') as file:
+            file.write(const_source)
+        del const_source
+        values_source = generator.generate_value_source()
+        with open(vk_values_source_file, 'w') as file:
+            file.write(values_source)
+        del values_source
         # project_dir = pathlib.Path(__file__).resolve().parent.parent
         # src_dir = project_dir.joinpath('src')
         # package_dir = src_dir.joinpath('vulkan_api')
