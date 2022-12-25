@@ -4,4 +4,4 @@
 var/
 build/
 dist/
-
+src/vulkan_api/generated

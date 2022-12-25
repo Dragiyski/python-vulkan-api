@@ -880,7 +880,7 @@ class Generator:
     def generate_enum_source(self):
         source = [
             'import ctypes',
-            'from .base_enum import VulkanEnum',
+            'from ..base_enum import VulkanEnum',
             ''
         ]
         for enum_name, value_map in self.enum_type_map.items():
@@ -899,7 +899,7 @@ class Generator:
     def generate_bitmask_source(self):
         source = [
             'import ctypes',
-            'from .base_enum import VulkanFlag',
+            'from ..base_enum import VulkanFlag',
             ''
         ]
         for bitmask_name, value_map in self.bitmask_type_map.items():
@@ -918,7 +918,7 @@ class Generator:
     def generate_const_source(self):
         source = [
             'import ctypes',
-            'from .base_enum import VulkanConst',
+            'from ..base_enum import VulkanConst',
             ''
         ]
         for const_name, const_info in self.const_map.items():
@@ -956,22 +956,16 @@ class Generator:
         return os.linesep.join(source)
 
 
-    def generate_combined_source(self):
-        source = ['import ctypes', '']
-        exported_names = []
-        current_indent = 0
+    def generate_type_source(self):
+        source = [
+            'import ctypes',
+            'from ..function import VKAPI_CALL, VKAPI_PTR',
+            'from .ctype_struct import *',
+            ''
+        ]
 
-        def indent(count=current_indent):
+        def indent(count):
             return ' ' * 4 * count
-
-        # TODO: There should be if/else condition for VKAPI_PTR and VKAPI_CALL
-        # This should be ctypes.WINFUNCTION is it is defined, otherwise ctypes.CFUNCTION
-
-        for name, value in self.value_map.items():
-            from keyword import iskeyword
-            assert name.isidentifier()
-            assert not iskeyword(name)
-            source.append('%s = %r' % (name, value))
 
         complex_type_has_class = set()
         complex_type_has_fields = set()
@@ -1024,8 +1018,8 @@ class Generator:
                 else:
                     source.append('%s = %s(' % (function_type_name, func_type.constructor))
                     for arg in args[:-1]:
-                        source.append('%s%s,' % (indent(1), arg))
-                    source.append('%s%s' % (indent(1), args[-1]))
+                        source.append('    %s,' % (arg))
+                    source.append('    %s' % (args[-1]))
                     source.append(')')
                 source.append('')
                 func_type_declared.add(function_type_name)
@@ -1052,7 +1046,7 @@ class Generator:
                     break
             source.append('class %s(ctypes.%s):' % (complex_type_name, complex_type._constructor))
             if should_delay:
-                source.append('%spass' % indent(1))
+                source.append('    pass')
                 source.append('')
                 source.append('')
                 complex_type_has_class.add(complex_type_name)
@@ -1087,23 +1081,57 @@ class Generator:
                 complex_type_has_class.add(complex_type_name)
             complex_type_has_fields.add(complex_type_name)
 
-        source.append('if hasattr(ctypes, \'WINFUNCTYPE\'):')
-        source.append(f'{indent(1)}VKAPI_CALL = ctypes.WINFUNCTYPE')
-        source.append(f'{indent(1)}VKAPI_PTR = ctypes.WINFUNCTYPE')
-        source.append(f'else:')
-        source.append(f'{indent(1)}VKAPI_CALL = ctypes.CFUNCTYPE')
-        source.append(f'{indent(1)}VKAPI_PTR = ctypes.CFUNCTYPE')
-        source.append(f'')
-
         for name in self.complex_type_node_map.keys():
             generate_complex_type(name)
-            exported_names.append(name)
+
+        all_names = list(complex_type_has_class) + list(func_type_declared)
+        source.append('__all__ = %r' % all_names)
+
+        return os.linesep.join(source)
+
+    def generate_command_source(self):
+        source = [
+            'import ctypes',
+            'from ..function import VKAPI_CALL, VKAPI_PTR',
+            'from .ctype_struct import *',
+            ''
+        ]
+
+        def generate_function_type(function_type_name):
+            nonlocal self, source
+            assert function_type_name in self.ctypes_map
+            assert isinstance(self.ctypes_map[function_type_name], CFunctionType)
+            func_type = self.ctypes_map[function_type_name]
+            args = []
+            if func_type.return_type is self.ctypes_map['void']:
+                # Special case only for return type of functions
+                args.append('None')
+            else:
+                args.append(func_type.return_type.to_source())
+            if len(func_type.argument_types) and func_type.argument_types[0] is self.ctypes_map['void']:
+                # Single void (unnamed) argument is allowed: void fn(void)
+                pass
+            else:
+                for argument_type in func_type.argument_types:
+                    args.append(argument_type.to_source())
+            if len(args) <= 1:
+                source.append('%s = %s(%s)' % (
+                    function_type_name,
+                    func_type.constructor,
+                    args[0] if len(args) >= 1 else ''
+                ))
+            else:
+                source.append('%s = %s(' % (function_type_name, func_type.constructor))
+                for arg in args[:-1]:
+                    source.append('    %s,' % (arg))
+                source.append('    %s' % (args[-1]))
+                source.append(')')
+            source.append('')
 
         for name in self.command_node_map.keys():
             generate_function_type(name)
 
-        source.append('complex_types = %r' % exported_names)
-
+        source.append('__all__ = %r' % list(self.command_node_map.keys()))
         return os.linesep.join(source)
 
 

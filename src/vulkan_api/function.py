@@ -1,3 +1,5 @@
+import ctypes
+
 if hasattr(ctypes, 'WINFUNCTYPE'):
     VKAPI_CALL = ctypes.WINFUNCTYPE
     VKAPI_PTR = ctypes.WINFUNCTYPE
