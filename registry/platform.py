@@ -91,6 +91,8 @@ class CArrayType(CType):
     def __init__(self, ctype, length, **kwargs):
         if not isinstance(ctype, CType):
             raise ValueError('Pointer type must be made from another CType')
+        if not isinstance(length, int):
+            raise TypeError('CArrayType length must be an integer')
         super().__init__(**kwargs)
         self._ctype = ctype
         self._length = length
@@ -290,6 +292,11 @@ platform_ctypes = {
     'zx_handle_t': ctypes_map['c_uint32'],  # zircon/types.h (Fuschia?)
     'GgpStreamDescriptor': ctypes_map['c_uint32'],  # Google games platform?
     'GgpFrameToken': ctypes_map['c_uint32'],  # Google games platform?
+    'NvSciSyncAttrList': ctypes_map['c_void_p'], # NV Sci Platform
+    'NvSciSyncObj': ctypes_map['c_void_p'], # NV Sci Platform
+    'NvSciSyncFence': CArrayType(ctypes_map['c_uint64'], 6), # NV Sci Platform
+    'NvSciBufAttrList': ctypes_map['c_void_p'], # NV Sci Platform
+    'NvSciBufObj': ctypes_map['c_void_p'], # NV Sci Platform
 }
 
 object_macro_map = {}

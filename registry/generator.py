@@ -57,6 +57,14 @@ class Generator:
         self.delayed_complex_type = set()
         self.cparser = CParser()
         self.cgenerator = Generator.CGenerator()
+        self.use_api = 'vulkan'
+
+    def is_target_api(self, node):
+        if not node.has_attribute('api'):
+            return True
+        api = node.get_attribute('api')
+        api = [str.strip(x).lower() for x in api.split(',')]
+        return self.use_api in api
 
     def make_path(self, node):
         names = []
@@ -140,6 +148,8 @@ class Generator:
 
         for types_node in root_node.get_all('types'):
             for type_node in types_node.get_all('type'):
+                if not self.is_target_api(type_node):
+                    continue
                 category = type_node.get_attribute('category')
                 if category == 'define':
                     name = self.get_node_name(type_node)
@@ -316,6 +326,8 @@ class Generator:
 
         for commands_node in root_node.get_all('commands'):
             for command_node in commands_node.get_all('command'):
+                if not self.is_target_api(command_node):
+                    continue
                 if command_node.has_attribute('alias'):
                     self.process_alias_node(command_node)
                 else:
@@ -609,8 +621,6 @@ class Generator:
         if type(node) is pycparser.c_ast.PtrDecl:
             return self.get_type_from_decl(node.type).pointer()
         if type(node) is pycparser.c_ast.ArrayDecl:
-            if type(node.dim) != pycparser.c_ast.Constant:
-                raise Generator.Error('Unsupported non-const-expr array')
             length = self.get_c_ast_const_value(node.dim)
             return CArrayType(self.get_type_from_decl(node.type), length)
         if type(node) is pycparser.c_ast.TypeDecl:
@@ -820,8 +830,28 @@ class Generator:
         elif node_type is c_ast.BinaryOp:
             if node.op == '|':
                 return self.get_c_ast_const_value(node.left) | self.get_c_ast_const_value(node.right)
+            if node.op == '&':
+                return self.get_c_ast_const_value(node.left) & self.get_c_ast_const_value(node.right)
+            if node.op == '^':
+                return self.get_c_ast_const_value(node.left) ^ self.get_c_ast_const_value(node.right)
+            if node.op == '+':
+                return self.get_c_ast_const_value(node.left) + self.get_c_ast_const_value(node.right)
+            if node.op == '-':
+                return self.get_c_ast_const_value(node.left) - self.get_c_ast_const_value(node.right)
+            if node.op == '*':
+                return self.get_c_ast_const_value(node.left) * self.get_c_ast_const_value(node.right)
+            if node.op == '/':
+                return self.get_c_ast_const_value(node.left) / self.get_c_ast_const_value(node.right)
+            if node.op == '%':
+                return self.get_c_ast_const_value(node.left) % self.get_c_ast_const_value(node.right)
             if node.op == '<<':
                 return self.get_c_ast_const_value(node.left) << self.get_c_ast_const_value(node.right)
+            if node.op == '>>':
+                return self.get_c_ast_const_value(node.left) >> self.get_c_ast_const_value(node.right)
+        elif node_type is c_ast.ID:
+            if node.name not in self.value_map:
+                raise ReferenceError('Missing ID: %s' % node.name)
+            return self.value_map[node.name]
         elif node_type is c_ast.Cast:
             target_type = self.cgenerator.visit(node.to_type)
             assert target_type in self.ctypes_map
