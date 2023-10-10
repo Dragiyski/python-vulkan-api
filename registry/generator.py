@@ -646,6 +646,8 @@ class Generator:
             '%s %s {' % (keyword, name)
         ]
         for member_node in node.get_all('member'):
+            if not self.is_target_api(member_node):
+                continue
             code.append('    %s;' % self.get_member_code(member_node))
         code.append('};')
         code = '\n'.join(code)
@@ -691,6 +693,8 @@ class Generator:
             ctype['delay_fields'] = False
             ctype['dependencies'] = []
             for member_node in node.get_all('member'):
+                if not self.is_target_api(member_node):
+                    continue
                 member_name = self.get_node_name_from_children(member_node)
                 ctype.member_map[member_name] = {}
                 ctype.member_list.append(member_name)
