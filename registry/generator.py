@@ -911,23 +911,26 @@ class Generator:
                 break
         return '_'.join(lenum_parts)
 
-    def generate_enum_source(self):
+    def generate_enum_source(self, name):
+        if name not in self.enum_type_map:
+            raise KeyError('Enum "%s" does not exist' % (name))
         source = [
+            'import sys',
             'import ctypes',
-            'from ..base_enum import VulkanEnum',
-            ''
+            'from ..._vulkan_base_class import VulkanEnum'
         ]
-        for enum_name, value_map in self.enum_type_map.items():
-            ctype = self.ctypes_map[enum_name].to_source()
-            source.append('class %s(VulkanEnum[%s]):' % (enum_name, ctype))
-            for name, value in value_map.items():
-                if isinstance(value, int):
-                    source.append('    %s = %d' % (name, value))
-            for name, value in value_map.items():
-                if isinstance(value, str):
-                    source.append('    %s = %s' % (name, value))
-            source.append('')
-        source.append('__all__ = %r' % list(self.enum_type_map.keys()))
+        value_map = self.enum_type_map[name]
+        source.append('from ..constant import %s' % (', '.join(value_map.keys())))
+        source.append('')
+        ctype = self.ctypes_map[name].to_source()
+        source.append('class %s(VulkanEnum[%s]):' % (name, ctype))
+        for item_name in value_map.keys():
+            source.append('    %s = %s' % (item_name, item_name))
+        source.extend([
+            '',
+            'sys.modules[__name__] = %s' % (name),
+            ''
+        ])
         return os.linesep.join(source)
 
     def generate_bitmask_source(self):
@@ -970,23 +973,10 @@ class Generator:
         return os.linesep.join(source)
 
     def generate_value_source(self):
-        source = [
-            'from .ctype_const import *',
-            'from .ctype_enum import *',
-            'from .ctype_bitmask import *',
-            ''
-        ]
-
-        names = list(self.const_map.keys())
-        for type_map in [self.enum_type_map, self.bitmask_type_map]:
-            for enum_name, value_map in type_map.items():
-                for name in value_map.keys():
-                    names.append(name)
-                    source.append('%s = %s.%s' % (name, enum_name, name))
-        
+        source = []
+        for name, value in self.value_map.items():
+            source.append('%s = %r' % (name, value))
         source.append('')
-        source.append('__all__ = %r' % names)
-        
         return os.linesep.join(source)
 
 

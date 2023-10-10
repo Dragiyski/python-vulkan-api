@@ -4,4 +4,4 @@
 var/
 build/
 dist/
-src/vulkan_api/generated
+src/dragiyski/ctypes/lib/vulkan/api

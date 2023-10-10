@@ -1,3 +1,15 @@
 [build-system]
 requires = ["setuptools", "pycparser"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name="dragiyski.lib.vulkan"
+version = "0.0.1"
+authors = [
+    { name = "Plamen Dragiyski", email = "plamen@dragiyski.org" }
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)"
+]
