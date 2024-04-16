@@ -1,5 +1,6 @@
 import re
 import os
+from collections import OrderedDict
 import pycparser
 import pycparser.c_ast
 import pycparser.c_generator
@@ -7,6 +8,9 @@ from .xml_parser import Node, parse_xml
 from .code import get_preprocessor_lines
 from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, ctypes_map, handle_type_map, CType, CPointerType, CComplexType, CArrayType, CFunctionType
 
+class Code(str):
+    def __repr__(self):
+        return self
 
 class Generator:
     class Error(RuntimeError):
@@ -137,7 +141,7 @@ class Generator:
         target_map[name] = value
 
     def process_alias_node(self, node):
-        assert node.has_attribute('alias')
+        assert node.has_attribute('alias'), "node.has_attribute('alias')"
         name = self.get_node_name_from_attribute(node)
         alias = node.get_attribute('alias')
         self.save_alias(name, alias)
@@ -199,7 +203,7 @@ class Generator:
                             'template': template
                         }
                     else:
-                        object_macro = re.fullmatch('\s*#\s*define\s+(\w+)\s+(.*)', code)
+                        object_macro = re.fullmatch(r'\s*#\s*define\s+(\w+)\s+(.*)', code)
                         if object_macro is None:
                             raise Generator.Error('In %s: Unable to parse preprocessor #define' % (self.make_path(type_node)))
                         macro_name = object_macro.group(1)
@@ -319,6 +323,10 @@ class Generator:
                     self.enum_value_map[enum_name] = {
                         'value_node': enum_node
                     }
+                    if enum_node.has_attribute('type'):
+                        assert enum_node.get_attribute('type') in self.ctypes_map, "enum_node.get_attribute('type') in self.ctypes_map"
+                        self.enum_value_map[enum_name]['type'] = self.ctypes_map[enum_node.get_attribute('type')]
+                        pass
                     if is_in_enum:
                         self.enum_value_map[enum_name]['enum_node'] = enums_node
                         self.enum_value_map[enum_name]['enum_name'] = enums_name
@@ -358,7 +366,7 @@ class Generator:
             if value not in self.value_type_map:
                 self.value_type_map[value] = {}
             value_type_map = self.value_type_map[value]
-            assert name not in value_type_map
+            assert name not in value_type_map, 'name not in value_type_map'
             value_type_map[name] = self.value_map[name]
         self.enum_type_map = {}
         self.bitmask_type_map = {}
@@ -373,13 +381,18 @@ class Generator:
             elif enum_type == 'bitmask':
                 if enums_name in self.value_type_map:
                     value_map = self.bitmask_type_map[enums_name] = self.value_type_map[enums_name]
+                if enums_name not in self.bit_map:
+                    maybe_type_name = enums_name.replace('Bits', '').replace('Flag', 'Flags')
+                    if maybe_type_name in self.bitmask_node_map:
+                        self.bit_map[enums_name] = maybe_type_name
             else:
                 for enum_node in enums_node.get_all('enum'):
                     enum_name = enum_node.get_attribute('name')
                     if enum_node.has_attribute('alias'):
-                        self.const_map[enum_name] = enum_node.get_attribute('alias')
+                        if enum_node.get_attribute('deprecated') != 'aliased':
+                            self.const_map[enum_name] = Code(enum_node.get_attribute('alias'))
                     else:
-                        assert enum_node.has_attribute('type')
+                        assert enum_node.has_attribute('type'), "enum_node.has_attribute('type')"
                         ctype = self.ctypes_map[enum_node.get_attribute('type')]
                         self.const_map[enum_name] = {
                             'value': self.value_map[enum_name],
@@ -387,10 +400,10 @@ class Generator:
                         }
                 continue
             for enum_node in enums_node.get_all('enum'):
-                if enum_node.has_attribute('alias'):
+                if enum_node.has_attribute('alias') and enum_node.get_attribute('deprecated') != 'aliased':
                     enum_name = enum_node.get_attribute('name')
                     enum_alias = enum_node.get_attribute('alias')
-                    value_map[enum_name] = enum_alias
+                    value_map[enum_name] = Code(enum_alias)
         j = 0
 
     def compile_uncategorized_types(self):
@@ -400,7 +413,7 @@ class Generator:
 
     def compile_callback_node_map(self):
         for name, node in self.callback_node_map.items():
-            assert name.startswith('PFN_')
+            assert name.startswith('PFN_'), "name.startswith('PFN_')"
             fn_type = self.ctypes_map[name[4:]] = CFunctionType(name[4:])
             self.ctypes_map[name] = fn_type.pointer()
             # Arguments and return type are to be resolved after compile_complex_type
@@ -420,16 +433,16 @@ class Generator:
             code = re.sub(r'\bVKAPI_PTR\b', '', code)
             code = self.preprocess_c_code(code)
             ast = self.cparser.parse(code)
-            assert type(ast.ext[0]) == pycparser.c_ast.Typedef
-            assert ast.ext[0].name == name
-            assert type(ast.ext[0].type == pycparser.c_ast.PtrDecl)
-            assert type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl)
-            assert name.startswith('PFN_')
-            assert name in self.ctypes_map
-            assert name[4:] in self.ctypes_map
+            assert type(ast.ext[0]) == pycparser.c_ast.Typedef, 'type(ast.ext[0]) == pycparser.c_ast.Typedef'
+            assert ast.ext[0].name == name, 'ast.ext[0].name == name'
+            assert type(ast.ext[0].type == pycparser.c_ast.PtrDecl), 'type(ast.ext[0].type == pycparser.c_ast.PtrDecl)'
+            assert type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl), 'type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl)'
+            assert name.startswith('PFN_'), "name.startswith('PFN_')"
+            assert name in self.ctypes_map, 'name in self.ctypes_map'
+            assert name[4:] in self.ctypes_map, 'name[4:] in self.ctypes_map'
             fn_decl = ast.ext[0].type.type
             ctype = self.ctypes_map[name[4:]]
-            assert isinstance(ctype, CFunctionType)
+            assert isinstance(ctype, CFunctionType), 'isinstance(ctype, CFunctionType)'
             ctype.constructor = 'VKAPI_PTR'
             for param in fn_decl.args.params:
                 param_ctype = self.get_type_from_decl(param.type)
@@ -444,8 +457,8 @@ class Generator:
             code = '%s(%s);' % (self.get_member_code(node.get('proto')), ', '. join([self.get_member_code(x) for x in node.get_all('param')]))
             code = self.preprocess_c_code(code)
             ast = self.cparser.parse(code)
-            assert type(ast.ext[0]) == pycparser.c_ast.Decl
-            assert type(ast.ext[0].type == pycparser.c_ast.FuncDecl)
+            assert type(ast.ext[0]) == pycparser.c_ast.Decl, 'type(ast.ext[0]) == pycparser.c_ast.Decl'
+            assert type(ast.ext[0].type == pycparser.c_ast.FuncDecl), 'type(ast.ext[0].type == pycparser.c_ast.FuncDecl)'
             decl = ast.ext[0].type
             ctype = CFunctionType(name)
             ctype.constructor = 'VKAPI_CALL'
@@ -454,7 +467,7 @@ class Generator:
             for param in decl.args.params:
                 param_ctype = self.get_type_from_decl(param.type)
                 ctype.argument_types.append(param_ctype)
-            assert name not in self.ctypes_map
+            assert name not in self.ctypes_map, 'name not in self.ctypes_map'
             self.ctypes_map[name] = ctype
 
     def compile_handle_node_map(self):
@@ -476,8 +489,8 @@ class Generator:
                 ctype = basic_ctypes[ctype]
                 value = ctype.make_python_value(value)
             else:
-                assert 'enum_name' in source_map
-                assert source_map['enum_name'] in self.ctypes_map
+                assert 'enum_name' in source_map, "'enum_name' in source_map"
+                assert source_map['enum_name'] in self.ctypes_map, "source_map['enum_name'] in self.ctypes_map"
                 self.ctypes_map[source_map['enum_name']].make_python_value(value)
                 self.value_enum_map[name] = source_map['enum_name']
             source_map['value'] = value
@@ -501,15 +514,15 @@ class Generator:
                 bit_name = node.get_attribute('requires')
             if bit_name is not None:
                 if bit_name in self.bit_map:
-                    raise Generator.Error('In %s, name="%s": Bitmask assigns "%s" enum, already assigned by another bitmask "%s"' % (self.make_path(node), name, bit_name, bit_map[bit_name]))
+                    raise Generator.Error('In %s, name="%s": Bitmask assigns "%s" enum, already assigned by another bitmask "%s"' % (self.make_path(node), name, bit_name, self.bit_map[bit_name]))
                 self.bit_map[bit_name] = name
         for name, node in self.enum_node_map.items():
             if name in self.bit_map:
-                assert self.bit_map[name] in self.ctypes_map
+                assert self.bit_map[name] in self.ctypes_map, 'self.bit_map[name] in self.ctypes_map'
                 ctype = self.ctypes_map[self.bit_map[name]]
             else:
                 ctype = ctypes_map['c_int']
-            assert isinstance(ctype, CType)
+            assert isinstance(ctype, CType), 'isinstance(ctype, CType)'
             self.save_value_in_map(self.ctypes_map, name, ctype)
 
     def compile_feature_enum_values(self):
@@ -526,22 +539,22 @@ class Generator:
                         if enum_node.has_attribute('extends'):
                             extend_name = enum_node.get_attribute('extends')
                             if extend_name not in self.enum_node_map:
-                                raise Generator.Error('In %s, extension "%s", enum "%s": Extending non-existent enum "%s"' % (self.make_path(enum_node), ext_name, enum_name, extend_name))
+                                raise Generator.Error('In %s, feature "%s", enum "%s": Extending non-existent enum "%s"' % (self.make_path(enum_node), feature_name, enum_name, extend_name))
                         value = self.get_feature_enum_value(enum_node, feature_node)
                         if value is None:
                             continue
                         if enum_name in self.value_map:
                             if self.value_map[enum_name] != value:
-                                raise Generator.Error('In %s, extension "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (self.make_path(enum_node), feature_name, enum_name, value, self.value_map[enum_name]))
+                                raise Generator.Error('In %s, feature "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (self.make_path(enum_node), feature_name, enum_name, value, self.value_map[enum_name]))
                             if extend_name is not None and not enum_node.has_attribute('extnumber'):
-                                assert enum_name in self.enum_value_map
+                                assert enum_name in self.enum_value_map, 'enum_name in self.enum_value_map'
                                 self.enum_value_map[enum_name]['value_node'] = enum_node
                                 self.enum_value_map[enum_name]['feature_node'] = feature_node
                                 if 'ext_node' in self.enum_value_map[enum_name]:
                                     del self.enum_value_map[enum_name]['ext_node']
                         else:
-                            assert enum_name not in self.enum_value_map
-                            assert enum_name not in self.value_enum_map
+                            assert enum_name not in self.enum_value_map, 'enum_name not in self.enum_value_map'
+                            assert enum_name not in self.value_enum_map, 'enum_name not in self.value_enum_map'
                             self.value_map[enum_name] = value
                             self.enum_value_map[enum_name] = {
                                 'value_node': enum_node,
@@ -575,14 +588,14 @@ class Generator:
                                 if self.value_map[enum_name] != value:
                                     raise Generator.Error('In %s, extension "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (self.make_path(enum_node), ext_name, enum_name, value, self.value_map[enum_name]))
                                 if extend_name is not None and not enum_node.has_attribute('extnumber'):
-                                    assert enum_name in self.enum_value_map
+                                    assert enum_name in self.enum_value_map, 'enum_name in self.enum_value_map'
                                     self.enum_value_map[enum_name]['value_node'] = enum_node
                                     self.enum_value_map[enum_name]['ext_node'] = ext_node
                                     if 'feature_node' in self.enum_value_map[enum_name]:
                                         del self.enum_value_map[enum_name]['feature_node']
                             else:
-                                assert enum_name not in self.enum_value_map
-                                assert enum_name not in self.value_enum_map
+                                assert enum_name not in self.enum_value_map, 'enum_name not in self.enum_value_map'
+                                assert enum_name not in self.value_enum_map, 'enum_name not in self.value_enum_map'
                                 self.value_map[enum_name] = value
                                 self.enum_value_map[enum_name] = {
                                     'value_node': enum_node,
@@ -610,7 +623,7 @@ class Generator:
                 if isinstance(enum_value, str):
                     enum_value = self.generate_c_string(enum_value)
                 else:
-                    assert isinstance(enum_value, int) or isinstance(enum_value, float)
+                    assert isinstance(enum_value, int) or isinstance(enum_value, float), 'isinstance(enum_value, int) or isinstance(enum_value, float)'
                     enum_value = str(enum_value)
                 code.append(enum_value)
                 continue
@@ -638,9 +651,9 @@ class Generator:
         raise NotImplementedError('TODO: C: %s' % type(node).__name__)
 
     def resolve_complex_type(self, name, node):
-        assert name in self.ctypes_map
+        assert name in self.ctypes_map, 'name in self.ctypes_map'
         ctype = self.ctypes_map[name]
-        assert isinstance(ctype, CComplexType)
+        assert isinstance(ctype, CComplexType), 'isinstance(ctype, CComplexType)'
         keyword = 'union' if node.get_attribute('category') == 'union' else 'struct'
         code = [
             '%s %s {' % (keyword, name)
@@ -653,16 +666,16 @@ class Generator:
         code = '\n'.join(code)
         code = self.preprocess_c_code(code)
         ast = self.cparser.parse(code)
-        assert len(ast.ext) == 1
-        assert type(ast.ext[0]) is pycparser.c_ast.Decl
-        assert type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]
-        assert ast.ext[0].type.name == name
+        assert len(ast.ext) == 1, 'len(ast.ext) == 1'
+        assert type(ast.ext[0]) is pycparser.c_ast.Decl, 'type(ast.ext[0]) is pycparser.c_ast.Decl'
+        assert type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union], 'type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]'
+        assert ast.ext[0].type.name == name, 'ast.ext[0].type.name == name'
         for decl in ast.ext[0].type.decls:
             ptr_count = 0
             array_length = []
             type_decl = decl.type
             member_type = self.get_type_from_decl(type_decl)
-            assert decl.name in ctype.member_map
+            assert decl.name in ctype.member_map, 'decl.name in ctype.member_map'
             ctype.member_map[decl.name]['ctype'] = member_type
             if decl.bitsize is not None:
                 if type(decl.bitsize) is not pycparser.c_ast.Constant:
@@ -674,7 +687,7 @@ class Generator:
 
     def compile_complex_type(self, name, node):
         if name in self.ctypes_map:
-            assert isinstance(self.ctypes_map[name], CComplexType)
+            assert isinstance(self.ctypes_map[name], CComplexType), 'isinstance(self.ctypes_map[name], CComplexType)'
             return
         if name in self.resolving_complex_type:
             return
@@ -706,15 +719,15 @@ class Generator:
                 while member_type in self.alias_map:
                     member_type = self.alias_map[member_type]
                 if member_type in self.resolving_complex_type:
-                    assert member_type in self.ctypes_map
-                    assert member_type in self.complex_type_node_map
-                    assert isinstance(self.ctypes_map[member_type], CComplexType)
+                    assert member_type in self.ctypes_map, 'member_type in self.ctypes_map'
+                    assert member_type in self.complex_type_node_map, 'member_type in self.complex_type_node_map'
+                    assert isinstance(self.ctypes_map[member_type], CComplexType), 'isinstance(self.ctypes_map[member_type], CComplexType)'
                     ctype['delay_fields'] = True
                     ctype['dependencies'].append(member_type)
                 elif member_type not in self.ctypes_map:
                     if member_type in self.complex_type_node_map:
                         self.compile_complex_type(member_type, self.complex_type_node_map[member_type])
-                        assert member_type in self.ctypes_map
+                        assert member_type in self.ctypes_map, 'member_type in self.ctypes_map'
                     else:
                         # Foreign types must have been resolved at this time (see category="basetype")
                         raise Generator.Error('In %s, name="%s.%s": Reference to unknow type "%s"' % (self.make_path(node), name, member_name, member_type))
@@ -790,7 +803,7 @@ class Generator:
                     if isinstance(part, str):
                         code.append(part)
                     else:
-                        assert isinstance(part, dict)
+                        assert isinstance(part, dict), 'isinstance(part, dict)'
                         code.append(args[part['index']])
                 code = ''.join(code)
                 setattr(node, name, Generator.Code(code))
@@ -808,7 +821,7 @@ class Generator:
         return code
 
     def get_c_constant_value(self, ctype, value):
-        assert ctype in self.ctypes_map
+        assert ctype in self.ctypes_map, 'ctype in self.ctypes_map'
         code = '%s value = %s;' % (ctype, value)
         code = self.preprocess_c_code(code)
         ast = self.cparser.parse(code)
@@ -857,10 +870,9 @@ class Generator:
                 raise ReferenceError('Missing ID: %s' % node.name)
             return self.value_map[node.name]
         elif node_type is c_ast.Cast:
-            target_type = self.cgenerator.visit(node.to_type)
-            assert target_type in self.ctypes_map
+            target_type = self.get_type_from_decl(node.to_type.type)
             value = self.get_c_ast_const_value(node.expr)
-            return self.ctypes_map[target_type].make_python_value(value)
+            return target_type.make_python_value(value)
 
     @staticmethod
     def parse_c_int(value):
@@ -912,20 +924,17 @@ class Generator:
         return '_'.join(lenum_parts)
 
     def generate_enum_source(self, name):
-        if name not in self.enum_type_map:
-            raise KeyError('Enum "%s" does not exist' % (name))
         source = [
             'import sys',
             'import ctypes',
-            'from ..._vulkan_base_class import VulkanEnum'
+            'from ..._vulkan_base_class import VulkanEnum',
+            ''
         ]
         value_map = self.enum_type_map[name]
-        source.append('from ..constant import %s' % (', '.join(value_map.keys())))
-        source.append('')
         ctype = self.ctypes_map[name].to_source()
         source.append('class %s(VulkanEnum[%s]):' % (name, ctype))
-        for item_name in value_map.keys():
-            source.append('    %s = %s' % (item_name, item_name))
+        for item_name, item_value in value_map.items():
+            source.append('    %s = %r' % (item_name, item_value))
         source.extend([
             '',
             'sys.modules[__name__] = %s' % (name),
@@ -933,58 +942,95 @@ class Generator:
         ])
         return os.linesep.join(source)
 
-    def generate_bitmask_source(self):
+    def generate_bitmask_source(self, name):
         source = [
+            'import sys',
             'import ctypes',
-            'from ..base_enum import VulkanFlag',
+            'from ..._vulkan_base_class import VulkanEnum'
             ''
         ]
-        for bitmask_name, value_map in self.bitmask_type_map.items():
-            ctype = self.ctypes_map[bitmask_name].to_source()
-            source.append('class %s(VulkanFlag[%s]):' % (bitmask_name, ctype))
-            for name, value in value_map.items():
-                if isinstance(value, int):
-                    source.append('    %s = %d' % (name, value))
-            for name, value in value_map.items():
-                if isinstance(value, str):
-                    source.append('    %s = %s' % (name, value))
-            source.append('')
-        source.append('__all__ = %r' % list(self.bitmask_type_map.keys()))
-        return os.linesep.join(source)
-
-    def generate_const_source(self):
-        source = [
-            'import ctypes',
-            'from ..base_enum import VulkanConst',
+        value_map = self.bitmask_type_map[name]
+        ctype = self.ctypes_map[name].to_source()
+        class_name = self.bit_map[name]
+        source.append('class %s(VulkanEnum[%s]):' % (class_name, ctype))
+        for item_name, item_value in value_map.items():
+            source.append('    %s = %r' % (item_name, item_value))
+        source.extend([
+            '',
+            'sys.modules[__name__] = %s' % (class_name),
             ''
-        ]
-        for const_name, const_info in self.const_map.items():
-            if isinstance(const_info, dict):
-                ctype = const_info['ctype'].to_source()
-                value = const_info['value']
-                source.append('%s = VulkanConst[%s](%d)' % (const_name, ctype, value))
-
-        for const_name, const_info in self.const_map.items():
-            if isinstance(const_info, str):
-                source.append('%s = %s' % (const_name, const_info))
-
-        source.append('__all__ = %r' % list(self.const_map.keys()))
-
+        ])
         return os.linesep.join(source)
 
     def generate_value_source(self):
         source = []
-        for name, value in self.value_map.items():
-            source.append('%s = %r' % (name, value))
+        names = []
+        enum_names = OrderedDict()
+        for name, info in self.enum_value_map.items():
+            if 'enum_name' in info:
+                enum_name = info['enum_name']
+                if enum_name in self.bit_map:
+                    enum_name = self.bit_map[enum_name]
+                enum_names[enum_name] = None
+                source.append('%s = %s.%s' % (name, enum_name, name))
+            else:
+                source.append('%s = %r' % (name, self.value_map[name]))
+            names.append(name)
+        for name, code in self.object_macro_map.items():
+            source.append('%s = %r' % (name, self.get_c_constant_value('int', code)))
+            names.append(name)
         source.append('')
-        return os.linesep.join(source)
+        source.append('__all__ = %r' % (names))
+        source.append('')
+        import_lines = ['import ctypes', 'from .._vulkan_base_class import VulkanConst']
+        for module_name in enum_names.keys():
+            import_lines.append('from .enum import %s' % (module_name))
+        import_lines.append('')
+        return os.linesep.join(import_lines) + os.linesep + os.linesep.join(source)
+    
+    def generate_struct_source(self, name):
+        assert name in self.ctypes_map, 'name in self.ctypes_map'
+        assert isinstance(self.ctypes_map[name], CComplexType), 'isinstance(self.ctypes_map[name], CComplexType)'
+        imports = OrderedDict()
+        imports['..struct'] = []
+        imports['..function'] = []
+        source = []
+        complex_type = self.ctypes_map[name]
+        should_delay = False
+        for definition in complex_type.member_map.values():
+            primitive_type = definition['ctype']
+            while isinstance(primitive_type, CPointerType) or isinstance(primitive_type, CArrayType):
+                primitive_type = primitive_type._ctype
+            if isinstance(primitive_type, CComplexType):
+                if primitive_type._name == name:
+                    should_delay = True
+                else:
+                    imports['..struct'].append(primitive_type._name)
+            elif isinstance(primitive_type, CFunctionType):
+                imports['..function'].append(primitive_type._name)
+        source.append('class %s(ctypes.%s):' % (name, complex_type._constructor))
+        indent = ''
+        if should_delay:
+            source.extend(['    pass', '', '', '%s._fields_ = ['])
+        else:
+            source.extend(['    _fields_ = ['])
+            indent = '    '
+        for member_name in complex_type.member_list:
+            definition = complex_type.member_map[member_name]
+            if 'bitsize' in definition:
+                source.append('%s    (%r, %s, %d)' % (indent, member_name, definition['ctype'].to_source(), definition['bitsize']))
+            else:
+                source.append('%s    (%r, %s)' % (indent, member_name, definition['ctype'].to_source()))
 
+        import_lines = ['import ctypes']
+        for import_path, name_list in imports.items():
+            if len(name_list) > 0:
+                import_lines.append('from %s import %s' % (import_path, ', '.join(name_list)))
 
-    def generate_type_source(self):
+    def generate_combined_type_source(self):
         source = [
             'import ctypes',
-            'from ..function import VKAPI_CALL, VKAPI_PTR',
-            'from .ctype_struct import *',
+            'from .._vulkan_call_conv import VKAPI_CALL, VKAPI_PTR',
             ''
         ]
 
@@ -1000,8 +1046,8 @@ class Generator:
             nonlocal self, source, func_type_declared, func_type_resolving
             if function_type_name in func_type_declared:
                 return
-            assert function_type_name in self.ctypes_map
-            assert isinstance(self.ctypes_map[function_type_name], CFunctionType)
+            assert function_type_name in self.ctypes_map, 'function_type_name in self.ctypes_map'
+            assert isinstance(self.ctypes_map[function_type_name], CFunctionType), 'isinstance(self.ctypes_map[function_type_name], CFunctionType)'
             if function_type_name in func_type_resolving:
                 raise Generator.Error('Circular reference in function pointer for function "%s": Incomplete function types not supported, yet' % function_type_name)
             func_type_resolving.add(function_type_name)
@@ -1055,8 +1101,8 @@ class Generator:
             if complex_type_name in complex_type_has_class:
                 return
             should_delay = False
-            assert complex_type_name in self.ctypes_map
-            assert isinstance(self.ctypes_map[complex_type_name], CComplexType)
+            assert complex_type_name in self.ctypes_map, 'complex_type_name in self.ctypes_map'
+            assert isinstance(self.ctypes_map[complex_type_name], CComplexType), 'isinstance(self.ctypes_map[complex_type_name], CComplexType)'
             complex_type = self.ctypes_map[complex_type_name]
             for definition in complex_type.member_map.values():
                 ctype = definition['ctype']
@@ -1116,15 +1162,15 @@ class Generator:
     def generate_command_source(self):
         source = [
             'import ctypes',
-            'from ..function import VKAPI_CALL, VKAPI_PTR',
-            'from .ctype_struct import *',
+            'from .._vulkan_call_conv import VKAPI_CALL, VKAPI_PTR',
+            'from .struct import *',
             ''
         ]
 
         def generate_function_type(function_type_name):
             nonlocal self, source
-            assert function_type_name in self.ctypes_map
-            assert isinstance(self.ctypes_map[function_type_name], CFunctionType)
+            assert function_type_name in self.ctypes_map, 'function_type_name in self.ctypes_map'
+            assert isinstance(self.ctypes_map[function_type_name], CFunctionType), 'isinstance(self.ctypes_map[function_type_name], CFunctionType)'
             func_type = self.ctypes_map[function_type_name]
             args = []
             if func_type.return_type is self.ctypes_map['void']:

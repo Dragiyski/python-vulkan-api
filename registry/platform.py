@@ -338,7 +338,7 @@ else:
     object_macro_map['VK_NULL_HANDLE'] = '(0ULL)'
     func_macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE']
     handle_type_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = ctypes_map['c_uint64']
-    macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = {
+    func_macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = {
         'arguments': ['object'],
         'template': ['typedef uint64_t ', {'name': 'object', 'index': 0, 'string': False}, ';']
     }

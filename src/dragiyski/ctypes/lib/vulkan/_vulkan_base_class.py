@@ -120,6 +120,12 @@ class VulkanLongDouble(float):
         value = super().__new__(cls, *args, **kwargs)
         value._as_parameter_ = ctypes.c_longdouble(float(value))
         return value
+
+class VulkanString(bytes):
+    def __new__(cls, *args, **kwargs):
+        value = super().__new__(cls, *args, **kwargs)
+        value._as_parameter_ = ctypes.c_char_p(value)
+        return value
         
 VulkanConst = {
     ctypes.c_int: VulkanInt,
@@ -130,5 +136,6 @@ VulkanConst = {
     ctypes.c_uint64: VulkanUInt64,
     ctypes.c_float: VulkanFloat,
     ctypes.c_double: VulkanDouble,
-    ctypes.c_longdouble: VulkanLongDouble
+    ctypes.c_longdouble: VulkanLongDouble,
+    ctypes.c_char_p: VulkanString
 }

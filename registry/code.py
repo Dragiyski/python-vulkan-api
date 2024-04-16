@@ -12,6 +12,9 @@ REGEXP_SINGLELINE_COMMENT = re.compile(r'\/\/.*')
 
 # TODO: Preprocessor is meant to be run once before actual code parsing.
 
+class PythonCode(str):
+    def __repr__(self):
+        return self
 
 class CParser(pycparser.CParser):
     def __init__(self, ctypes_map=dict(), **kwargs):

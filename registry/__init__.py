@@ -1,9 +1,10 @@
 import pathlib
 import os
 import sys
+from datetime import datetime, timezone
 import urllib.parse
 from setuptools import Command
-from .generator import Generator
+from .compiler import Parser
 
 repository_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
 
@@ -21,7 +22,15 @@ def update(target):
     for setup_file in setup_files:
         source_url = urllib.parse.urljoin(repository_url, setup_file)
         target_file = target.joinpath(setup_file)
-        files.append(fetch_file(target_file, source_url))
+        print(f'Downloading file:\n - URL: {source_url}\n - File: {target_file}', file=sys.stderr)
+        status, reason, headers = fetch_file(target_file, source_url)
+        if status == 0:
+            print(' - Status: Not updated, failure: %s' % (reason), file=sys.stderr)
+        elif status == 304:
+            print(' - Status: Already up-to-date', file=sys.stderr)
+        elif status == 200:
+            print(' - Status: File updated', file=sys.stderr)
+        files.append(target_file)
     return files
 
 
@@ -39,30 +48,15 @@ class GenerateVulkanSourceFiles(Command):
                 self.vk_directory = pathlib.Path(self.vk_directory)
 
     def run(self):
-        # print('Hello from command')
-        from pprint import pformat
         files = update(self.vk_directory)
         project_dir = pathlib.Path(__file__).resolve().parent.parent
         src_dir = project_dir.joinpath('src')
-        package_dir = src_dir.joinpath('dragiyski/ctypes/lib/vulkan')
-        api_dir = package_dir.joinpath('api')
-        print('Updaring registring:\n - target: %s\n - files: %s' % (str(self.vk_directory), pformat(files)), file=sys.stderr)
-        generator = Generator()
+        package_dir = src_dir.joinpath('dragiyski/lib/vulkan')
+        parser = Parser()
         for file in files:
-            generator.add_xml_file(file)
-        generator.compile()
+            parser.add_xml_file(file)
+        parser.compile()
 
-        source = generator.generate_value_source()
-        with open(api_dir.joinpath('constant.py'), 'w') as file:
-            file.write(source)
-        
-        for name in generator.enum_type_map:
-            source = generator.generate_enum_source(name)
-            enum_file = api_dir.joinpath('enum/%s.py' % name)
-            enum_file.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
-            with open(enum_file, 'w') as file:
-                file.write(source)
-        pass
         # enum_source = generator.generate_enum_source()
         # with open(enum_source_file, 'w') as file:
         #     file.write(enum_source)
