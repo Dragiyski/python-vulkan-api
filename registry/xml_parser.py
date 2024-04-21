@@ -32,7 +32,7 @@ class Node:
         assert len(node_list) == 1, f'{get_error_prefix(self)}: Expected 1 child with name "{name}", got {len(node_list)} children'
         return node_list[0]
 
-    def get_all(self, name: str):
+    def get_all(self, name: str) -> 'list[Node]':
         if name not in self.children:
             return []
         return self.children[name]
@@ -121,20 +121,29 @@ def parse_xml(document, *, is_file=False):
     root = None
     parent = None
 
+    filename = document
+    if not is_file:
+        filename = f'document:{hash(document)}'
+
     def on_xml_root_start(name, attributes):
         nonlocal root
         nonlocal parent
         nonlocal xml_element_start_parser
+        nonlocal parser
         root = parent = Node(name, None, 'element', attributes)
-        if is_file:
-            setattr(root, 'file', document)
-        else:
-            setattr(root, 'file', f'::source::{hash(document)}')
+        setattr(root, 'file', filename)
+        setattr(root, 'line', parser.CurrentLineNumber)
+        setattr(root, 'column', parser.CurrentColumnNumber)
+        setattr(root, 'file_offset', parser.CurrentByteIndex)
         xml_element_start_parser = on_xml_non_root_start
 
     def on_xml_non_root_start(name, attributes):
         nonlocal parent
+        nonlocal parser
         element = Node(name, None, 'element', attributes)
+        setattr(element, 'line', parser.CurrentLineNumber)
+        setattr(element, 'column', parser.CurrentColumnNumber)
+        setattr(element, 'file_offset', parser.CurrentByteIndex)
         parent.append_child(element)
         parent = element
 
@@ -146,7 +155,11 @@ def parse_xml(document, *, is_file=False):
 
     def on_xml_character_data(data):
         nonlocal parent
+        nonlocal parser
         node = Node('#text', data, 'text')
+        setattr(node, 'line', parser.CurrentLineNumber)
+        setattr(node, 'column', parser.CurrentColumnNumber)
+        setattr(node, 'file_offset', parser.CurrentByteIndex)
         parent.append_child(node)
 
     def on_xml_element_start(*args, **kwargs):

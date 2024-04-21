@@ -4,7 +4,7 @@ import sys
 from datetime import datetime, timezone
 import urllib.parse
 from setuptools import Command
-from .compiler import Parser
+from .compiler import Compiler
 
 repository_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
 
@@ -52,10 +52,11 @@ class GenerateVulkanSourceFiles(Command):
         project_dir = pathlib.Path(__file__).resolve().parent.parent
         src_dir = project_dir.joinpath('src')
         package_dir = src_dir.joinpath('dragiyski/lib/vulkan')
-        parser = Parser()
+        compiler = Compiler()
         for file in files:
-            parser.add_xml_file(file)
-        parser.compile()
+            compiler.add_xml_file(file)
+        context = compiler.compile()
+        pass
 
         # enum_source = generator.generate_enum_source()
         # with open(enum_source_file, 'w') as file:
