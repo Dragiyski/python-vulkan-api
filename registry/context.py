@@ -2,7 +2,6 @@ import pycparser
 import pycparser.c_ast
 from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, CType, CArrayType
 from .xml_parser import Node
-from .cparser import CParser, CGenerator
 
 class Context:
     def __init__(self, api='vulkan'):
@@ -27,8 +26,11 @@ class Context:
         self.const_map = {}
         self.bit_map = {}
         self.api = api
+
+        from .cparser import CParser, CGenerator
         self.cparser = CParser(self)
         self.cgenerator = CGenerator()
+        self.resolving_complex_type = set()
 
     def is_target_api(self, node: Node):
         if not node.has_attribute('api'):
@@ -48,14 +50,14 @@ class Context:
         has_substitution = False
         for name, child_node in node.children():
             if type(child_node) is pycparser.c_ast.ID and child_node.name in self.object_macro_map:
-                setattr(node, name, CGenerator.Code(self.object_macro_map[child_node.name]['code']))
+                setattr(node, name, self.cgenerator.Code(self.object_macro_map[child_node.name]['code']))
                 has_substitution = True
                 continue
             if type(child_node) is pycparser.c_ast.FuncCall and child_node.name.name in self.func_macro_map:
                 args = [self.cgenerator.visit(x) for x in child_node.args]
                 macro = self.func_macro_map[child_node.name.name]
                 if len(macro['arguments']) != len(args):
-                    raise CParser.ParseError('Macro "%s" accept "%d" arguments, but called with "%d" arguments' % (child_node.name.name, len(macro['arguments'], len(args))))
+                    raise self.cparser.ParseError('Macro "%s" accept "%d" arguments, but called with "%d" arguments' % (child_node.name.name, len(macro['arguments'], len(args))))
                 code = []
                 for part in macro['template']:
                     if isinstance(part, str):
@@ -63,7 +65,7 @@ class Context:
                     else:
                         code.append(args[part['index']])
                 code = ''.join(code)
-                setattr(node, name, CGenerator.Code(code))
+                setattr(node, name, self.cgenerator.Code(code))
                 has_substitution = True
                 continue
             has_descendant_substitution = self.preprocess_c_ast(child_node)
@@ -71,6 +73,7 @@ class Context:
         return has_substitution
     
     def get_c_constant_value(self, ctype: str, value):
+        from .cparser import CParser
         if ctype not in self.ctypes_map:
             raise CParser.ParseError('Unknown ctype: %s' % (ctype))
         code = '%s value = %s;' % (ctype, value)
@@ -118,7 +121,7 @@ class Context:
                 return self.get_c_ast_const_value(node.left) >> self.get_c_ast_const_value(node.right)
         elif node_type is c_ast.ID:
             if node.name not in self.value_map:
-                raise CParser.ParseError('Missing ID: %s' % node.name)
+                raise self.cparser.ParseError('Missing ID: %s' % node.name)
             return self.value_map[node.name]
         elif node_type is c_ast.Cast:
             target_type = self.get_type_from_decl(node.to_type.type)
@@ -141,6 +144,6 @@ class Context:
             while type_name in self.alias_map:
                 type_name = self.alias_map[type_name]
             if type_name not in self.ctypes_map:
-                raise CParser.ParseError('Reference to undefined type "%s"' % (type_name))
+                raise self.cparser.ParseError('Reference to undefined type "%s"' % (type_name))
             return self.ctypes_map[type_name]
         raise NotImplementedError('TODO: C: %s' % type(node).__name__)

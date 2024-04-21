@@ -536,6 +536,109 @@ class Compiler:
         for name in context.uncategorized_types:
             if name not in context.ctypes_map and name not in context.complex_type_node_map:
                 context.ctypes_map[name] = CType()
+    
+    def _compile_complex_types(self, context: Context):
+        for name, node in context.complex_type_node_map.items():
+            self._compile_complex_type(context, name, node)
+
+    def _get_member_code(self, context: Context, node: Node):
+        code = []
+        child: Node
+        for child in node.child_nodes:
+            if child.node_name == 'comment':
+                continue
+            if child.node_name == 'enum':
+                enum_name = child.get_text()
+                if enum_name not in context.value_map:
+                    raise CompileNodeError('Reference to unknown enum "%s"' % (enum_name), node=node)
+                enum_value = context.value_map[enum_name]
+                if isinstance(enum_value, str):
+                    enum_value = context.cparser.generate_c_string(enum_value)
+                else:
+                    assert isinstance(enum_value, int) or isinstance(enum_value, float), 'isinstance(enum_value, int) or isinstance(enum_value, float)'
+                    enum_value = str(enum_value)
+                code.append(enum_value)
+                continue
+            code.append(child.get_text())
+        return ''.join(code)
+    
+    def _resolve_complex_type(self, context: Context, name: str, node: Node):
+        assert name in context.ctypes_map, 'name in context.ctypes_map'
+        ctype = context.ctypes_map[name]
+        assert isinstance(ctype, CComplexType), 'isinstance(ctype, CComplexType)'
+        keyword = 'union' if node.get_attribute('category') == 'union' else 'struct'
+        code = [
+            '%s %s {' % (keyword, name)
+        ]
+        for member_node in node.get_all('member'):
+            if not context.is_target_api(member_node):
+                continue
+            code.append('    %s;' % self._get_member_code(context, member_node))
+        code.append('};')
+        code = '\n'.join(code)
+        code = context.preprocess_c_code(code)
+        ast = context.cparser.parse(code)
+        assert len(ast.ext) == 1, 'len(ast.ext) == 1'
+        assert type(ast.ext[0]) is pycparser.c_ast.Decl, 'type(ast.ext[0]) is pycparser.c_ast.Decl'
+        assert type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union], 'type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]'
+        assert ast.ext[0].type.name == name, 'ast.ext[0].type.name == name'
+        for decl in ast.ext[0].type.decls:
+            type_decl = decl.type
+            member_type = context.get_type_from_decl(type_decl)
+            assert decl.name in ctype.member_map, 'decl.name in ctype.member_map'
+            ctype.member_map[decl.name]['ctype'] = member_type
+            if decl.bitsize is not None:
+                if type(decl.bitsize) is not pycparser.c_ast.Constant:
+                    raise CompileNodeError('In struct %s, member %s: bitsize is not specified as constant' % (name, decl.name), node=member_node)
+                bitsize = context.get_c_ast_const_value(decl.bitsize)
+                if not isinstance(bitsize, int):
+                    raise CompileNodeError('In struct %s, member %s: bitsize is not an integer constant' % (name, decl.name), node=member_node)
+                ctype.member_map[decl.name]['bitsize'] = bitsize
+
+    def _compile_complex_type(self, context: Context, name: str, node: Node):
+        if name in context.ctypes_map:
+            assert isinstance(context.ctypes_map[name], CComplexType), 'isinstance(context.ctypes_map[name], CComplexType)'
+            return
+        if name in context.resolving_complex_type:
+            return
+        context.resolving_complex_type.add(name)
+        try:
+            # Step 1: Add ctype to ctypes_map immediately, so we know we have such type
+            constructor = 'Union' if node.get_attribute('category') == 'union' else 'Structure'
+            ctype = context.ctypes_map[name] = CComplexType(name, constructor)
+            # Step 2: Resolve the fields, this might recursively call into _compile_complex_type
+            ctype['delay_fields'] = False
+            ctype['dependencies'] = []
+            ctype['node'] = node
+            for member_node in node.get_all('member'):
+                if not context.is_target_api(member_node):
+                    continue
+                member_name = self.get_node_name_from_children(member_node)
+                ctype.member_map[member_name] = {'node': member_node}
+                ctype.member_list.append(member_name)
+                if 'type' not in member_node.children:
+                    raise CompileNodeError('Member "%s.%s": Missing attribute @type' % (name, member_name), node=member_node)
+                if len(member_node.children['type']) > 1:
+                    raise MultipleChildrenNodeError(node=member_node, name='type', count=len(member_node.children['type']))
+                member_type = member_node.get('type').get_text()
+                while member_type in context.alias_map:
+                    member_type = context.alias_map[member_type]
+                if member_type in context.resolving_complex_type:
+                    assert member_type in context.ctypes_map, 'member_type in context.ctypes_map'
+                    assert member_type in context.complex_type_node_map, 'member_type in context.complex_type_node_map'
+                    assert isinstance(context.ctypes_map[member_type], CComplexType), 'isinstance(context.ctypes_map[member_type], CComplexType)'
+                    ctype['delay_fields'] = True
+                    ctype['dependencies'].append(member_type)
+                elif member_type not in context.ctypes_map:
+                    if member_type in context.complex_type_node_map:
+                        self._compile_complex_type(context, member_type, context.complex_type_node_map[member_type])
+                        assert member_type in context.ctypes_map, 'member_type in context.ctypes_map'
+                    else:
+                        # Foreign types must have been resolved at this time (see category="basetype")
+                        raise CompileNodeError('Member "%s.%s": Reference to unknow type "%s"' % (name, member_name, member_type))
+            self._resolve_complex_type(context, name, node)
+        finally:
+            context.resolving_complex_type.remove(name)
 
     def compile(self, context = Context()):
         for root_node in self.xml_map.values():
@@ -549,5 +652,6 @@ class Compiler:
         self._compile_ext_enum_values(context)
         self._compile_callback_node_map(context)
         self._compile_uncategorized_types(context)
+        self._compile_complex_types(context)
 
         return context
