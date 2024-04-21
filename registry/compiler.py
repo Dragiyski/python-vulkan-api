@@ -528,6 +528,8 @@ class Compiler:
             if not name.startswith('PFN_'):
                 raise CompileNodeError('Expected callback name to be function pointer named starting with PFN_', node=node)
             fn_type = context.ctypes_map[name[4:]] = CFunctionType(name[4:])
+            fn_type['node'] = node
+            fn_type['name'] = name
             context.ctypes_map[name] = fn_type.pointer()
 
     def _compile_uncategorized_types(self, context: Context):
@@ -639,6 +641,105 @@ class Compiler:
             self._resolve_complex_type(context, name, node)
         finally:
             context.resolving_complex_type.remove(name)
+    
+    def _resolve_callback_type_map(self, context: Context):
+        name: str
+        node: Node
+        for name, node in context.callback_node_map.items():
+            code = self._get_member_code(context, node)
+            code = re.sub(r'\bVKAPI_PTR\b', '', code)
+            code = context.preprocess_c_code(code)
+            ast = context.cparser.parse(code)
+            assert type(ast.ext[0]) == pycparser.c_ast.Typedef, 'type(ast.ext[0]) == pycparser.c_ast.Typedef'
+            assert ast.ext[0].name == name, 'ast.ext[0].name == name'
+            assert type(ast.ext[0].type == pycparser.c_ast.PtrDecl), 'type(ast.ext[0].type == pycparser.c_ast.PtrDecl)'
+            assert type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl), 'type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl)'
+            assert name.startswith('PFN_'), "name.startswith('PFN_')"
+            assert name in context.ctypes_map, 'name in self.ctypes_map'
+            assert name[4:] in context.ctypes_map, 'name[4:] in self.ctypes_map'
+            assert context.ctypes_map[name[4:]].pointer() is context.ctypes_map[name]
+            fn_decl = ast.ext[0].type.type
+            ctype = context.ctypes_map[name[4:]]
+            assert isinstance(ctype, CFunctionType), 'isinstance(ctype, CFunctionType)'
+            ctype.constructor = 'VKAPI_PTR'
+            for param in fn_decl.args.params:
+                param_ctype = context.get_type_from_decl(param.type)
+                ctype.argument_types.append(param_ctype)
+                if param.name == 'pUserData':
+                    ctype['user_data'] = len(ctype.argument_types) - 1
+            return_ctype = context.get_type_from_decl(fn_decl.type)
+            ctype.return_type = return_ctype
+
+    def _compile_commands(self, context: Context):
+        name: str
+        node: Node
+        for name, node in context.command_node_map.items():
+            code = '%s(%s);' % (self._get_member_code(context, node.get('proto')), ', '. join([self._get_member_code(context, x) for x in node.get_all('param')]))
+            code = context.preprocess_c_code(code)
+            ast = context.cparser.parse(code)
+            assert type(ast.ext[0]) == pycparser.c_ast.Decl, 'type(ast.ext[0]) == pycparser.c_ast.Decl'
+            assert type(ast.ext[0].type == pycparser.c_ast.FuncDecl), 'type(ast.ext[0].type == pycparser.c_ast.FuncDecl)'
+            decl = ast.ext[0].type
+            ctype = CFunctionType(name)
+            ctype['name'] = name
+            ctype['node'] = node
+            ctype.constructor = 'VKAPI_CALL'
+            ctype.return_type = context.get_type_from_decl(decl.type)
+            for param in decl.args.params:
+                param_ctype = context.get_type_from_decl(param.type)
+                ctype.argument_types.append(param_ctype)
+            if name in context.ctypes_map:
+                raise CompileNodeError('Command "%s" already is context.ctypes' % (name), node=node)
+            context.ctypes_map[name] = ctype
+    
+    def _resolve_enums(self, context: Context):
+        for name, value in context.value_enum_map.items():
+            if value not in context.value_type_map:
+                context.value_type_map[value] = {}
+            value_type_map = context.value_type_map[value]
+            assert name not in value_type_map, 'name not in value_type_map'
+            value_type_map[name] = context.value_map[name]
+        enums_name: str
+        enums_node: Node
+        for enums_name, enums_node in context.enums_node_map.items():
+            if enums_node.has_attribute('type'):
+                enum_type = enums_node.get_attribute('type')
+            else:
+                enum_type = None
+            if enum_type == 'enum':
+                if enums_name in context.value_type_map:
+                    value_map = context.enum_type_map[enums_name] = context.value_type_map[enums_name]
+            elif enum_type == 'bitmask':
+                if enums_name in context.value_type_map:
+                    value_map = context.bitmask_type_map[enums_name] = context.value_type_map[enums_name]
+                if enums_name not in context.bit_map:
+                    maybe_type_name = enums_name.replace('Bits', '').replace('Flag', 'Flags')
+                    if maybe_type_name in context.bitmask_node_map:
+                        context.bit_map[enums_name] = maybe_type_name
+            else:
+                for enum_node in enums_node.get_all('enum'):
+                    enum_name = enum_node.get_attribute('name')
+                    if enum_node.has_attribute('alias'):
+                        if enum_node.get_attribute('deprecated') != 'aliased':
+                            context.const_map[enum_name] = {
+                                'value': context.cgenerator.Code(enum_node.get_attribute('alias')),
+                                'alias': enum_node.get_attribute('alias'),
+                                'node': enum_node
+                            }
+                    else:
+                        assert enum_node.has_attribute('type'), "enum_node.has_attribute('type')"
+                        ctype = context.ctypes_map[enum_node.get_attribute('type')]
+                        context.const_map[enum_name] = {
+                            'value': context.value_map[enum_name],
+                            'ctype': ctype,
+                            'node': enum_node
+                        }
+                continue
+            for enum_node in enums_node.get_all('enum'):
+                if enum_node.has_attribute('alias') and enum_node.get_attribute('deprecated') != 'aliased':
+                    enum_name = enum_node.get_attribute('name')
+                    enum_alias = enum_node.get_attribute('alias')
+                    value_map[enum_name] = context.cgenerator.Code(enum_alias)
 
     def compile(self, context = Context()):
         for root_node in self.xml_map.values():
@@ -653,5 +754,8 @@ class Compiler:
         self._compile_callback_node_map(context)
         self._compile_uncategorized_types(context)
         self._compile_complex_types(context)
+        self._resolve_callback_type_map(context)
+        self._compile_commands(context)
+        self._resolve_enums(context)
 
         return context

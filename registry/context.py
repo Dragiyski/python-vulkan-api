@@ -16,6 +16,9 @@ class Context:
         self.enum_node_map = {}
         self.enums_node_map = {}
         self.value_node_map = {}
+        self.enum_type_map = {}
+        self.bitmask_type_map = {}
+        self.value_type_map = {}
         self.bitmask_node_map = {}
         self.handle_node_map = {}
         self.uncategorized_types = {}

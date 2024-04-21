@@ -82,6 +82,9 @@ class CPointerType(CIntType):
 
     def make_python_value(self, value):
         return ctypes.c_void_p(value).value
+    
+    def deref(self):
+        return self._ctype
 
     def __repr__(self):
         return "<CPointerType: %r>" % self._ctype
