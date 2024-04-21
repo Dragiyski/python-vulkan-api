@@ -113,11 +113,13 @@ class Compiler:
         assert node.has_attribute('alias'), "node.has_attribute('alias')"
         alias = node.get_attribute('alias')
         name = self.get_node_name_from_attribute(node)
-        if name in context.alias_node_map:
-            if context.alias_node_map[name] != node:
-                raise DuplicateNodeNameError(node=node, name=name, prev_node=context.alias_node_map[name])
-        context.alias_node_map[name] = node
-        context.alias_map[alias] = name
+        if name in context.alias_map:
+            if context.alias_map[name] != alias:
+                raise CompileNodeError('Alias "%s" to "%s" is already defined with different name "%s", previous definitions at: %s' % (name, alias, context.alias_map[name], ', '.join([CompileNodeError.get_node_path(n) for n in context.alias_node_map[name]])), node=node)
+        if name not in context.alias_node_map:
+            context.alias_node_map[name] = []
+        context.alias_node_map[name].append(node)
+        context.alias_map[name] = alias
 
     def _enumerate_type_define_node(self, context: Context, type_node: Node):
         node_name = self.get_node_name(type_node)
@@ -255,6 +257,8 @@ class Compiler:
 
     def _enumerate_enum_nodes(self, context: Context, root_node: Node):
         for enums_node in root_node.get_all('enums'):
+            if not context.is_target_api(enums_node):
+                continue
             enums_name = self.get_node_name_from_attribute(enums_node)
             enums_type = enums_node.get_attribute('type')
             if enums_type in ['enum', 'bitmask']:
@@ -267,6 +271,8 @@ class Compiler:
                 raise DuplicateNodeNameError(node=enums_node, name=enums_name, prev_node=context.enums_node_map[enums_name])
             context.enums_node_map[enums_name] = enums_node
             for enum_node in enums_node.get_all('enum'):
+                if not context.is_target_api(enum_node):
+                    continue
                 enum_name = self.get_node_name_from_attribute(enum_node)
                 if enum_node.has_attribute('alias'):
                     self._enumerate_alias_node(context, enum_node)
@@ -303,6 +309,8 @@ class Compiler:
     
     def _compile_handle_node_map(self, context: Context):
         for name, node in context.handle_node_map.items():
+            if not context.is_target_api(node):
+                continue
             typedef = node.get('type').get_text()
             # One of [VK_NULL_HANDLE, VK_DEFINE_NON_DISPATCHABLE_HANDLE]
             ctype = handle_type_map[typedef]
@@ -314,6 +322,8 @@ class Compiler:
         name: str
         node: Node
         for name, node in context.bitmask_node_map.items():
+            if not context.is_target_api(node):
+                continue
             if 'type' not in node.children:
                 raise CompileNodeError('Missing child <type> for node <type category="%s" name="%s">' % (node.get_attribute('category'), name), node=node)
             if len(node.children['type']) > 1:
@@ -389,7 +399,7 @@ class Compiler:
             base = 1000000000
             value = base + ext_offset + offset
         elif enum_node.has_attribute('value') or enum_node.has_attribute('bitpos'):
-            value = self.get_enum_value(enum_node)
+            value = self._get_enum_value(context, enum_node)
         else:
             return None
         if enum_node.get_attribute('dir') == '-':
@@ -400,9 +410,15 @@ class Compiler:
         root_node: Node
         for root_node in self.xml_map.values():
             for feature_node in root_node.get_all('feature'):
+                if not context.is_target_api(feature_node):
+                    continue
                 feature_name = self.get_node_name_from_attribute(feature_node)
                 for require_node in feature_node.get_all('require'):
+                    if not context.is_target_api(require_node):
+                        continue
                     for enum_node in require_node.get_all('enum'):
+                        if not context.is_target_api(enum_node):
+                            continue
                         if enum_node.has_attribute('alias'):
                             self._enumerate_alias_node(context, enum_node)
                             continue
@@ -420,22 +436,106 @@ class Compiler:
                                 raise CompileNodeError('Feature "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (feature_name, enum_name, value, context.value_map[enum_name]))
                             if extend_name is not None and not enum_node.has_attribute('extnumber'):
                                 assert enum_name in self.enum_value_map, 'enum_name in self.enum_value_map'
-                                self.enum_value_map[enum_name]['value_node'] = enum_node
-                                self.enum_value_map[enum_name]['feature_node'] = feature_node
-                                if 'ext_node' in self.enum_value_map[enum_name]:
-                                    del self.enum_value_map[enum_name]['ext_node']
+                                context.enum_value_map[enum_name]['value_node'] = enum_node
+                                context.enum_value_map[enum_name]['feature_node'] = feature_node
                         else:
-                            assert enum_name not in self.enum_value_map, 'enum_name not in self.enum_value_map'
-                            assert enum_name not in self.value_enum_map, 'enum_name not in self.value_enum_map'
-                            self.value_map[enum_name] = value
-                            self.enum_value_map[enum_name] = {
+                            assert enum_name not in context.enum_value_map, 'enum_name not in context.enum_value_map'
+                            assert enum_name not in context.value_enum_map, 'enum_name not in context.value_enum_map'
+                            context.value_map[enum_name] = value
+                            context.enum_value_map[enum_name] = {
                                 'value_node': enum_node,
                                 'feature_node': feature_node
                             }
                             if extend_name is not None:
-                                self.enum_value_map[enum_name]['enum_name'] = extend_name
-                                self.enum_value_map[enum_name]['enum_node'] = self.enum_node_map[extend_name]
-                                self.value_enum_map[enum_name] = extend_name
+                                context.enum_value_map[enum_name]['enum_name'] = extend_name
+                                context.enum_value_map[enum_name]['enum_node'] = context.enum_node_map[extend_name]
+                                context.value_enum_map[enum_name] = extend_name
+    
+    def _get_ext_enum_value(self, context: Context, enum_node: Node, ext_node: Node):
+        enum_name = self.get_node_name_from_attribute(enum_node)
+        ext_name = self.get_node_name_from_attribute(ext_node)
+        if enum_node.has_attribute('offset'):
+            if enum_node.has_attribute('extnumber'):
+                ext_number = enum_node.get_attribute('extnumber')
+            elif ext_node.has_attribute('number'):
+                ext_number = ext_node.get_attribute('number')
+            else:
+                raise CompileNodeError('In extension "%s", enum "%s" is defined as @offset, but missing extension number' % (ext_name, enum_name), node=enum_node)
+            offset = context.cparser.parse_c_int(enum_node.get_attribute('offset'))
+            ext_offset = (context.cparser.parse_c_int(ext_number) - 1) * 1000
+            base = 1000000000
+            value = base + ext_offset + offset
+        elif enum_node.has_attribute('value') or enum_node.has_attribute('bitpos'):
+            value = self._get_enum_value(context, enum_node)
+        else:
+            return None
+        if enum_node.get_attribute('dir') == '-':
+            value = -value
+        return value
+
+    def _compile_ext_enum_values(self, context: Context):
+        root_node: Node
+        for root_node in self.xml_map.values():
+            for extensions_node in root_node.get_all('extensions'):
+                if not context.is_target_api(extensions_node):
+                    continue
+                for ext_node in extensions_node.get_all('extension'):
+                    if not context.is_target_api(ext_node):
+                        continue
+                    ext_name = self.get_node_name_from_attribute(ext_node)
+                    for require_node in ext_node.get_all('require'):
+                        if not context.is_target_api(require_node):
+                            continue
+                        for enum_node in require_node.get_all('enum'):
+                            if not context.is_target_api(enum_node):
+                                continue
+                            if enum_node.has_attribute('alias'):
+                                self._enumerate_alias_node(context, enum_node)
+                                continue
+                            enum_name = self.get_node_name_from_attribute(enum_node)
+                            extend_name = None
+                            if enum_node.has_attribute('extends'):
+                                extend_name = enum_node.get_attribute('extends')
+                                if extend_name not in context.enum_node_map:
+                                    raise CompileNodeError('In extension "%s", enum "%s": Extending non-existent enum "%s"' % (ext_name, enum_name, extend_name), node=enum_node)
+                            value = self._get_ext_enum_value(context, enum_node, ext_node)
+                            if value is None:
+                                continue
+                            if enum_name in context.value_map:
+                                if context.value_map[enum_name] != value:
+                                    raise CompileNodeError('In extension "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (ext_name, enum_name, value, context.value_map[enum_name]), node=enum_node)
+                                if extend_name is not None and not enum_node.has_attribute('extnumber'):
+                                    assert enum_name in context.enum_value_map, 'enum_name in self.enum_value_map'
+                                    context.enum_value_map[enum_name]['value_node'] = enum_node
+                                    context.enum_value_map[enum_name]['ext_node'] = ext_node
+                            else:
+                                assert enum_name not in context.enum_value_map, 'enum_name not in self.enum_value_map'
+                                assert enum_name not in context.value_enum_map, 'enum_name not in self.value_enum_map'
+                                context.value_map[enum_name] = value
+                                context.enum_value_map[enum_name] = {
+                                    'value_node': enum_node,
+                                    'ext_node': ext_node
+                                }
+                                if extend_name is not None:
+                                    context.enum_value_map[enum_name]['enum_name'] = extend_name
+                                    context.enum_value_map[enum_name]['enum_node'] = context.enum_node_map[extend_name]
+                                    context.value_enum_map[enum_name] = extend_name
+
+    def _compile_callback_node_map(self, context: Context):
+        name: str
+        node: Node
+        for name, node in context.callback_node_map.items():
+            if not name.startswith('PFN_'):
+                raise CompileNodeError('Expected callback name to be function pointer named starting with PFN_', node=node)
+            fn_type = context.ctypes_map[name[4:]] = CFunctionType(name[4:])
+            context.ctypes_map[name] = fn_type.pointer()
+
+    def _compile_uncategorized_types(self, context: Context):
+        # While it is an error to use uncategorized type, it is not an error to use a pointer to uncategorized type.
+        # Pointer to uncategorized types are pointer to black-box structures, thus handled as void*.
+        for name in context.uncategorized_types:
+            if name not in context.ctypes_map and name not in context.complex_type_node_map:
+                context.ctypes_map[name] = CType()
 
     def compile(self, context = Context()):
         for root_node in self.xml_map.values():
@@ -445,8 +545,9 @@ class Compiler:
         self._compile_handle_node_map(context)
         self._compile_enums(context)
         self._compile_enum_values(context)
-
-        cparser = CParser(context)
-        cgenerator = CGenerator(reduce_parentheses=True)
+        self._compile_feature_enum_values(context)
+        self._compile_ext_enum_values(context)
+        self._compile_callback_node_map(context)
+        self._compile_uncategorized_types(context)
 
         return context

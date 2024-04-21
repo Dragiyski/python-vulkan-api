@@ -48,7 +48,7 @@ class Context:
         has_substitution = False
         for name, child_node in node.children():
             if type(child_node) is pycparser.c_ast.ID and child_node.name in self.object_macro_map:
-                setattr(node, name, CGenerator.Code(self.object_macro_map[child_node.name]))
+                setattr(node, name, CGenerator.Code(self.object_macro_map[child_node.name]['code']))
                 has_substitution = True
                 continue
             if type(child_node) is pycparser.c_ast.FuncCall and child_node.name.name in self.func_macro_map:
