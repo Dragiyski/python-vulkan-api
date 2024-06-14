@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import urllib.parse
 from setuptools import Command
 from .compiler import Compiler
+from .generator import Generator
 
 repository_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
 
@@ -51,11 +52,26 @@ class GenerateVulkanSourceFiles(Command):
         files = update(self.vk_directory)
         project_dir = pathlib.Path(__file__).resolve().parent.parent
         src_dir = project_dir.joinpath('src')
-        package_dir = src_dir.joinpath('dragiyski/lib/vulkan')
+        package_dir = src_dir.joinpath('dragiyski/vulkan')
+        package_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         compiler = Compiler()
         for file in files:
             compiler.add_xml_file(file)
         context = compiler.compile()
+        generator = Generator(package_dir)
+        source = generator.generate_base_source(context)
+        with open(package_dir.joinpath('_vulkan_base.py'), 'w') as file:
+            file.write(source)
+        enum_dir = package_dir.joinpath('vulkan_enum')
+        enum_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
+        for enum_name in context.enum_map.keys():
+            filename = enum_dir.joinpath(enum_name + '.py')
+            source = generator.generate_enum_source(context, enum_name)
+            with open(filename, 'w') as file:
+                file.write(source)
+        source = generator.generate_value_source(context)
+        with open(package_dir.joinpath('values.py'), 'w') as file:
+            file.write(source)
         pass
 
         # enum_source = generator.generate_enum_source()

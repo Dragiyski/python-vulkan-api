@@ -99,6 +99,7 @@ class Node:
                 return_value = child._get_text_nodes_before(node, items)
         return return_value
 
+    @property
     def previous_sibling(self):
         if self.parent_node is None:
             return None
@@ -107,6 +108,7 @@ class Node:
             return None
         return self.parent_node.child_nodes[self.parent_index - 1]
 
+    @property
     def next_sibling(self):
         if self.parent_node is None:
             return None
@@ -115,6 +117,16 @@ class Node:
             return self.parent_node.child_nodes[self.parent_index + 1]
         except IndexError:
             return None
+        
+    @property
+    def root(self):
+        if self.parent_node is None:
+            return self
+        return self.parent_node.root
+    
+    @property
+    def file_path(self):
+        return f'{self.root.file}:{self.line}:{self.column}'
 
 
 def parse_xml(document, *, is_file=False):
