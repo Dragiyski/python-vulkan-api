@@ -45,16 +45,16 @@ class CPlainType(CType):
                 raise TypeError('The type "%s" is not valid ctype' % ctype)
         elif not isinstance(ctype, CType):
             raise TypeError('The type specified is not a string or ctype')
-        self._ctype = ctype
+        self.parent_ctype = ctype
 
     def to_source(self, *args, prefix='ctypes.', **kwargs):
-        return '%s%s' % (prefix, self._ctype)
+        return '%s%s' % (prefix, self.parent_ctype)
 
     def make_python_value(self, value):
-        return getattr(ctypes, self._ctype)(value).value
+        return getattr(ctypes, self.parent_ctype)(value).value
 
     def ctype(self):
-        return getattr(ctypes, self._ctype)
+        return getattr(ctypes, self.parent_ctype)
 
     def pointer(self):
         if self._pointer is None:
@@ -62,7 +62,7 @@ class CPlainType(CType):
         return self._pointer
 
     def __repr__(self):
-        return '<CType: %s>' % self._ctype
+        return '<CType: %s>' % self.parent_ctype
 
 
 class CIntType(CPlainType):
@@ -82,7 +82,7 @@ class CPointerType(CIntType):
         super().__init__(ctype, **kwargs)
 
     def to_source(self, *args, prefix='ctypes.', **kwargs):
-        return '%s%s(%s)' % (prefix, 'POINTER', self._ctype.to_source(*args, prefix=prefix, **kwargs))
+        return '%s%s(%s)' % (prefix, 'POINTER', self.parent_ctype.to_source(*args, prefix=prefix, **kwargs))
 
     def to_python_type(self):
         return int
@@ -91,10 +91,10 @@ class CPointerType(CIntType):
         return ctypes.c_void_p(value).value
     
     def deref(self):
-        return self._ctype
+        return self.parent_ctype
 
     def __repr__(self):
-        return "<CPointerType: %r>" % self._ctype
+        return "<CPointerType: %r>" % self.parent_ctype
 
 
 class CArrayType(CType):
@@ -104,11 +104,11 @@ class CArrayType(CType):
         if not isinstance(length, int):
             raise TypeError('CArrayType length must be an integer')
         super().__init__(**kwargs)
-        self._ctype = ctype
-        self._length = length
+        self.item_ctype = ctype
+        self.length = length
 
     def to_source(self, *args, prefix='ctypes.', **kwargs):
-        return '%s%s(%s, %d)' % (prefix, 'ARRAY', self._ctype.to_source(*args, prefix=prefix, **kwargs), self._length)
+        return '%s%s(%s, %d)' % (prefix, 'ARRAY', self.item_ctype.to_source(*args, prefix=prefix, **kwargs), self.length)
 
     def pointer(self):
         if self._pointer is None:
@@ -116,21 +116,21 @@ class CArrayType(CType):
         return self._pointer
 
     def __repr__(self):
-        return "<CArrayType: %r[%d]>" % (self._ctype, self._length)
+        return "<CArrayType: %r[%d]>" % (self.item_ctype, self.length)
 
 
 class CComplexType(CType):
     def __init__(self, name: str, constructor: str):
         if constructor not in ['Structure', 'Union']:
             raise ValueError('The constructor of complex type must be either "Structure" or "Union", got "%s"' % constructor)
-        self._constructor = constructor
-        self._name = name
+        self.constructor = constructor
+        self.name = name
         self.member_list = []
         self.member_map = {}
         self._pointer = None
 
     def to_source(self, **kwargs):
-        return self._name
+        return self.name
 
     def pointer(self):
         if self._pointer is None:
@@ -155,14 +155,16 @@ class CComplexType(CType):
 
 class CFunctionType(CType):
     def __init__(self, name: str):
-        self._name = name
+        self.name = name
         self.constructor = 'ctypes.CFUNCTYPE'
         self.return_type = None
         self.argument_types = []
         self._pointer = None
 
-    def to_source(self, **kwargs):
-        return '%s(%s)' % (self.constructor, ', '.join([self.return_type.to_source()] + [arg.to_source() for arg in self.argument_types]))
+    def to_source(self, expand=False, **kwargs):
+        if expand:
+            return '%s(%s)' % (self.constructor, ', '.join([self.return_type.to_source()] + [arg.to_source() for arg in self.argument_types]))
+        return self.name
 
     def pointer(self):
         if self._pointer is None:
@@ -170,7 +172,7 @@ class CFunctionType(CType):
         return self._pointer
 
     def __repr__(self):
-        return "<CType %s(%s)>" % ('Function', self._name)
+        return "<CType %s(%s)>" % ('Function', self.name)
 
 
 class CBooleanType(CPlainType):

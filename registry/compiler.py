@@ -692,12 +692,13 @@ class Compiler:
                 member_type = member_node.get('type').get_text()
                 while member_type in context.alias_map:
                     member_type = context.alias_map[member_type]
+                if member_type in context.type_node_map['set'] or member_type in context.type_node_map['complex']:
+                    ctype['dependencies'].append(member_type)
                 if member_type in context.resolving_complex_type:
                     assert member_type in context.ctypes_map, 'member_type in context.ctypes_map'
                     assert member_type in context.type_node_map['complex'], """member_type in context.type_node_map['complex']"""
                     assert isinstance(context.ctypes_map[member_type], CComplexType), 'isinstance(context.ctypes_map[member_type], CComplexType)'
                     ctype['delay_fields'] = True
-                    ctype['dependencies'].append(member_type)
                 elif member_type not in context.ctypes_map:
                     if member_type in context.type_node_map['complex']:
                         self._compile_complex_type(context, member_type, context.type_node_map['complex'][member_type])
