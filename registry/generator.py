@@ -150,6 +150,45 @@ class Generator:
             ])
         return linesep.join(code)
     
+    def _generate_command_source(self, context: Context):
+        dep_map = {}
+        code = ['import ctypes', 'from ._vulkan_base import VKAPI_PTR, VKAPI_CALL']
+        fn_code_map = {}
+        fn_list = []
+        def check_type_dep(ctype):
+            if isinstance(ctype, CPointerType):
+                check_type_dep(ctype.deref())
+            elif isinstance(ctype, CArrayType):
+                check_type_dep(ctype.item_ctype)
+            elif isinstance(ctype, CComplexType):
+                if 'struct' not in dep_map:
+                    dep_map['struct'] = set()
+                dep_map['struct'].add(ctype.name)
+            elif isinstance(ctype, CFunctionType):
+                if 'callback' not in dep_map:
+                    dep_map['callback'] = set()
+                dep_map['callback'].add(ctype.name)
+        for type_name in context.command_node_map.keys():
+            fn_type = context.ctypes_map[type_name]
+            check_type_dep(fn_type.return_type)
+            for arg in fn_type.argument_types:
+                check_type_dep(arg)
+            fn_code_map[fn_type.name] = '%s = %s(%s)' % (
+                fn_type.name,
+                fn_type.constructor,
+                ', '.join([fn_type.return_type.to_source()] + [arg.to_source() for arg in fn_type.argument_types])
+            )
+            fn_list.append(fn_type.name)
+        if 'struct' in dep_map:
+            code.append('from ._struct import %s' % (', '.join(dep_map['struct'])))
+        if 'callback' in dep_map:
+            code.append('from ._vulkan_callback import %s' % (', '.join(dep_map['callback'])))
+        code.append('')
+        for fn_name in fn_list:
+            code.append(fn_code_map[fn_name])
+        code.append('')
+        return linesep.join(code)
+    
     def _generate_funcpointer_source(self, context: Context):
         code = ['import ctypes', 'from ._vulkan_base import VKAPI_PTR, VKAPI_CALL']
         fn_code_map = {}
@@ -208,5 +247,8 @@ class Generator:
             source = self._generate_complex_source(context, name)
             with open(filename, 'w') as file:
                 file.write(source)
+        source = self._generate_command_source(context)
+        with open(self.base_dir.joinpath('commands.py'), 'w') as file:
+            file.write(source)
         pass
 
