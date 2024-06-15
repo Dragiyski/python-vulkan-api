@@ -5,8 +5,8 @@ class VkRenderingInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkRenderingInfo
 
-from . import VkRenderingAttachmentInfo
 from . import VkRect2D
+from . import VkRenderingAttachmentInfo
 
 VkRenderingInfo._fields_ = [
     ('sType', ctypes.c_int),

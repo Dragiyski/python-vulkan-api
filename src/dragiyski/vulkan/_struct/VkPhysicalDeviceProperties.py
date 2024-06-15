@@ -5,8 +5,8 @@ class VkPhysicalDeviceProperties(ctypes.Structure):
 
 sys.modules[__name__] = VkPhysicalDeviceProperties
 
-from . import VkPhysicalDeviceSparseProperties
 from . import VkPhysicalDeviceLimits
+from . import VkPhysicalDeviceSparseProperties
 
 VkPhysicalDeviceProperties._fields_ = [
     ('apiVersion', ctypes.c_uint32),

@@ -31,31 +31,37 @@ class Generator:
         code = ['import ctypes', 'from enum import IntEnum, IntFlag', '']
         exports = []
         for enum_class in ['enum', 'bitmask']:
-            for ctype, descriptor in context.plain_ctype_class[enum_class].items():
+            plain_type_map = { k.__name__: v for k, v in context.plain_ctype_class[enum_class].items() }
+            for ctype_name in sorted(plain_type_map.keys()):
+                descriptor = plain_type_map[ctype_name]
                 exports.append(descriptor['class_name'])
                 code.extend([
                     'class %s(%s):' % (descriptor['class_name'], descriptor['base_class_name']),
                     '    def __init__(self, *args, **kwargs):',
-                    '        self._as_parameter_ = ctypes.%s(%s(self))' % (ctype.__name__, descriptor['python_type']),
+                    '        self._as_parameter_ = ctypes.%s(%s(self))' % (ctype_name, descriptor['python_type']),
                     '', ''
                 ])
             code.append('Vulkan%s = {' % enum_class_suffix[enum_class])
-            for ctype, descriptor in context.plain_ctype_class[enum_class].items():
-                code.append('    ctypes.%s: %s,' % (ctype.__name__, descriptor['class_name']))
+            for ctype_name in sorted(plain_type_map.keys()):
+                descriptor = plain_type_map[ctype_name]
+                code.append('    ctypes.%s: %s,' % (ctype_name, descriptor['class_name']))
             code.extend(['}', ''])
-        for ctype, descriptor in context.plain_ctype_class['value'].items():
+        plain_type_map = { k.__name__: v for k, v in context.plain_ctype_class['value'].items() }
+        for ctype_name in sorted(plain_type_map.keys()):
+            descriptor = plain_type_map[ctype_name]
             exports.append(descriptor['class_name'])
             code.extend([
                 'class %s(%s):' % (descriptor['class_name'], descriptor['python_type']),
                 '    def __new__(cls, *args, **kwargs):',
                 '        value = super().__new__(cls, *args, **kwargs)',
-                '        value._as_parameter_ = ctypes.%s(%s(value))' % (ctype.__name__, descriptor['python_type']),
+                '        value._as_parameter_ = ctypes.%s(%s(value))' % (ctype_name, descriptor['python_type']),
                 '        return value',
                 '', ''
             ])
         code.append('VulkanValue = {')
-        for ctype, descriptor in context.plain_ctype_class['value'].items():
-            code.append('    ctypes.%s: %s,' % (ctype.__name__, descriptor['class_name']))
+        for ctype_name in sorted(plain_type_map.keys()):
+            descriptor = plain_type_map[ctype_name]
+            code.append('    ctypes.%s: %s,' % (ctype_name, descriptor['class_name']))
         code.extend(['}', ''])
 
         code.extend([
@@ -69,7 +75,7 @@ class Generator:
         ])
         exports.extend(['VKAPI_CALL', 'VKAPI_PTR'])
         code.append('__all__ = [')
-        for name in exports:
+        for name in sorted(exports):
             code.append('    %r,' % name)
         code.extend([']', ''])
         return linesep.join(code)
@@ -146,7 +152,7 @@ class Generator:
             ])
             if len(funcpointer_member_types) > 0:
                 code.append('from .._vulkan_callback import %s' % ', '.join([context.ctypes_map[t].deref().name for t in funcpointer_member_types]))
-            for dependency in complex_member_types:
+            for dependency in sorted(complex_member_types):
                 if dependency != name:
                     code.append('from . import %s' % dependency)
             code.extend(['', '%s._fields_ = [' % name])

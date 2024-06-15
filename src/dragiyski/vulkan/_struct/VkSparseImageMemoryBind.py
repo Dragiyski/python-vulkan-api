@@ -5,9 +5,9 @@ class VkSparseImageMemoryBind(ctypes.Structure):
 
 sys.modules[__name__] = VkSparseImageMemoryBind
 
-from . import VkOffset3D
-from . import VkImageSubresource
 from . import VkExtent3D
+from . import VkImageSubresource
+from . import VkOffset3D
 
 VkSparseImageMemoryBind._fields_ = [
     ('subresource', VkImageSubresource),

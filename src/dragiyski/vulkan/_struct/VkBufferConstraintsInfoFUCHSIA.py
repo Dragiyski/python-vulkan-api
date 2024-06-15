@@ -5,8 +5,8 @@ class VkBufferConstraintsInfoFUCHSIA(ctypes.Structure):
 
 sys.modules[__name__] = VkBufferConstraintsInfoFUCHSIA
 
-from . import VkBufferCreateInfo
 from . import VkBufferCollectionConstraintsInfoFUCHSIA
+from . import VkBufferCreateInfo
 
 VkBufferConstraintsInfoFUCHSIA._fields_ = [
     ('sType', ctypes.c_int),

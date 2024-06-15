@@ -5,9 +5,9 @@ class VkGraphicsShaderGroupCreateInfoNV(ctypes.Structure):
 
 sys.modules[__name__] = VkGraphicsShaderGroupCreateInfoNV
 
+from . import VkPipelineShaderStageCreateInfo
 from . import VkPipelineTessellationStateCreateInfo
 from . import VkPipelineVertexInputStateCreateInfo
-from . import VkPipelineShaderStageCreateInfo
 
 VkGraphicsShaderGroupCreateInfoNV._fields_ = [
     ('sType', ctypes.c_int),

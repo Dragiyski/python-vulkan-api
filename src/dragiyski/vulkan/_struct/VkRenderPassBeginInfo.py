@@ -5,8 +5,8 @@ class VkRenderPassBeginInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkRenderPassBeginInfo
 
-from . import VkRect2D
 from . import VkClearValue
+from . import VkRect2D
 
 VkRenderPassBeginInfo._fields_ = [
     ('sType', ctypes.c_int),

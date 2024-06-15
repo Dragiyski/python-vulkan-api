@@ -5,9 +5,9 @@ class VkImageResolve(ctypes.Structure):
 
 sys.modules[__name__] = VkImageResolve
 
+from . import VkExtent3D
 from . import VkImageSubresourceLayers
 from . import VkOffset3D
-from . import VkExtent3D
 
 VkImageResolve._fields_ = [
     ('srcSubresource', VkImageSubresourceLayers),

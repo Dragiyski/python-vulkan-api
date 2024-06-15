@@ -5,8 +5,8 @@ class VkGeometryDataNV(ctypes.Structure):
 
 sys.modules[__name__] = VkGeometryDataNV
 
-from . import VkGeometryTrianglesNV
 from . import VkGeometryAABBNV
+from . import VkGeometryTrianglesNV
 
 VkGeometryDataNV._fields_ = [
     ('triangles', VkGeometryTrianglesNV),

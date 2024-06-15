@@ -5,8 +5,8 @@ class VkVideoEncodeH264RateControlLayerInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkVideoEncodeH264RateControlLayerInfoKHR
 
-from . import VkVideoEncodeH264QpKHR
 from . import VkVideoEncodeH264FrameSizeKHR
+from . import VkVideoEncodeH264QpKHR
 
 VkVideoEncodeH264RateControlLayerInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

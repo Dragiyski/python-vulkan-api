@@ -5,9 +5,9 @@ class StdVideoAV1SequenceHeader(ctypes.Structure):
 
 sys.modules[__name__] = StdVideoAV1SequenceHeader
 
-from . import StdVideoAV1TimingInfo
 from . import StdVideoAV1ColorConfig
 from . import StdVideoAV1SequenceHeaderFlags
+from . import StdVideoAV1TimingInfo
 
 StdVideoAV1SequenceHeader._fields_ = [
     ('flags', StdVideoAV1SequenceHeaderFlags),

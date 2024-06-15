@@ -5,9 +5,9 @@ class StdVideoH265VideoParameterSet(ctypes.Structure):
 
 sys.modules[__name__] = StdVideoH265VideoParameterSet
 
-from . import StdVideoH265ProfileTierLevel
 from . import StdVideoH265DecPicBufMgr
 from . import StdVideoH265HrdParameters
+from . import StdVideoH265ProfileTierLevel
 from . import StdVideoH265VpsFlags
 
 StdVideoH265VideoParameterSet._fields_ = [

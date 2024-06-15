@@ -5,8 +5,8 @@ class VkRect2D(ctypes.Structure):
 
 sys.modules[__name__] = VkRect2D
 
-from . import VkOffset2D
 from . import VkExtent2D
+from . import VkOffset2D
 
 VkRect2D._fields_ = [
     ('offset', VkOffset2D),

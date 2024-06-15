@@ -5,8 +5,8 @@ class VkPipelineViewportStateCreateInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkPipelineViewportStateCreateInfo
 
-from . import VkViewport
 from . import VkRect2D
+from . import VkViewport
 
 VkPipelineViewportStateCreateInfo._fields_ = [
     ('sType', ctypes.c_int),

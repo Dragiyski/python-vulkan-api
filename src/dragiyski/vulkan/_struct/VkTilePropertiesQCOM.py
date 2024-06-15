@@ -5,9 +5,9 @@ class VkTilePropertiesQCOM(ctypes.Structure):
 
 sys.modules[__name__] = VkTilePropertiesQCOM
 
-from . import VkOffset2D
 from . import VkExtent2D
 from . import VkExtent3D
+from . import VkOffset2D
 
 VkTilePropertiesQCOM._fields_ = [
     ('sType', ctypes.c_int),

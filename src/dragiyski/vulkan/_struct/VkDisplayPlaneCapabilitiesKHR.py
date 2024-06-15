@@ -5,8 +5,8 @@ class VkDisplayPlaneCapabilitiesKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkDisplayPlaneCapabilitiesKHR
 
-from . import VkOffset2D
 from . import VkExtent2D
+from . import VkOffset2D
 
 VkDisplayPlaneCapabilitiesKHR._fields_ = [
     ('supportedAlpha', ctypes.c_uint32),

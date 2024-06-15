@@ -6,8 +6,8 @@ class VkMicromapBuildInfoEXT(ctypes.Structure):
 sys.modules[__name__] = VkMicromapBuildInfoEXT
 
 from . import VkDeviceOrHostAddressConstKHR
-from . import VkMicromapUsageEXT
 from . import VkDeviceOrHostAddressKHR
+from . import VkMicromapUsageEXT
 
 VkMicromapBuildInfoEXT._fields_ = [
     ('sType', ctypes.c_int),

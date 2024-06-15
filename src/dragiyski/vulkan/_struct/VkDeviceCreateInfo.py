@@ -5,8 +5,8 @@ class VkDeviceCreateInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkDeviceCreateInfo
 
-from . import VkPhysicalDeviceFeatures
 from . import VkDeviceQueueCreateInfo
+from . import VkPhysicalDeviceFeatures
 
 VkDeviceCreateInfo._fields_ = [
     ('sType', ctypes.c_int),

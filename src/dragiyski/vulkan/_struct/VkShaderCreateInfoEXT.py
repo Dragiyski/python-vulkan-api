@@ -5,8 +5,8 @@ class VkShaderCreateInfoEXT(ctypes.Structure):
 
 sys.modules[__name__] = VkShaderCreateInfoEXT
 
-from . import VkSpecializationInfo
 from . import VkPushConstantRange
+from . import VkSpecializationInfo
 
 VkShaderCreateInfoEXT._fields_ = [
     ('sType', ctypes.c_int),

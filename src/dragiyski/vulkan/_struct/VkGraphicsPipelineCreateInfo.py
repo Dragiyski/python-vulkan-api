@@ -5,16 +5,16 @@ class VkGraphicsPipelineCreateInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkGraphicsPipelineCreateInfo
 
+from . import VkPipelineColorBlendStateCreateInfo
+from . import VkPipelineDepthStencilStateCreateInfo
+from . import VkPipelineDynamicStateCreateInfo
+from . import VkPipelineInputAssemblyStateCreateInfo
 from . import VkPipelineMultisampleStateCreateInfo
 from . import VkPipelineRasterizationStateCreateInfo
 from . import VkPipelineShaderStageCreateInfo
-from . import VkPipelineColorBlendStateCreateInfo
-from . import VkPipelineDynamicStateCreateInfo
-from . import VkPipelineViewportStateCreateInfo
-from . import VkPipelineDepthStencilStateCreateInfo
-from . import VkPipelineVertexInputStateCreateInfo
 from . import VkPipelineTessellationStateCreateInfo
-from . import VkPipelineInputAssemblyStateCreateInfo
+from . import VkPipelineVertexInputStateCreateInfo
+from . import VkPipelineViewportStateCreateInfo
 
 VkGraphicsPipelineCreateInfo._fields_ = [
     ('sType', ctypes.c_int),
