@@ -1,4 +1,5 @@
 import ctypes
+import ast
 from pathlib import Path
 from .context import Context
 from .platform import CPlainType, CPointerType, CArrayType, CComplexType, CFunctionType
@@ -125,10 +126,19 @@ class Generator:
                 value_map[name] = '%s = %r' % (name, descriptor['value'])
         for name in sorted(value_map.keys()):
             code.append(value_map[name])
+        code.append('')
+        for name in sorted(context.object_macro_map.keys()):
+            descriptor = context.object_macro_map[name]
+            code.append('%s = %r' % (name, descriptor['value']))
+        code.append('')
+        for name in sorted([k for k, v in context.func_macro_map.items() if 'python_node' in v]):
+            descriptor = context.func_macro_map[name]
+            func_code = ast.unparse(descriptor['python_node']).split(linesep)
+            func_code.append('')
+            code.extend(func_code)
         alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.value_map }
         for name in sorted(alias.keys()):
             code.append('%s = %s' % (name, alias[name]))
-        code.append('')
         code.append('__all__ = [')
         for name in sorted(list(value_map.keys()) + list(alias.keys())):
             code.append('    %r,' % name)

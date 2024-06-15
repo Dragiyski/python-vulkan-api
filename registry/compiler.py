@@ -170,10 +170,6 @@ class Compiler:
                     'template': template,
                     'node': node
                 }
-                try:
-                    context.func_macro_map[name]['python'] = context.get_python_code_for_func_macro(name)
-                except Exception:
-                    continue
                 continue
             object_macro = re.fullmatch(r'\s*#\s*define\s+(\w+)\s+(.*)', code)
             if object_macro is not None:
@@ -199,11 +195,9 @@ class Compiler:
                 'value': value
             })
         for name, descriptor in context.func_macro_map.items():
-            try:
-                descriptor['python_node'] = context.get_python_code_for_func_macro(name)
-            except Exception:
-                pass
-        pass
+            node = context.get_python_code_for_func_macro(name)
+            if node is not None:
+                descriptor['python_node'] = node
 
     def _compile_basetype_node_map(self, context: Context):
         name: str

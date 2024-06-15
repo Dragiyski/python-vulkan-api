@@ -1,7 +1,7 @@
 import ast
 import pycparser
 import pycparser.c_ast
-from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, CType, CArrayType
+from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, CType, CArrayType, CPlainType
 from .xml_parser import Node
 from ast import parse as parse_python, unparse as unparse_python
 
@@ -189,13 +189,37 @@ class Context:
     def get_python_code_for_func_macro(self, name):
         if name not in self.func_macro_map:
             raise KeyError('No function macro named "%s" exists.' % name)
-        code = self.preprocess_c_code('int value = %s(%s);' % (name, ', '.join(self.func_macro_map[name]['arguments'])))
-        ast = self.cparser.parse(code)
+        descriptor = self.func_macro_map[name]
+        from pycparser.c_parser import ParseError
+        try:
+            code = self.preprocess_c_code('int value = %s(%s);' % (name, ', '.join(descriptor['arguments'])))
+        except ParseError:
+            return None
+        code_ast = self.cparser.parse(code)
         c_ast = pycparser.c_ast
-        assert type(ast) is c_ast.FileAST
-        assert type(ast.ext[0]) is c_ast.Decl
-        assert isinstance(ast.ext[0].init, c_ast.Node)
-        return self.generate_python_ast_from_c_ast(ast.ext[0].init, self.func_macro_map[name]['arguments'])
+        assert type(code_ast) is c_ast.FileAST
+        assert type(code_ast.ext[0]) is c_ast.Decl
+        assert isinstance(code_ast.ext[0].init, c_ast.Node)
+        try:
+            node = self.generate_python_ast_from_c_ast(code_ast.ext[0].init, descriptor['arguments'])
+        except NotImplementedError:
+            return None
+        return_node = ast.Return(node)
+        def_node = ast.FunctionDef(
+            name=name,
+            args=ast.arguments(
+                args=[ast.arg(arg_name) for arg_name in descriptor['arguments']],
+                posonlyargs=[],
+                kwonlyargs=[],
+                kw_defaults=[],
+                defaults=[]
+            ),
+            body=[return_node],
+            decorator_list=[],
+            lineno=0,
+            col_offset=0
+        )
+        return def_node
 
     def generate_python_ast_from_c_ast(self, node: pycparser.c_ast.Node, args: list):
         node_type = type(node)
@@ -209,40 +233,57 @@ class Context:
                 return ast.Constant(self.cparser.parse_c_string(node.value))
         elif node_type is c_ast.UnaryOp:
             if node.op == '~':
-                return ast.UnaryOp(ast.Invert(), self.generate_python_ast_from_c_ast(node.expr, args))
+                return ast.UnaryOp(op=ast.Invert(), operand=self.generate_python_ast_from_c_ast(node.expr, args))
             elif node.op == '+':
-                return ast.UnaryOp(ast.UAdd(), self.generate_python_ast_from_c_ast(node.expr, args))
+                return ast.UnaryOp(op=ast.UAdd(), operand=self.generate_python_ast_from_c_ast(node.expr, args))
             elif node.op == '-':
-                return ast.UnaryOp(ast.USub(), self.generate_python_ast_from_c_ast(node.expr, args))
+                return ast.UnaryOp(op=ast.USub(), operand=self.generate_python_ast_from_c_ast(node.expr, args))
         elif node_type is c_ast.BinaryOp:
             if node.op == '|':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.BitOr(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.BitOr(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '&':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.BitAnd(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.BitAnd(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '^':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.BitXor(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.BitXor(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '+':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.Add(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.Add(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '-':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.Sub(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.Sub(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '*':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.Mult(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.Mult(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '/':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.Div(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.Div(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '%':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.Mod(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.Mod(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '<<':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.LShift(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.LShift(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
             elif node.op == '>>':
-                return ast.BinOp(self.generate_python_ast_from_c_ast(node.left, args), ast.RShift(), self.generate_python_ast_from_c_ast(node.right, args))
+                return ast.BinOp(op=ast.RShift(), left=self.generate_python_ast_from_c_ast(node.left, args), right=self.generate_python_ast_from_c_ast(node.right, args))
         elif node_type is c_ast.ID:
             if node.name not in args:
                 raise self.cparser.ParseError('Missing ID: %s' % node.name)
             return ast.Name(node.name)
         elif node_type is c_ast.Cast:
             target_type = self.get_type_from_decl(node.to_type.type)
+            if not isinstance(target_type, CPlainType):
+                raise NotImplementedError('Casting to non-plain types is not supported: %r' % target_type)
             value_node = self.generate_python_ast_from_c_ast(node.expr, args)
-            return ast.parse('%s(%s).value' % (target_type.to_source(), ast.unparse(value_node))).body[0]
+            expr_node = ast.Attribute(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id='ctypes'),
+                        attr=target_type.parent_ctype,
+                        ctx=ast.Load(lineno=0, col_offset=0)
+                    ),
+                    args=[
+                        value_node
+                    ],
+                    keywords=[]
+                ),
+                attr='value',
+                ctx=ast.Load(lineno=0, col_offset=0)
+            )
+            return expr_node
         raise NotImplementedError('Unsupported node type "%s"' % node_type.__name__)
         
     def get_type_from_decl(self, node) -> CType:
