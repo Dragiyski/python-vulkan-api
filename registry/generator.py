@@ -109,7 +109,7 @@ class Generator:
         return linesep.join(code)
     
     def _generate_value_source(self, context: Context):
-        code = []
+        code = ['import ctypes']
         enum_set = set()
         exports = set()
         for descriptor in context.value_map.values():
