@@ -1,7 +1,7 @@
 from setuptools import setup, Extension, Command
 from setuptools.command.build import build
 from setuptools.discovery import PackageFinder, PEP420PackageFinder
-from .registry import GenerateVulkanSourceFiles
+from registry import GenerateVulkanSourceFiles
 
 class BuildCommand(build):
     def run(self):
