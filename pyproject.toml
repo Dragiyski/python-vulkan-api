@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "pycparser"]
+requires = ["setuptools", "pycparser", "wheel", "registry"]
 build-backend = "setuptools.build_meta"
 
 [project]
