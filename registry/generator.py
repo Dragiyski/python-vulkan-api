@@ -286,7 +286,7 @@ class Generator:
     
     def _generate_struct_public_source(self, context: Context):
         code = ['from ._struct import (']
-        for enum_name in sorted(context.enum_map.keys()):
+        for enum_name in sorted(context.type_node_map['complex'].keys()):
             code.append('    %s,' % enum_name)
         code.extend([')', ''])
         alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.type_node_map['complex'] }
