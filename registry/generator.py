@@ -111,6 +111,7 @@ class Generator:
     def _generate_value_source(self, context: Context):
         code = []
         enum_set = set()
+        exports = set()
         for descriptor in context.value_map.values():
             if 'enum_name' in descriptor:
                 enum_set.add(descriptor['enum_name'])
@@ -120,6 +121,7 @@ class Generator:
         code.append(')')
         value_map = {}
         for name, descriptor in context.value_map.items():
+            exports.add(name)
             if 'enum_name' in descriptor:
                 value_map[name] = '%s = %s.%s' % (name, descriptor['enum_name'], name)
             else:
@@ -128,19 +130,22 @@ class Generator:
             code.append(value_map[name])
         code.append('')
         for name in sorted(context.object_macro_map.keys()):
+            exports.add(name)
             descriptor = context.object_macro_map[name]
             code.append('%s = %r' % (name, descriptor['value']))
         code.append('')
         for name in sorted([k for k, v in context.func_macro_map.items() if 'python_node' in v]):
+            exports.add(name)
             descriptor = context.func_macro_map[name]
             func_code = ast.unparse(descriptor['python_node']).split(linesep)
             func_code.append('')
             code.extend(func_code)
         alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.value_map }
         for name in sorted(alias.keys()):
+            exports.add(name)
             code.append('%s = %s' % (name, alias[name]))
         code.append('__all__ = [')
-        for name in sorted(list(value_map.keys()) + list(alias.keys())):
+        for name in sorted(exports):
             code.append('    %r,' % name)
         code.extend([']', ''])
         return linesep.join(code)
