@@ -151,7 +151,7 @@ class Generator:
                 ''
             ])
             if len(funcpointer_member_types) > 0:
-                code.append('from .._vulkan_callback import %s' % ', '.join([context.ctypes_map[t].deref().name for t in funcpointer_member_types]))
+                code.append('from .._vulkan_callback import %s' % ', '.join(sorted([context.ctypes_map[t].deref().name for t in funcpointer_member_types])))
             for dependency in sorted(complex_member_types):
                 if dependency != name:
                     code.append('from . import %s' % dependency)

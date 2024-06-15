@@ -5,7 +5,7 @@ class VkAllocationCallbacks(ctypes.Structure):
 
 sys.modules[__name__] = VkAllocationCallbacks
 
-from .._vulkan_callback import vkInternalFreeNotification, vkAllocationFunction, vkReallocationFunction, vkFreeFunction, vkInternalAllocationNotification
+from .._vulkan_callback import vkAllocationFunction, vkFreeFunction, vkInternalAllocationNotification, vkInternalFreeNotification, vkReallocationFunction
 
 VkAllocationCallbacks._fields_ = [
     ('pUserData', ctypes.c_void_p),
