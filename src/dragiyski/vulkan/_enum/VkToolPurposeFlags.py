@@ -1,0 +1,13 @@
+import ctypes, sys
+from .._vulkan_base import VulkanUIntFlag
+
+class VkToolPurposeFlags(VulkanUIntFlag):
+    VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT = 8
+    VK_TOOL_PURPOSE_TRACING_BIT = 4
+    VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT = 16
+    VK_TOOL_PURPOSE_DEBUG_REPORTING_BIT_EXT = 32
+    VK_TOOL_PURPOSE_DEBUG_MARKERS_BIT_EXT = 64
+    VK_TOOL_PURPOSE_PROFILING_BIT = 2
+    VK_TOOL_PURPOSE_VALIDATION_BIT = 1
+
+sys.modules[__name__] = VkToolPurposeFlags

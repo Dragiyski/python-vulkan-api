@@ -29,8 +29,10 @@ class Generator:
 
     def _generate_base_source(self, context: Context):
         code = ['import ctypes', 'from enum import IntEnum, IntFlag', '']
+        exports = []
         for enum_class in ['enum', 'bitmask']:
             for ctype, descriptor in context.plain_ctype_class[enum_class].items():
+                exports.append(descriptor['class_name'])
                 code.extend([
                     'class %s(%s):' % (descriptor['class_name'], descriptor['base_class_name']),
                     '    def __init__(self, *args, **kwargs):',
@@ -42,6 +44,7 @@ class Generator:
                 code.append('    ctypes.%s: %s,' % (ctype.__name__, descriptor['class_name']))
             code.extend(['}', ''])
         for ctype, descriptor in context.plain_ctype_class['value'].items():
+            exports.append(descriptor['class_name'])
             code.extend([
                 'class %s(%s):' % (descriptor['class_name'], descriptor['python_type']),
                 '    def __new__(cls, *args, **kwargs):',
@@ -64,6 +67,11 @@ class Generator:
             '    VKAPI_PTR = ctypes.CFUNCTYPE',
             ''
         ])
+        exports.extend(['VKAPI_CALL', 'VKAPI_PTR'])
+        code.append('__all__ = [')
+        for name in exports:
+            code.append('    %r,' % name)
+        code.extend([']', ''])
         return linesep.join(code)
 
     def _generate_enum_source(self, context: Context, name: str):
@@ -187,6 +195,10 @@ class Generator:
         for fn_name in fn_list:
             code.append(fn_code_map[fn_name])
         code.append('')
+        code.append('__all__ = [')
+        for fn_name in fn_list:
+            code.append('    %r,' % fn_name)
+        code.extend([']', ''])
         return linesep.join(code)
     
     def _generate_funcpointer_source(self, context: Context):
@@ -220,6 +232,30 @@ class Generator:
         for fn_name in fn_list:
             code.append(fn_code_map[fn_name])
         code.append('')
+        code.append('__all__ = [')
+        for fn_name in fn_list:
+            code.append('    %r,' % fn_name)
+        code.extend([']', ''])
+        return linesep.join(code)
+    
+    def _generate_enum_public_source(self, context: Context):
+        code = ['from ._enum import %s' % ', '.join(context.enum_map.keys()), '']
+        return linesep.join(code)
+    
+    def _generate_struct_public_source(self, context: Context):
+        code = ['from ._struct import %s' % ', '.join(context.type_node_map['complex'].keys()), '']
+        return linesep.join(code)
+    
+    def _generate_init_source(self, context: Context):
+        code = [
+            'from ._vulkan_base import *',
+            'from ._vulkan_callback import *',
+            'from .command import *',
+            'from .enum import *',
+            'from .const import *',
+            'from .struct import *',
+            ''
+        ]
         return linesep.join(code)
     
     def generate(self, context: Context):
@@ -234,6 +270,9 @@ class Generator:
             source = self._generate_enum_source(context, name)
             with open(filename, 'w') as file:
                 file.write(source)
+        source = self._generate_enum_public_source(context)
+        with open(self.base_dir.joinpath('enum.py'), 'w') as file:
+            file.write(source)
         source = self._generate_value_source(context)
         with open(self.base_dir.joinpath('const.py'), 'w') as file:
             file.write(source)
@@ -247,8 +286,12 @@ class Generator:
             source = self._generate_complex_source(context, name)
             with open(filename, 'w') as file:
                 file.write(source)
-        source = self._generate_command_source(context)
-        with open(self.base_dir.joinpath('commands.py'), 'w') as file:
+        source = self._generate_struct_public_source(context)
+        with open(self.base_dir.joinpath('struct.py'), 'w') as file:
             file.write(source)
-        pass
-
+        source = self._generate_command_source(context)
+        with open(self.base_dir.joinpath('command.py'), 'w') as file:
+            file.write(source)
+        source = self._generate_init_source(context)
+        with open(self.base_dir.joinpath('__init__.py'), 'w') as file:
+            file.write(source)

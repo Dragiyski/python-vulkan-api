@@ -769,16 +769,23 @@ class Compiler:
         ctype_pytype_map = { ctype: type(ctype().value) for ctype in set(ctype_name_map.values()) }
         ctype_numeric_map = { ctype: pytype for ctype, pytype in ctype_pytype_map.items() if pytype in [int, float] }
         ctype_int_map = { ctype: pytype for ctype, pytype in ctype_pytype_map.items() if pytype is int }
-        for ctype, pytype in ctype_int_map.items():
-            class_name = ctype.__name__.strip('c_')
+        classname_map = { k: v.__name__[2:] for k, v in ctype_name_map.items() }
+        for ctype_name, class_name in classname_map.items():
             cap_count = 2 if class_name.startswith('u') else 1
-            class_name = class_name[0:cap_count].upper() + class_name[cap_count:]
+            class_name = class_name[:cap_count].upper() + class_name[cap_count:]
+            for capitalize_word in ['double', 'long']:
+                word_cap = class_name.find(capitalize_word)
+                if word_cap >= 0:
+                    class_name = class_name[:word_cap] + class_name[word_cap].upper() + class_name[word_cap+1:]
+            if class_name.endswith('_p'):
+                class_name = class_name[:-2] + 'Pointer'
+            classname_map[ctype_name] = class_name
+        for ctype, pytype in ctype_int_map.items():
+            class_name = classname_map[ctype.__name__]
             context.plain_ctype_class['enum'][ctype] = { 'class_name': f'Vulkan{class_name}Enum', 'python_type': pytype.__name__, 'base_class_name': 'IntEnum' }
             context.plain_ctype_class['bitmask'][ctype] = { 'class_name': f'Vulkan{class_name}Flag', 'python_type': pytype.__name__, 'base_class_name': 'IntFlag' }
         for ctype, pytype in ctype_numeric_map.items():
-            class_name = ctype.__name__.strip('c_')
-            cap_count = 2 if class_name.startswith('u') else 1
-            class_name = class_name[0:cap_count].upper() + class_name[cap_count:]
+            class_name = classname_map[ctype.__name__]
             context.plain_ctype_class['value'][ctype] = { 'class_name': f'Vulkan{class_name}', 'python_type': pytype.__name__ }
 
     def compile(self, context = Context()):

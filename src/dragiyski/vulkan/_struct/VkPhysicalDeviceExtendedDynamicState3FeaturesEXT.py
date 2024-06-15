@@ -1,0 +1,40 @@
+import ctypes, sys
+
+class VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(ctypes.Structure):
+    _fields_ = [
+        ('sType', ctypes.c_int),
+        ('pNext', ctypes.c_void_p),
+        ('extendedDynamicState3TessellationDomainOrigin', ctypes.c_uint32),
+        ('extendedDynamicState3DepthClampEnable', ctypes.c_uint32),
+        ('extendedDynamicState3PolygonMode', ctypes.c_uint32),
+        ('extendedDynamicState3RasterizationSamples', ctypes.c_uint32),
+        ('extendedDynamicState3SampleMask', ctypes.c_uint32),
+        ('extendedDynamicState3AlphaToCoverageEnable', ctypes.c_uint32),
+        ('extendedDynamicState3AlphaToOneEnable', ctypes.c_uint32),
+        ('extendedDynamicState3LogicOpEnable', ctypes.c_uint32),
+        ('extendedDynamicState3ColorBlendEnable', ctypes.c_uint32),
+        ('extendedDynamicState3ColorBlendEquation', ctypes.c_uint32),
+        ('extendedDynamicState3ColorWriteMask', ctypes.c_uint32),
+        ('extendedDynamicState3RasterizationStream', ctypes.c_uint32),
+        ('extendedDynamicState3ConservativeRasterizationMode', ctypes.c_uint32),
+        ('extendedDynamicState3ExtraPrimitiveOverestimationSize', ctypes.c_uint32),
+        ('extendedDynamicState3DepthClipEnable', ctypes.c_uint32),
+        ('extendedDynamicState3SampleLocationsEnable', ctypes.c_uint32),
+        ('extendedDynamicState3ColorBlendAdvanced', ctypes.c_uint32),
+        ('extendedDynamicState3ProvokingVertexMode', ctypes.c_uint32),
+        ('extendedDynamicState3LineRasterizationMode', ctypes.c_uint32),
+        ('extendedDynamicState3LineStippleEnable', ctypes.c_uint32),
+        ('extendedDynamicState3DepthClipNegativeOneToOne', ctypes.c_uint32),
+        ('extendedDynamicState3ViewportWScalingEnable', ctypes.c_uint32),
+        ('extendedDynamicState3ViewportSwizzle', ctypes.c_uint32),
+        ('extendedDynamicState3CoverageToColorEnable', ctypes.c_uint32),
+        ('extendedDynamicState3CoverageToColorLocation', ctypes.c_uint32),
+        ('extendedDynamicState3CoverageModulationMode', ctypes.c_uint32),
+        ('extendedDynamicState3CoverageModulationTableEnable', ctypes.c_uint32),
+        ('extendedDynamicState3CoverageModulationTable', ctypes.c_uint32),
+        ('extendedDynamicState3CoverageReductionMode', ctypes.c_uint32),
+        ('extendedDynamicState3RepresentativeFragmentTestEnable', ctypes.c_uint32),
+        ('extendedDynamicState3ShadingRateImageEnable', ctypes.c_uint32),
+    ]
+
+sys.modules[__name__] = VkPhysicalDeviceExtendedDynamicState3FeaturesEXT

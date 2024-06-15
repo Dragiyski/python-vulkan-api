@@ -1,0 +1,10 @@
+import ctypes, sys
+from .._vulkan_base import VulkanIntEnum
+
+class VkOpacityMicromapSpecialIndexEXT(VulkanIntEnum):
+    VK_OPACITY_MICROMAP_SPECIAL_INDEX_FULLY_OPAQUE_EXT = -2
+    VK_OPACITY_MICROMAP_SPECIAL_INDEX_FULLY_UNKNOWN_TRANSPARENT_EXT = -3
+    VK_OPACITY_MICROMAP_SPECIAL_INDEX_FULLY_UNKNOWN_OPAQUE_EXT = -4
+    VK_OPACITY_MICROMAP_SPECIAL_INDEX_FULLY_TRANSPARENT_EXT = -1
+
+sys.modules[__name__] = VkOpacityMicromapSpecialIndexEXT
