@@ -5,3 +5,4 @@ class VkPipelineCoverageToColorStateCreateFlagsNV(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineCoverageToColorStateCreateFlagsNV
+

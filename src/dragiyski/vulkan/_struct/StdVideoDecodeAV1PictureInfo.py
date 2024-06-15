@@ -5,15 +5,15 @@ class StdVideoDecodeAV1PictureInfo(ctypes.Structure):
 
 sys.modules[__name__] = StdVideoDecodeAV1PictureInfo
 
-from . import StdVideoAV1FilmGrain
 from . import StdVideoAV1TileInfo
-from . import StdVideoAV1GlobalMotion
 from . import StdVideoDecodeAV1PictureInfoFlags
-from . import StdVideoAV1LoopFilter
-from . import StdVideoAV1CDEF
-from . import StdVideoAV1LoopRestoration
 from . import StdVideoAV1Segmentation
 from . import StdVideoAV1Quantization
+from . import StdVideoAV1CDEF
+from . import StdVideoAV1LoopFilter
+from . import StdVideoAV1GlobalMotion
+from . import StdVideoAV1LoopRestoration
+from . import StdVideoAV1FilmGrain
 
 StdVideoDecodeAV1PictureInfo._fields_ = [
     ('flags', StdVideoDecodeAV1PictureInfoFlags),

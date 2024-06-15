@@ -5,9 +5,9 @@ class VkImageCopy2(ctypes.Structure):
 
 sys.modules[__name__] = VkImageCopy2
 
-from . import VkExtent3D
 from . import VkImageSubresourceLayers
 from . import VkOffset3D
+from . import VkExtent3D
 
 VkImageCopy2._fields_ = [
     ('sType', ctypes.c_int),

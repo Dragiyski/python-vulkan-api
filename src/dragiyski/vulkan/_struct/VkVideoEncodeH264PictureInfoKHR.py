@@ -5,8 +5,8 @@ class VkVideoEncodeH264PictureInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkVideoEncodeH264PictureInfoKHR
 
-from . import VkVideoEncodeH264NaluSliceInfoKHR
 from . import StdVideoEncodeH264PictureInfo
+from . import VkVideoEncodeH264NaluSliceInfoKHR
 
 VkVideoEncodeH264PictureInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

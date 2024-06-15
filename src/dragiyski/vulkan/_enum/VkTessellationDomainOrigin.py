@@ -6,3 +6,6 @@ class VkTessellationDomainOrigin(VulkanIntEnum):
     VK_TESSELLATION_DOMAIN_ORIGIN_UPPER_LEFT = 0
 
 sys.modules[__name__] = VkTessellationDomainOrigin
+
+VkTessellationDomainOrigin.VK_TESSELLATION_DOMAIN_ORIGIN_LOWER_LEFT_KHR = VkTessellationDomainOrigin.VK_TESSELLATION_DOMAIN_ORIGIN_LOWER_LEFT
+VkTessellationDomainOrigin.VK_TESSELLATION_DOMAIN_ORIGIN_UPPER_LEFT_KHR = VkTessellationDomainOrigin.VK_TESSELLATION_DOMAIN_ORIGIN_UPPER_LEFT

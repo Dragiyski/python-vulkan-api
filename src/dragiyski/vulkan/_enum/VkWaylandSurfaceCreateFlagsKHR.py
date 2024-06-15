@@ -5,3 +5,4 @@ class VkWaylandSurfaceCreateFlagsKHR(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkWaylandSurfaceCreateFlagsKHR
+

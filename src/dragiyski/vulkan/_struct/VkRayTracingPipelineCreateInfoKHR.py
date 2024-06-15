@@ -5,11 +5,11 @@ class VkRayTracingPipelineCreateInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkRayTracingPipelineCreateInfoKHR
 
-from . import VkRayTracingShaderGroupCreateInfoKHR
-from . import VkPipelineLibraryCreateInfoKHR
 from . import VkPipelineDynamicStateCreateInfo
+from . import VkPipelineLibraryCreateInfoKHR
 from . import VkPipelineShaderStageCreateInfo
 from . import VkRayTracingPipelineInterfaceCreateInfoKHR
+from . import VkRayTracingShaderGroupCreateInfoKHR
 
 VkRayTracingPipelineCreateInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

@@ -5,3 +5,4 @@ class VkSemaphoreCreateFlagBits(VulkanIntEnum):
     pass
 
 sys.modules[__name__] = VkSemaphoreCreateFlagBits
+

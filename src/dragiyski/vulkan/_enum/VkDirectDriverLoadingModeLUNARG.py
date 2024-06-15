@@ -6,3 +6,4 @@ class VkDirectDriverLoadingModeLUNARG(VulkanIntEnum):
     VK_DIRECT_DRIVER_LOADING_MODE_INCLUSIVE_LUNARG = 1
 
 sys.modules[__name__] = VkDirectDriverLoadingModeLUNARG
+

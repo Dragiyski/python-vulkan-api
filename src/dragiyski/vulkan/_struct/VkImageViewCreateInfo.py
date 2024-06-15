@@ -5,8 +5,8 @@ class VkImageViewCreateInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkImageViewCreateInfo
 
-from . import VkImageSubresourceRange
 from . import VkComponentMapping
+from . import VkImageSubresourceRange
 
 VkImageViewCreateInfo._fields_ = [
     ('sType', ctypes.c_int),

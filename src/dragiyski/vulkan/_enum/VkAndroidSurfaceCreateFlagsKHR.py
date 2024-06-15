@@ -5,3 +5,4 @@ class VkAndroidSurfaceCreateFlagsKHR(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkAndroidSurfaceCreateFlagsKHR
+

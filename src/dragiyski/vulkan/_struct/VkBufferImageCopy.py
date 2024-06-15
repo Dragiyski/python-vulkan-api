@@ -5,9 +5,9 @@ class VkBufferImageCopy(ctypes.Structure):
 
 sys.modules[__name__] = VkBufferImageCopy
 
-from . import VkExtent3D
 from . import VkImageSubresourceLayers
 from . import VkOffset3D
+from . import VkExtent3D
 
 VkBufferImageCopy._fields_ = [
     ('bufferOffset', ctypes.c_uint64),

@@ -7,3 +7,4 @@ class VkImageType(VulkanIntEnum):
     VK_IMAGE_TYPE_3D = 2
 
 sys.modules[__name__] = VkImageType
+

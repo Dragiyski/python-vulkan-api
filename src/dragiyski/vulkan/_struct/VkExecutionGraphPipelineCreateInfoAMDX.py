@@ -5,8 +5,8 @@ class VkExecutionGraphPipelineCreateInfoAMDX(ctypes.Structure):
 
 sys.modules[__name__] = VkExecutionGraphPipelineCreateInfoAMDX
 
-from . import VkPipelineShaderStageCreateInfo
 from . import VkPipelineLibraryCreateInfoKHR
+from . import VkPipelineShaderStageCreateInfo
 
 VkExecutionGraphPipelineCreateInfoAMDX._fields_ = [
     ('sType', ctypes.c_int),

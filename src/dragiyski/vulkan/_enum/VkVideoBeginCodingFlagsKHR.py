@@ -5,3 +5,4 @@ class VkVideoBeginCodingFlagsKHR(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkVideoBeginCodingFlagsKHR
+

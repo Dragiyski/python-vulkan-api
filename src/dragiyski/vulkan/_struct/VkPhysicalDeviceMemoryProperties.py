@@ -5,8 +5,8 @@ class VkPhysicalDeviceMemoryProperties(ctypes.Structure):
 
 sys.modules[__name__] = VkPhysicalDeviceMemoryProperties
 
-from . import VkMemoryType
 from . import VkMemoryHeap
+from . import VkMemoryType
 
 VkPhysicalDeviceMemoryProperties._fields_ = [
     ('memoryTypeCount', ctypes.c_uint32),

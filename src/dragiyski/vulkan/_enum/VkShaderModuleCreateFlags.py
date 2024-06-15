@@ -5,3 +5,4 @@ class VkShaderModuleCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkShaderModuleCreateFlags
+

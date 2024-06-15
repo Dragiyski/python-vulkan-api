@@ -5,3 +5,4 @@ class VkVideoSessionParametersCreateFlagsKHR(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkVideoSessionParametersCreateFlagsKHR
+

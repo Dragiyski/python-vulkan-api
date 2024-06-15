@@ -7,3 +7,7 @@ class VkAttachmentStoreOp(VulkanIntEnum):
     VK_ATTACHMENT_STORE_OP_STORE = 0
 
 sys.modules[__name__] = VkAttachmentStoreOp
+
+VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_NONE_EXT = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_NONE
+VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_NONE_KHR = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_NONE
+VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_NONE_QCOM = VkAttachmentStoreOp.VK_ATTACHMENT_STORE_OP_NONE

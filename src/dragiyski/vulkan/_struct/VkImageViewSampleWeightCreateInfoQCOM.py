@@ -5,8 +5,8 @@ class VkImageViewSampleWeightCreateInfoQCOM(ctypes.Structure):
 
 sys.modules[__name__] = VkImageViewSampleWeightCreateInfoQCOM
 
-from . import VkExtent2D
 from . import VkOffset2D
+from . import VkExtent2D
 
 VkImageViewSampleWeightCreateInfoQCOM._fields_ = [
     ('sType', ctypes.c_int),

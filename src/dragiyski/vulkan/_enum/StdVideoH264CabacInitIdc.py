@@ -8,3 +8,4 @@ class StdVideoH264CabacInitIdc(VulkanIntEnum):
     STD_VIDEO_H264_CABAC_INIT_IDC_INVALID = 2147483647
 
 sys.modules[__name__] = StdVideoH264CabacInitIdc
+

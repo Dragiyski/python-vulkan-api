@@ -5,8 +5,8 @@ class VkSubmitInfo2(ctypes.Structure):
 
 sys.modules[__name__] = VkSubmitInfo2
 
-from . import VkCommandBufferSubmitInfo
 from . import VkSemaphoreSubmitInfo
+from . import VkCommandBufferSubmitInfo
 
 VkSubmitInfo2._fields_ = [
     ('sType', ctypes.c_int),

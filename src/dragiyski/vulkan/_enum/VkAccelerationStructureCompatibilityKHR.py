@@ -6,3 +6,4 @@ class VkAccelerationStructureCompatibilityKHR(VulkanIntEnum):
     VK_ACCELERATION_STRUCTURE_COMPATIBILITY_INCOMPATIBLE_KHR = 1
 
 sys.modules[__name__] = VkAccelerationStructureCompatibilityKHR
+

@@ -5,3 +5,4 @@ class VkStreamDescriptorSurfaceCreateFlagsGGP(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkStreamDescriptorSurfaceCreateFlagsGGP
+

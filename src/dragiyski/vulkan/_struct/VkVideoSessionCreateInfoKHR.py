@@ -5,9 +5,9 @@ class VkVideoSessionCreateInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkVideoSessionCreateInfoKHR
 
-from . import VkVideoProfileInfoKHR
 from . import VkExtensionProperties
 from . import VkExtent2D
+from . import VkVideoProfileInfoKHR
 
 VkVideoSessionCreateInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

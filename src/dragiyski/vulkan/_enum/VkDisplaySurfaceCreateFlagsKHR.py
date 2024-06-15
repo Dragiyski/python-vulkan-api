@@ -5,3 +5,4 @@ class VkDisplaySurfaceCreateFlagsKHR(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkDisplaySurfaceCreateFlagsKHR
+

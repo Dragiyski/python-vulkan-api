@@ -5,3 +5,4 @@ class VkDebugUtilsMessengerCallbackDataFlagsEXT(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkDebugUtilsMessengerCallbackDataFlagsEXT
+

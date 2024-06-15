@@ -6,3 +6,6 @@ class VkExternalFenceFeatureFlags(VulkanUIntFlag):
     VK_EXTERNAL_FENCE_FEATURE_IMPORTABLE_BIT = 2
 
 sys.modules[__name__] = VkExternalFenceFeatureFlags
+
+VkExternalFenceFeatureFlags.VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT_KHR = VkExternalFenceFeatureFlags.VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT
+VkExternalFenceFeatureFlags.VK_EXTERNAL_FENCE_FEATURE_IMPORTABLE_BIT_KHR = VkExternalFenceFeatureFlags.VK_EXTERNAL_FENCE_FEATURE_IMPORTABLE_BIT

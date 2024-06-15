@@ -7,3 +7,4 @@ class VkDepthBiasRepresentationEXT(VulkanIntEnum):
     VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORMAT_EXT = 0
 
 sys.modules[__name__] = VkDepthBiasRepresentationEXT
+

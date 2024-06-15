@@ -5,8 +5,8 @@ class VkVideoEncodeH264SessionParametersAddInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkVideoEncodeH264SessionParametersAddInfoKHR
 
-from . import StdVideoH264PictureParameterSet
 from . import StdVideoH264SequenceParameterSet
+from . import StdVideoH264PictureParameterSet
 
 VkVideoEncodeH264SessionParametersAddInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

@@ -5,3 +5,4 @@ class VkPipelineViewportSwizzleStateCreateFlagsNV(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineViewportSwizzleStateCreateFlagsNV
+

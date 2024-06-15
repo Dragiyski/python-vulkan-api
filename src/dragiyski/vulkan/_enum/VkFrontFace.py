@@ -6,3 +6,4 @@ class VkFrontFace(VulkanIntEnum):
     VK_FRONT_FACE_COUNTER_CLOCKWISE = 0
 
 sys.modules[__name__] = VkFrontFace
+

@@ -5,3 +5,4 @@ class VkAccelerationStructureMotionInstanceFlagsNV(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkAccelerationStructureMotionInstanceFlagsNV
+

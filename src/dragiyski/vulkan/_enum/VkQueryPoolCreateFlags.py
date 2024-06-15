@@ -5,3 +5,4 @@ class VkQueryPoolCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkQueryPoolCreateFlags
+

@@ -5,3 +5,4 @@ class VkDirectDriverLoadingFlagsLUNARG(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkDirectDriverLoadingFlagsLUNARG
+

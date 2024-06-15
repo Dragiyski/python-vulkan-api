@@ -5,3 +5,4 @@ class VkRefreshObjectFlagsKHR(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkRefreshObjectFlagsKHR
+

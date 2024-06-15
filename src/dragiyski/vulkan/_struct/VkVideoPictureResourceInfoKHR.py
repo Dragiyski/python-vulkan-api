@@ -5,8 +5,8 @@ class VkVideoPictureResourceInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkVideoPictureResourceInfoKHR
 
-from . import VkExtent2D
 from . import VkOffset2D
+from . import VkExtent2D
 
 VkVideoPictureResourceInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

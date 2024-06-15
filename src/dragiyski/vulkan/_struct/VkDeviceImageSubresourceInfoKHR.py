@@ -5,8 +5,8 @@ class VkDeviceImageSubresourceInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkDeviceImageSubresourceInfoKHR
 
-from . import VkImageSubresource2KHR
 from . import VkImageCreateInfo
+from . import VkImageSubresource2KHR
 
 VkDeviceImageSubresourceInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

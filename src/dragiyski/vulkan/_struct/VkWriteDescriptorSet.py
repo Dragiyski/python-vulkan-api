@@ -5,8 +5,8 @@ class VkWriteDescriptorSet(ctypes.Structure):
 
 sys.modules[__name__] = VkWriteDescriptorSet
 
-from . import VkDescriptorImageInfo
 from . import VkDescriptorBufferInfo
+from . import VkDescriptorImageInfo
 
 VkWriteDescriptorSet._fields_ = [
     ('sType', ctypes.c_int),

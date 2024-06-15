@@ -5,3 +5,4 @@ class VkPipelineInputAssemblyStateCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineInputAssemblyStateCreateFlags
+

@@ -6,3 +6,4 @@ class VkRasterizationOrderAMD(VulkanIntEnum):
     VK_RASTERIZATION_ORDER_STRICT_AMD = 0
 
 sys.modules[__name__] = VkRasterizationOrderAMD
+

@@ -5,3 +5,4 @@ class VkViSurfaceCreateFlagsNN(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkViSurfaceCreateFlagsNN
+

@@ -5,3 +5,4 @@ class VkHeadlessSurfaceCreateFlagsEXT(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkHeadlessSurfaceCreateFlagsEXT
+

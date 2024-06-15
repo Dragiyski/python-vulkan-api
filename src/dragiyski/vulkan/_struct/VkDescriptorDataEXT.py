@@ -5,8 +5,8 @@ class VkDescriptorDataEXT(ctypes.Union):
 
 sys.modules[__name__] = VkDescriptorDataEXT
 
-from . import VkDescriptorImageInfo
 from . import VkDescriptorAddressInfoEXT
+from . import VkDescriptorImageInfo
 
 VkDescriptorDataEXT._fields_ = [
     ('pSampler', ctypes.POINTER(ctypes.c_void_p)),

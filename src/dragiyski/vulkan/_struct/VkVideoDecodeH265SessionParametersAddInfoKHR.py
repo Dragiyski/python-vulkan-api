@@ -5,8 +5,8 @@ class VkVideoDecodeH265SessionParametersAddInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkVideoDecodeH265SessionParametersAddInfoKHR
 
-from . import StdVideoH265VideoParameterSet
 from . import StdVideoH265SequenceParameterSet
+from . import StdVideoH265VideoParameterSet
 from . import StdVideoH265PictureParameterSet
 
 VkVideoDecodeH265SessionParametersAddInfoKHR._fields_ = [

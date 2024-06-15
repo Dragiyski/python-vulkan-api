@@ -5,8 +5,8 @@ class VkDeviceObjectReservationCreateInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkDeviceObjectReservationCreateInfo
 
-from . import VkPipelineCacheCreateInfo
 from . import VkPipelinePoolSize
+from . import VkPipelineCacheCreateInfo
 
 VkDeviceObjectReservationCreateInfo._fields_ = [
     ('sType', ctypes.c_int),

@@ -5,3 +5,4 @@ class VkImageFormatConstraintsFlagBitsFUCHSIA(VulkanIntEnum):
     pass
 
 sys.modules[__name__] = VkImageFormatConstraintsFlagBitsFUCHSIA
+

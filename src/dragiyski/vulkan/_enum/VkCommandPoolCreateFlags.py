@@ -7,3 +7,4 @@ class VkCommandPoolCreateFlags(VulkanUIntFlag):
     VK_COMMAND_POOL_CREATE_TRANSIENT_BIT = 1
 
 sys.modules[__name__] = VkCommandPoolCreateFlags
+

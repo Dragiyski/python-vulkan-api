@@ -6,3 +6,4 @@ class VkPerformanceOverrideTypeINTEL(VulkanIntEnum):
     VK_PERFORMANCE_OVERRIDE_TYPE_NULL_HARDWARE_INTEL = 0
 
 sys.modules[__name__] = VkPerformanceOverrideTypeINTEL
+

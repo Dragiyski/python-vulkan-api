@@ -5,9 +5,9 @@ class VkRenderPassCreateInfo2(ctypes.Structure):
 
 sys.modules[__name__] = VkRenderPassCreateInfo2
 
-from . import VkSubpassDependency2
-from . import VkSubpassDescription2
 from . import VkAttachmentDescription2
+from . import VkSubpassDescription2
+from . import VkSubpassDependency2
 
 VkRenderPassCreateInfo2._fields_ = [
     ('sType', ctypes.c_int),

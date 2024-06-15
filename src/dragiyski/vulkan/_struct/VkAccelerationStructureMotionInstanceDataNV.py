@@ -5,9 +5,9 @@ class VkAccelerationStructureMotionInstanceDataNV(ctypes.Union):
 
 sys.modules[__name__] = VkAccelerationStructureMotionInstanceDataNV
 
-from . import VkAccelerationStructureInstanceKHR
 from . import VkAccelerationStructureSRTMotionInstanceNV
 from . import VkAccelerationStructureMatrixMotionInstanceNV
+from . import VkAccelerationStructureInstanceKHR
 
 VkAccelerationStructureMotionInstanceDataNV._fields_ = [
     ('staticInstance', VkAccelerationStructureInstanceKHR),

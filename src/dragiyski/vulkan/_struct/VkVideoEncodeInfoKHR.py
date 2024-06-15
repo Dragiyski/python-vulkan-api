@@ -5,8 +5,8 @@ class VkVideoEncodeInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkVideoEncodeInfoKHR
 
-from . import VkVideoReferenceSlotInfoKHR
 from . import VkVideoPictureResourceInfoKHR
+from . import VkVideoReferenceSlotInfoKHR
 
 VkVideoEncodeInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

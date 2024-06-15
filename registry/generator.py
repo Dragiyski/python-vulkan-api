@@ -74,22 +74,30 @@ class Generator:
         code.extend([']', ''])
         return linesep.join(code)
 
-    def _generate_enum_source(self, context: Context, name: str):
-        if name not in context.enum_map:
-            raise GeneratorError('No enum named "%s" found.' % name, name=name)
-        descriptor = context.enum_map[name]
+    def _generate_enum_source(self, context: Context, enum_name: str):
+        if enum_name not in context.enum_map:
+            raise GeneratorError('No enum named "%s" found.' % enum_name, name=enum_name)
+        descriptor = context.enum_map[enum_name]
         type_descriptor = context.plain_ctype_class[descriptor['class']][descriptor['ctype'].ctype()]
         code = ['import ctypes, sys', 'from .._vulkan_base import %s' % type_descriptor['class_name'], '']
-        code.append('class %s(%s):' % (name, type_descriptor['class_name']))
+        code.append('class %s(%s):' % (enum_name, type_descriptor['class_name']))
         value_count = len(descriptor['values'])
-        if value_count > 0:
-            for value_name in descriptor['values']:
-                value_descriptor = context.value_map[value_name]
-                code.append('    %s = %r' % (value_name, value_descriptor['value']))
+        values = {}
+        for value_name in descriptor['values']:
+            value_descriptor = context.value_map[value_name]
+            values[value_name] = '    %s = %r' % (value_name, value_descriptor['value'])
+        if len(values) > 0:
+            for value_name in sorted(values.keys()):
+                code.append(values[value_name])
         else:
             code.append('    pass')
         code.append('')
-        code.append('sys.modules[__name__] = %s' % name)
+        code.append('sys.modules[__name__] = %s' % enum_name)
+        code.append('')
+        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in values }
+        for name in sorted(alias.keys()):
+            value = alias[name]
+            code.append('%s.%s = %s.%s' % (enum_name, name, enum_name, value))
         code.append('')
         return linesep.join(code)
     
@@ -99,17 +107,24 @@ class Generator:
         for descriptor in context.value_map.values():
             if 'enum_name' in descriptor:
                 enum_set.add(descriptor['enum_name'])
-        for enum_name in enum_set:
-            code.append('from ._enum import %s' % enum_name)
-        code.append('')
+        code.append('from ._enum import (')
+        for enum_name in sorted(enum_set):
+            code.append('    %s,' % enum_name)
+        code.append(')')
+        value_map = {}
         for name, descriptor in context.value_map.items():
             if 'enum_name' in descriptor:
-                code.append('%s = %s.%s' % (name, descriptor['enum_name'], name))
+                value_map[name] = '%s = %s.%s' % (name, descriptor['enum_name'], name)
             else:
-                code.append('%s = %r' % (name, descriptor['value']))
+                value_map[name] = '%s = %r' % (name, descriptor['value'])
+        for name in sorted(value_map.keys()):
+            code.append(value_map[name])
+        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.value_map }
+        for name in sorted(alias.keys()):
+            code.append('%s = %s' % (name, alias[name]))
         code.append('')
         code.append('__all__ = [')
-        for name in context.value_map.keys():
+        for name in sorted(list(value_map.keys()) + list(alias.keys())):
             code.append('    %r,' % name)
         code.extend([']', ''])
         return linesep.join(code)
@@ -176,7 +191,7 @@ class Generator:
                 if 'callback' not in dep_map:
                     dep_map['callback'] = set()
                 dep_map['callback'].add(ctype.name)
-        for type_name in context.command_node_map.keys():
+        for type_name in sorted(context.command_node_map.keys()):
             fn_type = context.ctypes_map[type_name]
             check_type_dep(fn_type.return_type)
             for arg in fn_type.argument_types:
@@ -187,16 +202,26 @@ class Generator:
                 ', '.join([fn_type.return_type.to_source()] + [arg.to_source() for arg in fn_type.argument_types])
             )
             fn_list.append(fn_type.name)
-        if 'struct' in dep_map:
-            code.append('from ._struct import %s' % (', '.join(dep_map['struct'])))
-        if 'callback' in dep_map:
-            code.append('from ._vulkan_callback import %s' % (', '.join(dep_map['callback'])))
+        if 'struct' in dep_map and len(dep_map['struct']) > 0:
+            code.append('from ._struct import (')
+            for dep_name in sorted(dep_map['struct']):
+                code.append('    %s,' % dep_name)
+            code.append(')')
+        if 'callback' in dep_map and len(dep_map['callback']) > 0:
+            code.append('from ._vulkan_callback import (')
+            for dep_name in sorted(dep_map['callback']):
+                code.append('    %s,' % dep_name)
+            code.append(')')
         code.append('')
         for fn_name in fn_list:
             code.append(fn_code_map[fn_name])
         code.append('')
+        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.command_node_map }
+        for name in sorted(alias.keys()):
+            code.append('%s = %s' % (name, alias[name]))
+        code.append('')
         code.append('__all__ = [')
-        for fn_name in fn_list:
+        for fn_name in sorted(fn_list + list(alias.keys())):
             code.append('    %r,' % fn_name)
         code.extend([']', ''])
         return linesep.join(code)
@@ -215,7 +240,7 @@ class Generator:
             elif isinstance(ctype, CFunctionType):
                 if ctype.name not in fn_list:
                     fn_list.append(ctype.name)
-        for type_name in context.type_node_map['funcpointer'].keys():
+        for type_name in sorted(context.type_node_map['funcpointer'].keys()):
             ptr_type = context.ctypes_map[type_name]
             fn_type = ptr_type.deref()
             check_type_dep(fn_type.return_type)
@@ -232,18 +257,36 @@ class Generator:
         for fn_name in fn_list:
             code.append(fn_code_map[fn_name])
         code.append('')
+        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.type_node_map['funcpointer'] }
+        for name in sorted(alias.keys()):
+            code.append('%s = %s' % (name, alias[name]))
+        code.append('')
         code.append('__all__ = [')
-        for fn_name in fn_list:
+        for fn_name in sorted(fn_list + list(alias.keys())):
             code.append('    %r,' % fn_name)
         code.extend([']', ''])
         return linesep.join(code)
     
     def _generate_enum_public_source(self, context: Context):
-        code = ['from ._enum import %s' % ', '.join(context.enum_map.keys()), '']
+        code = ['from ._enum import (']
+        for enum_name in sorted(context.enum_map.keys()):
+            code.append('    %s,' % enum_name)
+        code.extend([')', ''])
+        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.enum_map }
+        for name in sorted(alias.keys()):
+            code.append('%s = %s' % (name, alias[name]))
+        code.append('')
         return linesep.join(code)
     
     def _generate_struct_public_source(self, context: Context):
-        code = ['from ._struct import %s' % ', '.join(context.type_node_map['complex'].keys()), '']
+        code = ['from ._struct import (']
+        for enum_name in sorted(context.enum_map.keys()):
+            code.append('    %s,' % enum_name)
+        code.extend([')', ''])
+        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.type_node_map['complex'] }
+        for name in sorted(alias.keys()):
+            code.append('%s = %s' % (name, alias[name]))
+        code.append('')
         return linesep.join(code)
     
     def _generate_init_source(self, context: Context):

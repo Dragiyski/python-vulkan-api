@@ -6,3 +6,4 @@ class VkShaderCodeTypeEXT(VulkanIntEnum):
     VK_SHADER_CODE_TYPE_SPIRV_EXT = 1
 
 sys.modules[__name__] = VkShaderCodeTypeEXT
+

@@ -8,3 +8,4 @@ class StdVideoAV1Profile(VulkanIntEnum):
     STD_VIDEO_AV1_PROFILE_PROFESSIONAL = 2
 
 sys.modules[__name__] = StdVideoAV1Profile
+

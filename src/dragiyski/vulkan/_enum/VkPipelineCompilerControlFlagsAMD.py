@@ -5,3 +5,4 @@ class VkPipelineCompilerControlFlagsAMD(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineCompilerControlFlagsAMD
+

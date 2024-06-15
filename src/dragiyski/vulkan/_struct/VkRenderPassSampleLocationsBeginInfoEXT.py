@@ -5,8 +5,8 @@ class VkRenderPassSampleLocationsBeginInfoEXT(ctypes.Structure):
 
 sys.modules[__name__] = VkRenderPassSampleLocationsBeginInfoEXT
 
-from . import VkSubpassSampleLocationsEXT
 from . import VkAttachmentSampleLocationsEXT
+from . import VkSubpassSampleLocationsEXT
 
 VkRenderPassSampleLocationsBeginInfoEXT._fields_ = [
     ('sType', ctypes.c_int),

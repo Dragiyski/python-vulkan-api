@@ -5,3 +5,4 @@ class VkPipelineRasterizationStateStreamCreateFlagsEXT(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineRasterizationStateStreamCreateFlagsEXT
+

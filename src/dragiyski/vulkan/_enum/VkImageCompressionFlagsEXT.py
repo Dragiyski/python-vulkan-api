@@ -8,3 +8,4 @@ class VkImageCompressionFlagsEXT(VulkanUIntFlag):
     VK_IMAGE_COMPRESSION_FIXED_RATE_EXPLICIT_EXT = 2
 
 sys.modules[__name__] = VkImageCompressionFlagsEXT
+

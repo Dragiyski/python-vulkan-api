@@ -6,8 +6,8 @@ class StdVideoEncodeH264ReferenceListsInfo(ctypes.Structure):
 sys.modules[__name__] = StdVideoEncodeH264ReferenceListsInfo
 
 from . import StdVideoEncodeH264ReferenceListsInfoFlags
-from . import StdVideoEncodeH264RefPicMarkingEntry
 from . import StdVideoEncodeH264RefListModEntry
+from . import StdVideoEncodeH264RefPicMarkingEntry
 
 StdVideoEncodeH264ReferenceListsInfo._fields_ = [
     ('flags', StdVideoEncodeH264ReferenceListsInfoFlags),

@@ -5,3 +5,4 @@ class VkDeviceMemoryReportFlagsEXT(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkDeviceMemoryReportFlagsEXT
+

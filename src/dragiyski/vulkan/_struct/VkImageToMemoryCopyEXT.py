@@ -5,9 +5,9 @@ class VkImageToMemoryCopyEXT(ctypes.Structure):
 
 sys.modules[__name__] = VkImageToMemoryCopyEXT
 
-from . import VkExtent3D
 from . import VkImageSubresourceLayers
 from . import VkOffset3D
+from . import VkExtent3D
 
 VkImageToMemoryCopyEXT._fields_ = [
     ('sType', ctypes.c_int),

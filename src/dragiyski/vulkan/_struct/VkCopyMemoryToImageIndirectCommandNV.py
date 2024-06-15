@@ -5,9 +5,9 @@ class VkCopyMemoryToImageIndirectCommandNV(ctypes.Structure):
 
 sys.modules[__name__] = VkCopyMemoryToImageIndirectCommandNV
 
-from . import VkExtent3D
 from . import VkImageSubresourceLayers
 from . import VkOffset3D
+from . import VkExtent3D
 
 VkCopyMemoryToImageIndirectCommandNV._fields_ = [
     ('srcAddress', ctypes.c_uint64),

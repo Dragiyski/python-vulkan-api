@@ -6,3 +6,4 @@ class VkDiscardRectangleModeEXT(VulkanIntEnum):
     VK_DISCARD_RECTANGLE_MODE_INCLUSIVE_EXT = 0
 
 sys.modules[__name__] = VkDiscardRectangleModeEXT
+

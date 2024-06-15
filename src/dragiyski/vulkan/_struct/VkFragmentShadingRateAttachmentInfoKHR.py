@@ -5,8 +5,8 @@ class VkFragmentShadingRateAttachmentInfoKHR(ctypes.Structure):
 
 sys.modules[__name__] = VkFragmentShadingRateAttachmentInfoKHR
 
-from . import VkExtent2D
 from . import VkAttachmentReference2
+from . import VkExtent2D
 
 VkFragmentShadingRateAttachmentInfoKHR._fields_ = [
     ('sType', ctypes.c_int),

@@ -5,3 +5,4 @@ class VkPipelineMultisampleStateCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineMultisampleStateCreateFlags
+

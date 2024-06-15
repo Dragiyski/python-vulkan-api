@@ -5,3 +5,4 @@ class VkDeviceCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkDeviceCreateFlags
+

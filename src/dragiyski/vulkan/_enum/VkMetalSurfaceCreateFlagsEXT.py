@@ -5,3 +5,4 @@ class VkMetalSurfaceCreateFlagsEXT(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkMetalSurfaceCreateFlagsEXT
+

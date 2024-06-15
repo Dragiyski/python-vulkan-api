@@ -5,3 +5,4 @@ class VkMacOSSurfaceCreateFlagsMVK(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkMacOSSurfaceCreateFlagsMVK
+

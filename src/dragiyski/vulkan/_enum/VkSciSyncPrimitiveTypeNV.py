@@ -6,3 +6,4 @@ class VkSciSyncPrimitiveTypeNV(VulkanIntEnum):
     VK_SCI_SYNC_PRIMITIVE_TYPE_SEMAPHORE_NV = 1
 
 sys.modules[__name__] = VkSciSyncPrimitiveTypeNV
+

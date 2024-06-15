@@ -5,8 +5,8 @@ class VkPipelineVertexInputStateCreateInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkPipelineVertexInputStateCreateInfo
 
-from . import VkVertexInputBindingDescription
 from . import VkVertexInputAttributeDescription
+from . import VkVertexInputBindingDescription
 
 VkPipelineVertexInputStateCreateInfo._fields_ = [
     ('sType', ctypes.c_int),

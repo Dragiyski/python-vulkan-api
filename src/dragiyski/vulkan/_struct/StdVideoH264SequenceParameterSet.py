@@ -6,8 +6,8 @@ class StdVideoH264SequenceParameterSet(ctypes.Structure):
 sys.modules[__name__] = StdVideoH264SequenceParameterSet
 
 from . import StdVideoH264ScalingLists
-from . import StdVideoH264SpsFlags
 from . import StdVideoH264SequenceParameterSetVui
+from . import StdVideoH264SpsFlags
 
 StdVideoH264SequenceParameterSet._fields_ = [
     ('flags', StdVideoH264SpsFlags),

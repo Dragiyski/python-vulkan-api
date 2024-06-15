@@ -5,8 +5,8 @@ class StdVideoEncodeH265SliceSegmentHeader(ctypes.Structure):
 
 sys.modules[__name__] = StdVideoEncodeH265SliceSegmentHeader
 
-from . import StdVideoEncodeH265WeightTable
 from . import StdVideoEncodeH265SliceSegmentHeaderFlags
+from . import StdVideoEncodeH265WeightTable
 
 StdVideoEncodeH265SliceSegmentHeader._fields_ = [
     ('flags', StdVideoEncodeH265SliceSegmentHeaderFlags),

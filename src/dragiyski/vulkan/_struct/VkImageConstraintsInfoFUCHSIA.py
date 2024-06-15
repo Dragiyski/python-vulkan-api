@@ -5,8 +5,8 @@ class VkImageConstraintsInfoFUCHSIA(ctypes.Structure):
 
 sys.modules[__name__] = VkImageConstraintsInfoFUCHSIA
 
-from . import VkImageFormatConstraintsInfoFUCHSIA
 from . import VkBufferCollectionConstraintsInfoFUCHSIA
+from . import VkImageFormatConstraintsInfoFUCHSIA
 
 VkImageConstraintsInfoFUCHSIA._fields_ = [
     ('sType', ctypes.c_int),

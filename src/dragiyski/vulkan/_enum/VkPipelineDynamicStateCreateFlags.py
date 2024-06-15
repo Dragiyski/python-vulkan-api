@@ -5,3 +5,4 @@ class VkPipelineDynamicStateCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineDynamicStateCreateFlags
+

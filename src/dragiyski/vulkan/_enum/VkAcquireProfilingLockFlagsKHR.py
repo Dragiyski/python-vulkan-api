@@ -5,3 +5,4 @@ class VkAcquireProfilingLockFlagsKHR(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkAcquireProfilingLockFlagsKHR
+

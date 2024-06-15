@@ -5,14 +5,14 @@ class StdVideoH265SequenceParameterSet(ctypes.Structure):
 
 sys.modules[__name__] = StdVideoH265SequenceParameterSet
 
-from . import StdVideoH265LongTermRefPicsSps
-from . import StdVideoH265ShortTermRefPicSet
-from . import StdVideoH265DecPicBufMgr
-from . import StdVideoH265ProfileTierLevel
-from . import StdVideoH265SequenceParameterSetVui
-from . import StdVideoH265PredictorPaletteEntries
 from . import StdVideoH265SpsFlags
+from . import StdVideoH265SequenceParameterSetVui
+from . import StdVideoH265DecPicBufMgr
 from . import StdVideoH265ScalingLists
+from . import StdVideoH265ShortTermRefPicSet
+from . import StdVideoH265PredictorPaletteEntries
+from . import StdVideoH265LongTermRefPicsSps
+from . import StdVideoH265ProfileTierLevel
 
 StdVideoH265SequenceParameterSet._fields_ = [
     ('flags', StdVideoH265SpsFlags),

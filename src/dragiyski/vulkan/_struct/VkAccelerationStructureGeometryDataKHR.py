@@ -5,9 +5,9 @@ class VkAccelerationStructureGeometryDataKHR(ctypes.Union):
 
 sys.modules[__name__] = VkAccelerationStructureGeometryDataKHR
 
+from . import VkAccelerationStructureGeometryAabbsDataKHR
 from . import VkAccelerationStructureGeometryInstancesDataKHR
 from . import VkAccelerationStructureGeometryTrianglesDataKHR
-from . import VkAccelerationStructureGeometryAabbsDataKHR
 
 VkAccelerationStructureGeometryDataKHR._fields_ = [
     ('triangles', VkAccelerationStructureGeometryTrianglesDataKHR),

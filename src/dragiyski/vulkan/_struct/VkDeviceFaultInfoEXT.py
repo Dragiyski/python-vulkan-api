@@ -5,8 +5,8 @@ class VkDeviceFaultInfoEXT(ctypes.Structure):
 
 sys.modules[__name__] = VkDeviceFaultInfoEXT
 
-from . import VkDeviceFaultAddressInfoEXT
 from . import VkDeviceFaultVendorInfoEXT
+from . import VkDeviceFaultAddressInfoEXT
 
 VkDeviceFaultInfoEXT._fields_ = [
     ('sType', ctypes.c_int),

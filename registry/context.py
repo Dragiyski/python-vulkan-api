@@ -25,6 +25,7 @@ class NameListMap(dict):
 class Alias(str):
     def __new__(cls, value):
         self = str.__new__(cls, str(value))
+        self.data = {}
         self.node_set = set()
         return self
 
@@ -263,3 +264,8 @@ class Context:
                 raise self.cparser.ParseError('Reference to undefined type "%s"' % (type_name))
             return self.ctypes_map[type_name]
         raise NotImplementedError('TODO: C: %s' % type(node).__name__)
+
+    def resolve_alias(self, name):
+        while name in self.alias_map:
+            name = self.alias_map[name]
+        return name

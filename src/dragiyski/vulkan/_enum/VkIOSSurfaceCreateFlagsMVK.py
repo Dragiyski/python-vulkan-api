@@ -5,3 +5,4 @@ class VkIOSSurfaceCreateFlagsMVK(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkIOSSurfaceCreateFlagsMVK
+

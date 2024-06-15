@@ -5,3 +5,4 @@ class VkCommandPoolTrimFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkCommandPoolTrimFlags
+

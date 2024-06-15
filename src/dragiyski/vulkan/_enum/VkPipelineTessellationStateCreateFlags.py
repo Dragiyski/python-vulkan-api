@@ -5,3 +5,4 @@ class VkPipelineTessellationStateCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPipelineTessellationStateCreateFlags
+

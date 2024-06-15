@@ -5,3 +5,4 @@ class VkImagePipeSurfaceCreateFlagsFUCHSIA(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkImagePipeSurfaceCreateFlagsFUCHSIA
+

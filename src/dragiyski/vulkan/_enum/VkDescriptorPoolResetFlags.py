@@ -5,3 +5,4 @@ class VkDescriptorPoolResetFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkDescriptorPoolResetFlags
+

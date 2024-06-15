@@ -5,3 +5,4 @@ class VkDirectFBSurfaceCreateFlagsEXT(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkDirectFBSurfaceCreateFlagsEXT
+

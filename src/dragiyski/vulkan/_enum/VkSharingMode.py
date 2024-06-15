@@ -6,3 +6,4 @@ class VkSharingMode(VulkanIntEnum):
     VK_SHARING_MODE_EXCLUSIVE = 0
 
 sys.modules[__name__] = VkSharingMode
+

@@ -5,9 +5,9 @@ class VkBindSparseInfo(ctypes.Structure):
 
 sys.modules[__name__] = VkBindSparseInfo
 
+from . import VkSparseImageMemoryBindInfo
 from . import VkSparseBufferMemoryBindInfo
 from . import VkSparseImageOpaqueMemoryBindInfo
-from . import VkSparseImageMemoryBindInfo
 
 VkBindSparseInfo._fields_ = [
     ('sType', ctypes.c_int),

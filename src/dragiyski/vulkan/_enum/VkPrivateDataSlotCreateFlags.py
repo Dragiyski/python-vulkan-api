@@ -5,3 +5,4 @@ class VkPrivateDataSlotCreateFlags(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkPrivateDataSlotCreateFlags
+

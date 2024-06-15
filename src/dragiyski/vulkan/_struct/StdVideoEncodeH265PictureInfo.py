@@ -5,10 +5,10 @@ class StdVideoEncodeH265PictureInfo(ctypes.Structure):
 
 sys.modules[__name__] = StdVideoEncodeH265PictureInfo
 
-from . import StdVideoEncodeH265LongTermRefPics
 from . import StdVideoEncodeH265PictureInfoFlags
-from . import StdVideoEncodeH265ReferenceListsInfo
+from . import StdVideoEncodeH265LongTermRefPics
 from . import StdVideoH265ShortTermRefPicSet
+from . import StdVideoEncodeH265ReferenceListsInfo
 
 StdVideoEncodeH265PictureInfo._fields_ = [
     ('flags', StdVideoEncodeH265PictureInfoFlags),

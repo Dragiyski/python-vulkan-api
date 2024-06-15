@@ -5,8 +5,8 @@ class StdVideoH265HrdParameters(ctypes.Structure):
 
 sys.modules[__name__] = StdVideoH265HrdParameters
 
-from . import StdVideoH265SubLayerHrdParameters
 from . import StdVideoH265HrdFlags
+from . import StdVideoH265SubLayerHrdParameters
 
 StdVideoH265HrdParameters._fields_ = [
     ('flags', StdVideoH265HrdFlags),

@@ -5,3 +5,4 @@ class VkScreenSurfaceCreateFlagsQNX(VulkanUIntFlag):
     pass
 
 sys.modules[__name__] = VkScreenSurfaceCreateFlagsQNX
+
