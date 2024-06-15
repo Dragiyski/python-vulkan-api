@@ -3,7 +3,7 @@ requires = ["setuptools", "pycparser", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="dragiyski.lib.vulkan"
+name="dragiyski.vulkan"
 version = "0.0.1"
 authors = [
     { name = "Plamen Dragiyski", email = "plamen@dragiyski.org" }
