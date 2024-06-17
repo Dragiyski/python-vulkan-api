@@ -1,0 +1,12 @@
+import ctypes, sys
+from ..vulkan_base import VulkanIntEnum
+
+class StdVideoAV1FrameRestorationType(VulkanIntEnum):
+    STD_VIDEO_AV1_FRAME_RESTORATION_TYPE_INVALID = 2147483647
+    STD_VIDEO_AV1_FRAME_RESTORATION_TYPE_NONE = 0
+    STD_VIDEO_AV1_FRAME_RESTORATION_TYPE_SGRPROJ = 2
+    STD_VIDEO_AV1_FRAME_RESTORATION_TYPE_SWITCHABLE = 3
+    STD_VIDEO_AV1_FRAME_RESTORATION_TYPE_WIENER = 1
+
+sys.modules[__name__] = StdVideoAV1FrameRestorationType
+

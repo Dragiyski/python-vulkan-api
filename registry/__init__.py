@@ -53,11 +53,12 @@ class GenerateVulkanSourceFiles(Command):
         project_dir = pathlib.Path(__file__).resolve().parent.parent
         src_dir = project_dir.joinpath('src')
         package_dir = src_dir.joinpath('dragiyski/vulkan')
-        package_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
+        generated_dir = package_dir.joinpath('_generated')
+        generated_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         compiler = Compiler()
         for file in files:
             compiler.add_xml_file(file)
         context = compiler.compile()
-        generator = Generator(package_dir)
+        generator = Generator(generated_dir)
         generator.generate(context)
         pass

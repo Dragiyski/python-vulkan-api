@@ -3,5 +3,7 @@
 **/__pycache__/
 var/
 build/
+generated/
 dist/
 **/*.egg-info/
+.idea/

@@ -17,6 +17,7 @@ if project_dir not in sys.path:
 
 from registry import GenerateVulkanSourceFiles
 
+
 class BuildCommand(build):
     def run(self):
         self.run_command('vk_generate_source_files')
@@ -26,11 +27,11 @@ class BuildCommand(build):
 
 
 setup(
-    cmdclass={
+    cmdclass = {
         'vk_generate_source_files': GenerateVulkanSourceFiles,
         'build': BuildCommand
     },
-    package_dir={
+    package_dir = {
         '': 'src'
     }
 )

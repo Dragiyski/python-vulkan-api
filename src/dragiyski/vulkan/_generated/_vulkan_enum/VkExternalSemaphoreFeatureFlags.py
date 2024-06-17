@@ -1,0 +1,11 @@
+import ctypes, sys
+from ..vulkan_base import VulkanUIntFlag
+
+class VkExternalSemaphoreFeatureFlags(VulkanUIntFlag):
+    VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT = 1
+    VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT = 2
+
+sys.modules[__name__] = VkExternalSemaphoreFeatureFlags
+
+VkExternalSemaphoreFeatureFlags.VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT_KHR = VkExternalSemaphoreFeatureFlags.VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT
+VkExternalSemaphoreFeatureFlags.VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT_KHR = VkExternalSemaphoreFeatureFlags.VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT

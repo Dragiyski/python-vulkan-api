@@ -13,7 +13,7 @@ class NameMap(dict):
 
     def set(self, name, value):
         if name in self:
-            raise self.DuplicateKeyError('Name "%s" already exists', name=name, old_value=self[name], new_value=value)
+            raise self.DuplicateKeyError('Name "%s" already exists' % name, name=name, old_value=self[name], new_value=value)
         self[name] = value
 
 class NameListMap(dict):
@@ -31,6 +31,7 @@ class Alias(str):
 
 class Context:
     def __init__(self, api='vulkan'):
+        self.tag_set = set()
         self.type_node_map = {
             'define': NameMap(),
             'basetype': NameMap(),
@@ -66,6 +67,7 @@ class Context:
         # Maps bitmask name to enum name.
         self.bit_map = NameMap()
         # Map commands
+        self.command_name_map = NameMap()
         self.command_map = NameMap()
         self.api = api
         # self.base_vulkan_types = {}

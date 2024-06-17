@@ -48,6 +48,14 @@ class Compiler:
         root_node = parse_xml(file, is_file=True)
         self.xml_map[file] = root_node
 
+    def _enumerate_tags(self, context: Context, root_node: Node):
+        for tags_node in root_node.get_all('tags'):
+            for tag_node in tags_node.get_all('tag'):
+                if not tag_node.has_attribute('name'):
+                    raise CompileNodeError('Expected <tag> node to have a @name attribute.', node=tag_node)
+                name = tag_node.get_attribute('name')
+                context.tag_set.add(name)
+
     # TODO: Check https://github.com/paulross/cpip for full-blown C/C++ preprocessor in python
     def _enumerate_type_nodes(self, context: Context, root_node: Node):
         for types_node in root_node.get_all('types'):
@@ -782,8 +790,20 @@ class Compiler:
             class_name = classname_map[ctype.__name__]
             context.plain_ctype_class['value'][ctype] = { 'class_name': f'Vulkan{class_name}', 'python_type': pytype.__name__ }
 
+    def _compile_command_names(self, context: Context):
+        for command_name in context.command_node_map.keys():
+            if not command_name.startswith('vk'):
+                continue
+            name = command_name[2:]
+            words = [tag for tag in context.tag_set if name.endswith(tag)]
+            if len(words) > 0:
+                name = name[:-len(words[0])]
+            words = re.findall(r'[A-Z][a-z0-9]*', name) + words
+            context.command_name_map.set(command_name, words)
+
     def compile(self, context = Context()):
         for root_node in self.xml_map.values():
+            self._enumerate_tags(context, root_node)
             self._enumerate_type_nodes(context, root_node)
             self._enumerate_enum_nodes(context, root_node)
             self._enumerate_command_nodes(context, root_node)
@@ -802,6 +822,7 @@ class Compiler:
         self._resolve_callback_type_map(context)
         self._compile_commands(context)
         self._compile_plain_ctypes(context)
+        self._compile_command_names(context)
         pass
 
         return context

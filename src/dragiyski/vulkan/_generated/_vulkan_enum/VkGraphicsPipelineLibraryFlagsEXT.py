@@ -1,0 +1,11 @@
+import ctypes, sys
+from ..vulkan_base import VulkanUIntFlag
+
+class VkGraphicsPipelineLibraryFlagsEXT(VulkanUIntFlag):
+    VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_OUTPUT_INTERFACE_BIT_EXT = 8
+    VK_GRAPHICS_PIPELINE_LIBRARY_FRAGMENT_SHADER_BIT_EXT = 4
+    VK_GRAPHICS_PIPELINE_LIBRARY_PRE_RASTERIZATION_SHADERS_BIT_EXT = 2
+    VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT = 1
+
+sys.modules[__name__] = VkGraphicsPipelineLibraryFlagsEXT
+

@@ -86,7 +86,7 @@ class Generator:
             raise GeneratorError('No enum named "%s" found.' % enum_name, name=enum_name)
         descriptor = context.enum_map[enum_name]
         type_descriptor = context.plain_ctype_class[descriptor['class']][descriptor['ctype'].ctype()]
-        code = ['import ctypes, sys', 'from .._vulkan_base import %s' % type_descriptor['class_name'], '']
+        code = ['import ctypes, sys', 'from ..vulkan_base import %s' % type_descriptor['class_name'], '']
         code.append('class %s(%s):' % (enum_name, type_descriptor['class_name']))
         value_count = len(descriptor['values'])
         values = {}
@@ -115,7 +115,7 @@ class Generator:
         for descriptor in context.value_map.values():
             if 'enum_name' in descriptor:
                 enum_set.add(descriptor['enum_name'])
-        code.append('from ._enum import (')
+        code.append('from ._vulkan_enum import (')
         for enum_name in sorted(enum_set):
             code.append('    %s,' % enum_name)
         code.append(')')
@@ -166,7 +166,7 @@ class Generator:
                 ''
             ])
             if len(funcpointer_member_types) > 0:
-                code.append('from .._vulkan_callback import %s' % ', '.join(sorted([context.ctypes_map[t].deref().name for t in funcpointer_member_types])))
+                code.append('from ..vulkan_callback import %s' % ', '.join(sorted([context.ctypes_map[t].deref().name for t in funcpointer_member_types])))
             for dependency in sorted(complex_member_types):
                 if dependency != name:
                     code.append('from . import %s' % dependency)
@@ -196,7 +196,7 @@ class Generator:
     
     def _generate_command_source(self, context: Context):
         dep_map = {}
-        code = ['import ctypes', 'from ._vulkan_base import VKAPI_PTR, VKAPI_CALL']
+        code = ['import ctypes', 'from .vulkan_base import VKAPI_PTR, VKAPI_CALL']
         fn_code_map = {}
         fn_list = []
         def check_type_dep(ctype):
@@ -224,12 +224,12 @@ class Generator:
             )
             fn_list.append(fn_type.name)
         if 'struct' in dep_map and len(dep_map['struct']) > 0:
-            code.append('from ._struct import (')
+            code.append('from ._vulkan_type import (')
             for dep_name in sorted(dep_map['struct']):
                 code.append('    %s,' % dep_name)
             code.append(')')
         if 'callback' in dep_map and len(dep_map['callback']) > 0:
-            code.append('from ._vulkan_callback import (')
+            code.append('from .vulkan_callback import (')
             for dep_name in sorted(dep_map['callback']):
                 code.append('    %s,' % dep_name)
             code.append(')')
@@ -248,7 +248,7 @@ class Generator:
         return linesep.join(code)
     
     def _generate_funcpointer_source(self, context: Context):
-        code = ['import ctypes', 'from ._vulkan_base import VKAPI_PTR, VKAPI_CALL']
+        code = ['import ctypes', 'from .vulkan_base import VKAPI_PTR, VKAPI_CALL']
         fn_code_map = {}
         fn_list = []
         def check_type_dep(ctype):
@@ -257,7 +257,7 @@ class Generator:
             elif isinstance(ctype, CArrayType):
                 check_type_dep(ctype.item_ctype)
             elif isinstance(ctype, CComplexType):
-                code.append('from ._struct import %s' % ctype.name)
+                code.append('from ._vulkan_type import %s' % ctype.name)
             elif isinstance(ctype, CFunctionType):
                 if ctype.name not in fn_list:
                     fn_list.append(ctype.name)
@@ -289,7 +289,7 @@ class Generator:
         return linesep.join(code)
     
     def _generate_enum_public_source(self, context: Context):
-        code = ['from ._enum import (']
+        code = ['from ._vulkan_enum import (']
         for enum_name in sorted(context.enum_map.keys()):
             code.append('    %s,' % enum_name)
         code.extend([')', ''])
@@ -300,34 +300,26 @@ class Generator:
         return linesep.join(code)
     
     def _generate_struct_public_source(self, context: Context):
-        code = ['from ._struct import (']
+        code = ['from ._vulkan_type import (']
         for enum_name in sorted(context.type_node_map['complex'].keys()):
             code.append('    %s,' % enum_name)
         code.extend([')', ''])
-        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.type_node_map['complex'] }
+        alias = {
+            name: value for name, value in {
+                name: context.resolve_alias(name) for name in context.alias_map
+            }.items() if value in context.type_node_map['complex']
+        }
         for name in sorted(alias.keys()):
             code.append('%s = %s' % (name, alias[name]))
         code.append('')
         return linesep.join(code)
     
-    def _generate_init_source(self, context: Context):
-        code = [
-            'from ._vulkan_base import *',
-            'from ._vulkan_callback import *',
-            'from .command import *',
-            'from .enum import *',
-            'from .const import *',
-            'from .struct import *',
-            ''
-        ]
-        return linesep.join(code)
-    
     def generate(self, context: Context):
         self.base_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         source = self._generate_base_source(context)
-        with open(self.base_dir.joinpath('_vulkan_base.py'), 'w') as file:
+        with open(self.base_dir.joinpath('vulkan_base.py'), 'w') as file:
             file.write(source)
-        enum_dir = self.base_dir.joinpath('_enum')
+        enum_dir = self.base_dir.joinpath('_vulkan_enum')
         enum_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         for name in context.enum_map.keys():
             filename = enum_dir.joinpath(name + '.py')
@@ -335,15 +327,15 @@ class Generator:
             with open(filename, 'w') as file:
                 file.write(source)
         source = self._generate_enum_public_source(context)
-        with open(self.base_dir.joinpath('enum.py'), 'w') as file:
+        with open(self.base_dir.joinpath('vulkan_enum.py'), 'w') as file:
             file.write(source)
         source = self._generate_value_source(context)
-        with open(self.base_dir.joinpath('const.py'), 'w') as file:
+        with open(self.base_dir.joinpath('vulkan_value.py'), 'w') as file:
             file.write(source)
         source = self._generate_funcpointer_source(context)
-        with open(self.base_dir.joinpath('_vulkan_callback.py'), 'w') as file:
+        with open(self.base_dir.joinpath('vulkan_callback.py'), 'w') as file:
             file.write(source)
-        struct_dir = self.base_dir.joinpath('_struct')
+        struct_dir = self.base_dir.joinpath('_vulkan_type')
         struct_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         for name in context.type_node_map['complex'].keys():
             filename = struct_dir.joinpath(name + '.py')
@@ -351,11 +343,8 @@ class Generator:
             with open(filename, 'w') as file:
                 file.write(source)
         source = self._generate_struct_public_source(context)
-        with open(self.base_dir.joinpath('struct.py'), 'w') as file:
+        with open(self.base_dir.joinpath('vulkan_type.py'), 'w') as file:
             file.write(source)
         source = self._generate_command_source(context)
-        with open(self.base_dir.joinpath('command.py'), 'w') as file:
-            file.write(source)
-        source = self._generate_init_source(context)
-        with open(self.base_dir.joinpath('__init__.py'), 'w') as file:
+        with open(self.base_dir.joinpath('vulkan_command.py'), 'w') as file:
             file.write(source)
