@@ -301,6 +301,10 @@ class Compiler:
             if name in context.ctypes_map:
                 raise CompileNodeError('Handle node type "%s" already defined as %r' % (name, context.ctypes_map[name]), node=node)
             context.ctypes_map[name] = ctype
+            descriptor = { 'ctype': ctype, 'typedef': typedef }
+            if node.has_attribute('parent'):
+                descriptor['parent'] = node.get_attribute('parent')
+            context.handle_map.set(name, descriptor)
 
     def _compile_bitmask_node_map(self, context: Context):
         name: str
@@ -691,9 +695,7 @@ class Compiler:
                     raise CompileNodeError('Member "%s.%s": Missing attribute @type' % (name, member_name), node=member_node)
                 if len(member_node.children['type']) > 1:
                     raise MultipleChildrenNodeError(node=member_node, name='type', count=len(member_node.children['type']))
-                member_type = member_node.get('type').get_text()
-                while member_type in context.alias_map:
-                    member_type = context.alias_map[member_type]
+                member_type = context.resolve_alias(member_node.get('type').get_text())
                 if member_type in context.type_node_map['set'] or member_type in context.type_node_map['complex']:
                     ctype['dependencies'].append(member_type)
                 if member_type in context.resolving_complex_type:
@@ -709,6 +711,8 @@ class Compiler:
                         # Foreign types must have been resolved at this time (see category="basetype")
                         raise CompileNodeError('Member "%s.%s": Reference to unknow type "%s"' % (name, member_name, member_type))
             self._resolve_complex_type(context, name, node)
+            descriptor = { 'type': name, 'ctype': ctype, 'extends': set(), 'extended_by': set(), 'node': node }
+            context.struct_map.set(name, descriptor)
         finally:
             context.resolving_complex_type.remove(name)
     
@@ -789,6 +793,61 @@ class Compiler:
         for ctype, pytype in ctype_numeric_map.items():
             class_name = classname_map[ctype.__name__]
             context.plain_ctype_class['value'][ctype] = { 'class_name': f'Vulkan{class_name}', 'python_type': pytype.__name__ }
+    
+    def _compile_struct_extensions(self, context: Context):
+        for name, descriptor in context.struct_map.items():
+            node = descriptor['node']
+            if node.has_attribute('structextends'):
+                extends = [context.resolve_alias(s.strip()) for s in node.get_attribute('structextends').split(',')]
+                for extend in extends:
+                    if extend not in context.struct_map:
+                        raise CompileNodeError('Attribute @structextends refers to non-existent struct "%s".' % extend, node=node)
+                    descriptor['extends'].add(extend)
+                    context.struct_map[extend]['extended_by'].add(name)
+
+    def _compile_command_nodes(self, context: Context):
+        command_node: Node
+        for command_name, command_node in context.command_node_map.items():
+            command_descriptor = { 'argument_list': [], 'argument_map': NameMap(), 'ctype': context.ctypes_map[command_name] }
+            return_type = context.resolve_alias(command_node.get('proto').get('type').get_text())
+            return_descriptor = { 'type': return_type, 'ctype': context.ctypes_map[return_type] }
+            command_descriptor['return'] = return_descriptor
+            if return_descriptor['type'] == 'VkResult':
+                if command_node.has_attribute('successcodes'):
+                    command_descriptor['success_code_list'] = [x for x in [context.resolve_alias(s.strip()) for s in command_node.get_attribute('successcodes').split(',')] if x in context.enum_map['VkResult']['values']]
+                else:
+                    command_descriptor['success_code_list'] = []
+                if command_node.has_attribute('errorcodes'):
+                    command_descriptor['error_code_list'] = [x for x in [context.resolve_alias(s.strip()) for s in command_node.get_attribute('errorcodes').split(',')] if x in context.enum_map['VkResult']['values']]
+                else:
+                    command_descriptor['error_code_list'] = []
+            param_node: Node
+            for param_index, param_node in enumerate(command_node.get_all('param')):
+                param_name = param_node.get('name')
+                command_descriptor['argument_list'].append(param_name)
+                type_name = context.resolve_alias(param_node.get('type').get_text())
+                param_descriptor = { 'type': type_name, 'ctype': command_descriptor['ctype'].argument_types[param_index] }
+                if param_node.has_attribute('len'):
+                    len_value = [s.strip() for s in param_node.get_attribute('len').split(',')]
+                    len_value = [s for s in len_value if s.lower() != 'null-terminated']
+                    if len(len_value) > 0:
+                        param_descriptor['len'] = len_value
+                if param_node.has_attribute('optional'):
+                    param_descriptor['optional'] = [s.strip() for s in param_node.get_attribute('optional').split(',')]
+                if param_node.has_attribute('externsync'):
+                    param_descriptor['externsync'] = param_node.get_attribute('externsync')
+                command_descriptor['argument_map'].set(param_name, param_descriptor)
+            pass
+            for param_index, param_name in enumerate(command_descriptor['argument_list']):
+                param_descriptor = command_descriptor['argument_map'][param_name]
+                if param_descriptor['type'] in context.handle_map and param_descriptor['ctype'] is context.handle_map[param_descriptor['type']]['ctype']:
+                    command_descriptor['handle'] = { 'index': param_index, 'type': param_descriptor['type'], 'ctype': param_descriptor['ctype'] }
+                    loader_handle = command_descriptor['handle']['type']
+                    while loader_handle not in ['VkInstance', 'VkDevice']:
+                        loader_handle = context.handle_map[loader_handle]['parent']
+                    command_descriptor['handle']['loader'] = loader_handle
+                    break
+            context.command_map.set(command_name, command_descriptor)
 
     def _compile_command_names(self, context: Context):
         for command_name in context.command_node_map.keys():
@@ -822,7 +881,9 @@ class Compiler:
         self._resolve_callback_type_map(context)
         self._compile_commands(context)
         self._compile_plain_ctypes(context)
+        self._compile_struct_extensions(context)
         self._compile_command_names(context)
+        self._compile_command_nodes(context)
         pass
 
         return context

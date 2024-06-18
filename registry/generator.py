@@ -314,6 +314,52 @@ class Generator:
         code.append('')
         return linesep.join(code)
     
+    def _generate_error_source(self, context: Context):
+        code = [
+            'class VkException(Exception):',
+            '    from_code = {}',
+            '',
+            'class VkError(VkException):',
+            '    pass',
+            '',
+            'class VkStatus(VkException):',
+            '    pass',
+            ''
+        ]
+        exception_by_code = {}
+        for error_name in sorted(context.enum_map['VkResult']['values']):
+            error_words = error_name.split('_')
+            class_name = []
+            error_words = [w for w in error_words if w.upper() != 'ERROR']
+            for word in error_name.split('_'):
+                if word in context.tag_set or word.upper() == 'ERROR':
+                    continue
+                class_name.append(word[:1].upper() + word[1:].lower())
+            error_value = context.value_map[error_name]['value']
+            base_class = 'VkStatus'
+            if error_value < 0:
+                class_name.append('Error')
+                base_class = 'VkError'
+            if error_value == 0:
+                continue
+            class_name = ''.join(class_name)
+            code.extend([
+                'class %s(%s):' % (class_name, base_class),
+                '    code = %r' % error_value,
+                ''
+            ])
+            exception_by_code[error_value] = class_name
+        for error_code, class_name in exception_by_code.items():
+            code.append('VkException.from_code[%d] = %s' % (error_code, class_name))
+        code.append('')
+        return linesep.join(code)
+    
+    def _generate_command_loader_source(self, context: Context):
+        code = []
+
+        global_functions = [k for k, v in context.command_map.items() if 'handle' not in 'v']
+        instance_functions = [k for k, v in context.command_map.items() if 'handle' not in 'v']
+    
     def generate(self, context: Context):
         self.base_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         source = self._generate_base_source(context)
@@ -347,4 +393,7 @@ class Generator:
             file.write(source)
         source = self._generate_command_source(context)
         with open(self.base_dir.joinpath('vulkan_command.py'), 'w') as file:
+            file.write(source)
+        source = self._generate_error_source(context)
+        with open(self.base_dir.joinpath('vulkan_error.py'), 'w') as file:
             file.write(source)

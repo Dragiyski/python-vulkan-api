@@ -53,6 +53,7 @@ class Context:
         self.object_macro_map = dict(object_macro_map)
         self.func_macro_map = dict(func_macro_map)
         self.alias_map = {}
+        self.handle_map = NameMap()
         # All constants must go into the value map *only*
         # If they belong to enum, it must have 'enum' key, containing the enum name.
         # If the value has been added by a feature or an extension, it must have have 'feature' or 'extension' key as a list of dict.
@@ -66,6 +67,7 @@ class Context:
         self.enum_map = NameMap()
         # Maps bitmask name to enum name.
         self.bit_map = NameMap()
+        self.struct_map = NameMap()
         # Map commands
         self.command_name_map = NameMap()
         self.command_map = NameMap()
