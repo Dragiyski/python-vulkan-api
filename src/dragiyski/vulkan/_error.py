@@ -6,4 +6,4 @@ def status_check(code):
         return
     if code in VkException.from_code:
         raise VkException.from_code[code]
-    raise VkException('Unrecognized error code: %d' % code, code=code)
+    raise VkException('Unrecognized error code: %d' % code)
