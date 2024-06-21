@@ -6,6 +6,7 @@ from weakref import finalize
 from .. import binding
 from ..version import VkVersion, VkApiVersion
 from ..error import *
+from .._util import create_handle_storage_meta
 
 from .main import Loader as MainLoader, VkLayer, VkExtension, VkGlobal
 
@@ -59,13 +60,17 @@ class VkApplicationInfo:
             apiVersion = api_version
         )
 
-def _destroy_instance(vkDestroyInstance, *args):
-    print('vkDestroyInstance(%s)' % ', '.join([repr(x) for x in args]))
-    vkDestroyInstance(*args)
+_handle_map = {}
 
-class VkInstance(binding.VkInstance):
-    def __init__(
-        self,
+def _destroy_handle(vkDestroyInstance, ptr_instance, ptr_allocator):
+    _handle_map.pop(ptr_instance, None)
+    print('vkDestroyInstance(%r, %r)' % (ptr_instance, ptr_allocator))
+    vkDestroyInstance(ptr_instance, ptr_allocator)
+
+class VkInstance(binding.VkInstance, metaclass=create_handle_storage_meta(binding.VkInstance, _handle_map)):
+    @classmethod
+    def create(
+        cls,
         context: VkGlobal,
         *,
         application_info: VkApplicationInfo,
@@ -75,19 +80,18 @@ class VkInstance(binding.VkInstance):
         optional_extensions: Iterable[VkLayer | str | bytes] = [],
         **kwargs
     ):
-        super().__init__()
         required_layers = set(layer.encode() if isinstance(layer, str) else bytes(layer) for layer in required_layers)
         optional_layers = set(layer.encode() if isinstance(layer, str) else bytes(layer) for layer in optional_layers)
         required_extensions = set(extension.encode() if isinstance(extension, str) else bytes(extension) for extension in required_extensions)
         optional_extensions = set(extension.encode() if isinstance(extension, str) else bytes(extension) for extension in optional_extensions)
         if len(optional_layers) > 0:
-            available_layers = set(layer.encode() for layer in vk_global.enumerate_instance_layer_properties())
+            available_layers = set(layer.encode() for layer in context.enumerate_instance_layer_properties())
             optional_layers = optional_layers.intersection(available_layers)
         layers = list(required_layers.union(optional_layers))
         if len(optional_extensions) > 0:
-            available_extensions = set(extension.encode() for extension in vk_global.enumerate_instance_extension_properties())
+            available_extensions = set(extension.encode() for extension in context.enumerate_instance_extension_properties())
             for layer in layers:
-                available_extensions = available_extensions.union(set(extension.encode() for extension in vk_global.enumerate_instance_extension_properties(layer)))
+                available_extensions = available_extensions.union(set(extension.encode() for extension in context.enumerate_instance_extension_properties(layer)))
             optional_extensions = optional_extensions.intersection(available_extensions)
         extensions = list(required_extensions.union(optional_extensions))
 
@@ -109,12 +113,12 @@ class VkInstance(binding.VkInstance):
         len_layers = len(layers)
         len_extensions = len(extensions)
         if len_layers > 0:
-            array_layers = ctypes.c_char_p * len_layers
+            array_layers = (ctypes.c_char_p * len_layers)()
             for i in range(len_layers):
                 array_layers[i] = layers[i]
             ptr_layers = ctypes.cast(array_layers, ctypes.POINTER(ctypes.c_char_p))
         if len_extensions > 0:
-            array_extensions = ctypes.c_char_p * len_extensions
+            array_extensions = (ctypes.c_char_p * len_extensions)()
             for i in range(len_extensions):
                 array_extensions[i] = extensions[i]
             ptr_extensions = ctypes.cast(array_extensions, ctypes.POINTER(ctypes.c_char_p))
@@ -130,13 +134,16 @@ class VkInstance(binding.VkInstance):
         )
 
         # TODO: Parameters for the allocation callbacks
+        self = binding.VkInstance.__new__(cls)
         VkException.check(context._loader_.vkCreateInstance(ctypes.byref(create_info), None, ctypes.byref(self)))
         self._loader_ = Loader(self, context._loader_)
-        self.__destroy = finalize(self, _destroy_instance, self._loader_.vkDestroyInstance, self.value, None)
+        self.__destroy = finalize(self, _destroy_handle, self._loader_.vkDestroyInstance, self.value, None)
+        _handle_map[self.value] = self
+        return self
     
     @property
     def alive(self):
         return self.__destroy.alive
-    
+
     def destroy(self):
-        self.__destroy()
+        return self.__destroy()

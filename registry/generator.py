@@ -159,7 +159,7 @@ class Generator:
                 ''
             ])
             if len(funcpointer_member_types) > 0:
-                code.append('from ..vulkan_callback import %s' % ', '.join(sorted([context.ctypes_map[t].deref().name for t in funcpointer_member_types])))
+                code.append('from ..vulkan_callback import %s' % ', '.join(sorted([context.ctypes_map[t].name for t in funcpointer_member_types])))
             for dependency in sorted(complex_member_types):
                 if dependency != name:
                     code.append('from .%s import CType as %s' % (dependency, dependency))
@@ -250,7 +250,7 @@ class Generator:
                     fn_list.append(ctype.name)
         for type_name in sorted(context.type_node_map['funcpointer'].keys()):
             ptr_type = context.ctypes_map[type_name]
-            fn_type = ptr_type.deref()
+            fn_type = ptr_type
             check_type_dep(fn_type.return_type)
             for arg in fn_type.argument_types:
                 check_type_dep(arg)

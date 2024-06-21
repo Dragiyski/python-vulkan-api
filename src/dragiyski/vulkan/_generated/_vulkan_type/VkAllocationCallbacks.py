@@ -7,9 +7,9 @@ from ..vulkan_callback import vkAllocationFunction, vkFreeFunction, vkInternalAl
 
 CType._fields_ = [
     ('pUserData', ctypes.c_void_p),
-    ('pfnAllocation', ctypes.POINTER(vkAllocationFunction)),
-    ('pfnReallocation', ctypes.POINTER(vkReallocationFunction)),
-    ('pfnFree', ctypes.POINTER(vkFreeFunction)),
-    ('pfnInternalAllocation', ctypes.POINTER(vkInternalAllocationNotification)),
-    ('pfnInternalFree', ctypes.POINTER(vkInternalFreeNotification)),
+    ('pfnAllocation', vkAllocationFunction),
+    ('pfnReallocation', vkReallocationFunction),
+    ('pfnFree', vkFreeFunction),
+    ('pfnInternalAllocation', vkInternalAllocationNotification),
+    ('pfnInternalFree', vkInternalFreeNotification),
 ]

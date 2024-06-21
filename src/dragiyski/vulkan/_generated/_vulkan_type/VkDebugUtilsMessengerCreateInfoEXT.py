@@ -11,6 +11,6 @@ CType._fields_ = [
     ('flags', ctypes.c_uint32),
     ('messageSeverity', ctypes.c_uint32),
     ('messageType', ctypes.c_uint32),
-    ('pfnUserCallback', ctypes.POINTER(vkDebugUtilsMessengerCallbackEXT)),
+    ('pfnUserCallback', vkDebugUtilsMessengerCallbackEXT),
     ('pUserData', ctypes.c_void_p),
 ]

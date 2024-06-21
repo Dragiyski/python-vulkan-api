@@ -603,7 +603,7 @@ class Compiler:
             if not name.startswith('PFN_'):
                 raise CompileNodeError('Expected callback name to be function pointer named starting with PFN_', node=node)
             fn_type = context.ctypes_map[name[4:]] = CFunctionType(name[4:])
-            context.ctypes_map[name] = fn_type.pointer()
+            context.ctypes_map[name] = fn_type
 
     def _compile_uncategorized_types(self, context: Context):
         # While it is an error to use uncategorized type, it is not an error to use a pointer to uncategorized type.
@@ -731,7 +731,7 @@ class Compiler:
             assert name.startswith('PFN_'), "name.startswith('PFN_')"
             assert name in context.ctypes_map, 'name in self.ctypes_map'
             assert name[4:] in context.ctypes_map, 'name[4:] in self.ctypes_map'
-            assert context.ctypes_map[name[4:]].pointer() is context.ctypes_map[name]
+            assert context.ctypes_map[name[4:]] is context.ctypes_map[name]
             fn_decl = ast.ext[0].type.type
             ctype = context.ctypes_map[name[4:]]
             assert isinstance(ctype, CFunctionType), 'isinstance(ctype, CFunctionType)'

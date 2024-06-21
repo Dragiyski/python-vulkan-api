@@ -11,5 +11,5 @@ CType._fields_ = [
     ('pNext', ctypes.c_void_p),
     ('faultCount', ctypes.c_uint32),
     ('pFaults', ctypes.POINTER(VkFaultData)),
-    ('pfnFaultCallback', ctypes.POINTER(vkFaultCallbackFunction)),
+    ('pfnFaultCallback', vkFaultCallbackFunction),
 ]
