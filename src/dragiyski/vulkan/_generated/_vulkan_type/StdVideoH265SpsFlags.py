@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265SpsFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sps_temporal_id_nesting_flag', ctypes.c_uint32, 1),
         ('separate_colour_plane_flag', ctypes.c_uint32, 1),
@@ -33,5 +33,3 @@ class StdVideoH265SpsFlags(ctypes.Structure):
         ('sps_palette_predictor_initializers_present_flag', ctypes.c_uint32, 1),
         ('intra_boundary_filtering_disabled_flag', ctypes.c_uint32, 1),
     ]
-
-sys.modules[__name__] = StdVideoH265SpsFlags

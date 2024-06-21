@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkCopyImageToMemoryInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkCopyImageToMemoryInfoEXT
+from .VkImageToMemoryCopyEXT import CType as VkImageToMemoryCopyEXT
 
-from . import VkImageToMemoryCopyEXT
-
-VkCopyImageToMemoryInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

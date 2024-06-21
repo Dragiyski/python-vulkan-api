@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkBufferConstraintsInfoFUCHSIA(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkBufferConstraintsInfoFUCHSIA
+from .VkBufferCollectionConstraintsInfoFUCHSIA import CType as VkBufferCollectionConstraintsInfoFUCHSIA
+from .VkBufferCreateInfo import CType as VkBufferCreateInfo
 
-from . import VkBufferCollectionConstraintsInfoFUCHSIA
-from . import VkBufferCreateInfo
-
-VkBufferConstraintsInfoFUCHSIA._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('createInfo', VkBufferCreateInfo),

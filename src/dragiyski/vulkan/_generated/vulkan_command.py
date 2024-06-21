@@ -1,343 +1,341 @@
 import ctypes
 from .vulkan_base import VKAPI_PTR, VKAPI_CALL
-from ._vulkan_type import (
-    VkAccelerationStructureBuildGeometryInfoKHR,
-    VkAccelerationStructureBuildRangeInfoKHR,
-    VkAccelerationStructureBuildSizesInfoKHR,
-    VkAccelerationStructureCaptureDescriptorDataInfoEXT,
-    VkAccelerationStructureCreateInfoKHR,
-    VkAccelerationStructureCreateInfoNV,
-    VkAccelerationStructureDeviceAddressInfoKHR,
-    VkAccelerationStructureInfoNV,
-    VkAccelerationStructureMemoryRequirementsInfoNV,
-    VkAccelerationStructureVersionInfoKHR,
-    VkAcquireNextImageInfoKHR,
-    VkAcquireProfilingLockInfoKHR,
-    VkAllocationCallbacks,
-    VkAndroidHardwareBufferPropertiesANDROID,
-    VkAndroidSurfaceCreateInfoKHR,
-    VkBaseOutStructure,
-    VkBindAccelerationStructureMemoryInfoNV,
-    VkBindBufferMemoryInfo,
-    VkBindDescriptorBufferEmbeddedSamplersInfoEXT,
-    VkBindDescriptorSetsInfoKHR,
-    VkBindImageMemoryInfo,
-    VkBindSparseInfo,
-    VkBindVideoSessionMemoryInfoKHR,
-    VkBlitImageInfo2,
-    VkBufferCaptureDescriptorDataInfoEXT,
-    VkBufferCollectionCreateInfoFUCHSIA,
-    VkBufferCollectionPropertiesFUCHSIA,
-    VkBufferConstraintsInfoFUCHSIA,
-    VkBufferCopy,
-    VkBufferCreateInfo,
-    VkBufferDeviceAddressInfo,
-    VkBufferImageCopy,
-    VkBufferMemoryBarrier,
-    VkBufferMemoryRequirementsInfo2,
-    VkBufferViewCreateInfo,
-    VkCalibratedTimestampInfoKHR,
-    VkCheckpointData2NV,
-    VkCheckpointDataNV,
-    VkClearAttachment,
-    VkClearColorValue,
-    VkClearDepthStencilValue,
-    VkClearRect,
-    VkCoarseSampleOrderCustomNV,
-    VkColorBlendAdvancedEXT,
-    VkColorBlendEquationEXT,
-    VkCommandBufferAllocateInfo,
-    VkCommandBufferBeginInfo,
-    VkCommandPoolCreateInfo,
-    VkCommandPoolMemoryConsumption,
-    VkComputePipelineCreateInfo,
-    VkConditionalRenderingBeginInfoEXT,
-    VkCooperativeMatrixPropertiesKHR,
-    VkCooperativeMatrixPropertiesNV,
-    VkCopyAccelerationStructureInfoKHR,
-    VkCopyAccelerationStructureToMemoryInfoKHR,
-    VkCopyBufferInfo2,
-    VkCopyBufferToImageInfo2,
-    VkCopyDescriptorSet,
-    VkCopyImageInfo2,
-    VkCopyImageToBufferInfo2,
-    VkCopyImageToImageInfoEXT,
-    VkCopyImageToMemoryInfoEXT,
-    VkCopyMemoryToAccelerationStructureInfoKHR,
-    VkCopyMemoryToImageInfoEXT,
-    VkCopyMemoryToMicromapInfoEXT,
-    VkCopyMicromapInfoEXT,
-    VkCopyMicromapToMemoryInfoEXT,
-    VkCuFunctionCreateInfoNVX,
-    VkCuLaunchInfoNVX,
-    VkCuModuleCreateInfoNVX,
-    VkCudaFunctionCreateInfoNV,
-    VkCudaLaunchInfoNV,
-    VkCudaModuleCreateInfoNV,
-    VkDebugMarkerMarkerInfoEXT,
-    VkDebugMarkerObjectNameInfoEXT,
-    VkDebugMarkerObjectTagInfoEXT,
-    VkDebugReportCallbackCreateInfoEXT,
-    VkDebugUtilsLabelEXT,
-    VkDebugUtilsMessengerCallbackDataEXT,
-    VkDebugUtilsMessengerCreateInfoEXT,
-    VkDebugUtilsObjectNameInfoEXT,
-    VkDebugUtilsObjectTagInfoEXT,
-    VkDecompressMemoryRegionNV,
-    VkDependencyInfo,
-    VkDepthBiasInfoEXT,
-    VkDescriptorBufferBindingInfoEXT,
-    VkDescriptorGetInfoEXT,
-    VkDescriptorPoolCreateInfo,
-    VkDescriptorSetAllocateInfo,
-    VkDescriptorSetBindingReferenceVALVE,
-    VkDescriptorSetLayoutCreateInfo,
-    VkDescriptorSetLayoutHostMappingInfoVALVE,
-    VkDescriptorSetLayoutSupport,
-    VkDescriptorUpdateTemplateCreateInfo,
-    VkDeviceBufferMemoryRequirements,
-    VkDeviceCreateInfo,
-    VkDeviceEventInfoEXT,
-    VkDeviceFaultCountsEXT,
-    VkDeviceFaultInfoEXT,
-    VkDeviceGroupPresentCapabilitiesKHR,
-    VkDeviceImageMemoryRequirements,
-    VkDeviceImageSubresourceInfoKHR,
-    VkDeviceMemoryOpaqueCaptureAddressInfo,
-    VkDeviceQueueInfo2,
-    VkDirectFBSurfaceCreateInfoEXT,
-    VkDispatchGraphCountInfoAMDX,
-    VkDisplayEventInfoEXT,
-    VkDisplayModeCreateInfoKHR,
-    VkDisplayModeProperties2KHR,
-    VkDisplayModePropertiesKHR,
-    VkDisplayPlaneCapabilities2KHR,
-    VkDisplayPlaneCapabilitiesKHR,
-    VkDisplayPlaneInfo2KHR,
-    VkDisplayPlaneProperties2KHR,
-    VkDisplayPlanePropertiesKHR,
-    VkDisplayPowerInfoEXT,
-    VkDisplayProperties2KHR,
-    VkDisplayPropertiesKHR,
-    VkDisplaySurfaceCreateInfoKHR,
-    VkEventCreateInfo,
-    VkExecutionGraphPipelineCreateInfoAMDX,
-    VkExecutionGraphPipelineScratchSizeAMDX,
-    VkExportMetalObjectsInfoEXT,
-    VkExtensionProperties,
-    VkExtent2D,
-    VkExternalBufferProperties,
-    VkExternalFenceProperties,
-    VkExternalImageFormatPropertiesNV,
-    VkExternalSemaphoreProperties,
-    VkFaultData,
-    VkFenceCreateInfo,
-    VkFenceGetFdInfoKHR,
-    VkFenceGetSciSyncInfoNV,
-    VkFenceGetWin32HandleInfoKHR,
-    VkFormatProperties,
-    VkFormatProperties2,
-    VkFramebufferCreateInfo,
-    VkFramebufferMixedSamplesCombinationNV,
-    VkGeneratedCommandsInfoNV,
-    VkGeneratedCommandsMemoryRequirementsInfoNV,
-    VkGetLatencyMarkerInfoNV,
-    VkGraphicsPipelineCreateInfo,
-    VkHdrMetadataEXT,
-    VkHeadlessSurfaceCreateInfoEXT,
-    VkHostImageLayoutTransitionInfoEXT,
-    VkIOSSurfaceCreateInfoMVK,
-    VkImageBlit,
-    VkImageCaptureDescriptorDataInfoEXT,
-    VkImageConstraintsInfoFUCHSIA,
-    VkImageCopy,
-    VkImageCreateInfo,
-    VkImageDrmFormatModifierPropertiesEXT,
-    VkImageFormatProperties,
-    VkImageFormatProperties2,
-    VkImageMemoryBarrier,
-    VkImageMemoryRequirementsInfo2,
-    VkImagePipeSurfaceCreateInfoFUCHSIA,
-    VkImageResolve,
-    VkImageSparseMemoryRequirementsInfo2,
-    VkImageSubresource,
-    VkImageSubresource2KHR,
-    VkImageSubresourceLayers,
-    VkImageSubresourceRange,
-    VkImageViewAddressPropertiesNVX,
-    VkImageViewCaptureDescriptorDataInfoEXT,
-    VkImageViewCreateInfo,
-    VkImageViewHandleInfoNVX,
-    VkImportFenceFdInfoKHR,
-    VkImportFenceSciSyncInfoNV,
-    VkImportFenceWin32HandleInfoKHR,
-    VkImportSemaphoreFdInfoKHR,
-    VkImportSemaphoreSciSyncInfoNV,
-    VkImportSemaphoreWin32HandleInfoKHR,
-    VkImportSemaphoreZirconHandleInfoFUCHSIA,
-    VkIndirectCommandsLayoutCreateInfoNV,
-    VkInitializePerformanceApiInfoINTEL,
-    VkInstanceCreateInfo,
-    VkLatencySleepInfoNV,
-    VkLatencySleepModeInfoNV,
-    VkLayerProperties,
-    VkMacOSSurfaceCreateInfoMVK,
-    VkMappedMemoryRange,
-    VkMemoryAllocateInfo,
-    VkMemoryBarrier,
-    VkMemoryFdPropertiesKHR,
-    VkMemoryGetAndroidHardwareBufferInfoANDROID,
-    VkMemoryGetFdInfoKHR,
-    VkMemoryGetRemoteAddressInfoNV,
-    VkMemoryGetSciBufInfoNV,
-    VkMemoryGetWin32HandleInfoKHR,
-    VkMemoryGetZirconHandleInfoFUCHSIA,
-    VkMemoryHostPointerPropertiesEXT,
-    VkMemoryMapInfoKHR,
-    VkMemoryRequirements,
-    VkMemoryRequirements2,
-    VkMemorySciBufPropertiesNV,
-    VkMemoryUnmapInfoKHR,
-    VkMemoryWin32HandlePropertiesKHR,
-    VkMemoryZirconHandlePropertiesFUCHSIA,
-    VkMetalSurfaceCreateInfoEXT,
-    VkMicromapBuildInfoEXT,
-    VkMicromapBuildSizesInfoEXT,
-    VkMicromapCreateInfoEXT,
-    VkMicromapVersionInfoEXT,
-    VkMultiDrawIndexedInfoEXT,
-    VkMultiDrawInfoEXT,
-    VkMultisamplePropertiesEXT,
-    VkOpticalFlowExecuteInfoNV,
-    VkOpticalFlowImageFormatInfoNV,
-    VkOpticalFlowImageFormatPropertiesNV,
-    VkOpticalFlowSessionCreateInfoNV,
-    VkOutOfBandQueueTypeInfoNV,
-    VkPastPresentationTimingGOOGLE,
-    VkPerformanceConfigurationAcquireInfoINTEL,
-    VkPerformanceCounterDescriptionKHR,
-    VkPerformanceCounterKHR,
-    VkPerformanceMarkerInfoINTEL,
-    VkPerformanceOverrideInfoINTEL,
-    VkPerformanceStreamMarkerInfoINTEL,
-    VkPerformanceValueINTEL,
-    VkPhysicalDeviceExternalBufferInfo,
-    VkPhysicalDeviceExternalFenceInfo,
-    VkPhysicalDeviceExternalSemaphoreInfo,
-    VkPhysicalDeviceFeatures,
-    VkPhysicalDeviceFeatures2,
-    VkPhysicalDeviceFragmentShadingRateKHR,
-    VkPhysicalDeviceGroupProperties,
-    VkPhysicalDeviceImageFormatInfo2,
-    VkPhysicalDeviceMemoryProperties,
-    VkPhysicalDeviceMemoryProperties2,
-    VkPhysicalDeviceProperties,
-    VkPhysicalDeviceProperties2,
-    VkPhysicalDeviceSparseImageFormatInfo2,
-    VkPhysicalDeviceSurfaceInfo2KHR,
-    VkPhysicalDeviceToolProperties,
-    VkPhysicalDeviceVideoEncodeQualityLevelInfoKHR,
-    VkPhysicalDeviceVideoFormatInfoKHR,
-    VkPipelineCacheCreateInfo,
-    VkPipelineExecutableInfoKHR,
-    VkPipelineExecutableInternalRepresentationKHR,
-    VkPipelineExecutablePropertiesKHR,
-    VkPipelineExecutableStatisticKHR,
-    VkPipelineIndirectDeviceAddressInfoNV,
-    VkPipelineInfoKHR,
-    VkPipelineLayoutCreateInfo,
-    VkPipelineShaderStageNodeCreateInfoAMDX,
-    VkPresentInfoKHR,
-    VkPrivateDataSlotCreateInfo,
-    VkPushConstantsInfoKHR,
-    VkPushDescriptorSetInfoKHR,
-    VkPushDescriptorSetWithTemplateInfoKHR,
-    VkQueryPoolCreateInfo,
-    VkQueryPoolPerformanceCreateInfoKHR,
-    VkQueueFamilyProperties,
-    VkQueueFamilyProperties2,
-    VkRayTracingPipelineCreateInfoKHR,
-    VkRayTracingPipelineCreateInfoNV,
-    VkRect2D,
-    VkRefreshCycleDurationGOOGLE,
-    VkRefreshObjectListKHR,
-    VkReleaseSwapchainImagesInfoEXT,
-    VkRenderPassBeginInfo,
-    VkRenderPassCreateInfo,
-    VkRenderPassCreateInfo2,
-    VkRenderingAreaInfoKHR,
-    VkRenderingAttachmentLocationInfoKHR,
-    VkRenderingInfo,
-    VkRenderingInputAttachmentIndexInfoKHR,
-    VkResolveImageInfo2,
-    VkSampleLocationsInfoEXT,
-    VkSamplerCaptureDescriptorDataInfoEXT,
-    VkSamplerCreateInfo,
-    VkSamplerYcbcrConversionCreateInfo,
-    VkSciSyncAttributesInfoNV,
-    VkScreenBufferPropertiesQNX,
-    VkScreenSurfaceCreateInfoQNX,
-    VkSemaphoreCreateInfo,
-    VkSemaphoreGetFdInfoKHR,
-    VkSemaphoreGetSciSyncInfoNV,
-    VkSemaphoreGetWin32HandleInfoKHR,
-    VkSemaphoreGetZirconHandleInfoFUCHSIA,
-    VkSemaphoreSciSyncPoolCreateInfoNV,
-    VkSemaphoreSignalInfo,
-    VkSemaphoreWaitInfo,
-    VkSetDescriptorBufferOffsetsInfoEXT,
-    VkSetLatencyMarkerInfoNV,
-    VkShaderCreateInfoEXT,
-    VkShaderModuleCreateInfo,
-    VkShaderModuleIdentifierEXT,
-    VkShadingRatePaletteNV,
-    VkSparseImageFormatProperties,
-    VkSparseImageFormatProperties2,
-    VkSparseImageMemoryRequirements,
-    VkSparseImageMemoryRequirements2,
-    VkStreamDescriptorSurfaceCreateInfoGGP,
-    VkStridedDeviceAddressRegionKHR,
-    VkSubmitInfo,
-    VkSubmitInfo2,
-    VkSubpassBeginInfo,
-    VkSubpassEndInfo,
-    VkSubresourceLayout,
-    VkSubresourceLayout2KHR,
-    VkSurfaceCapabilities2EXT,
-    VkSurfaceCapabilities2KHR,
-    VkSurfaceCapabilitiesKHR,
-    VkSurfaceFormat2KHR,
-    VkSurfaceFormatKHR,
-    VkSwapchainCreateInfoKHR,
-    VkTilePropertiesQCOM,
-    VkValidationCacheCreateInfoEXT,
-    VkVertexInputAttributeDescription2EXT,
-    VkVertexInputBindingDescription2EXT,
-    VkViSurfaceCreateInfoNN,
-    VkVideoBeginCodingInfoKHR,
-    VkVideoCapabilitiesKHR,
-    VkVideoCodingControlInfoKHR,
-    VkVideoDecodeInfoKHR,
-    VkVideoEncodeInfoKHR,
-    VkVideoEncodeQualityLevelPropertiesKHR,
-    VkVideoEncodeSessionParametersFeedbackInfoKHR,
-    VkVideoEncodeSessionParametersGetInfoKHR,
-    VkVideoEndCodingInfoKHR,
-    VkVideoFormatPropertiesKHR,
-    VkVideoProfileInfoKHR,
-    VkVideoSessionCreateInfoKHR,
-    VkVideoSessionMemoryRequirementsKHR,
-    VkVideoSessionParametersCreateInfoKHR,
-    VkVideoSessionParametersUpdateInfoKHR,
-    VkViewport,
-    VkViewportSwizzleNV,
-    VkViewportWScalingNV,
-    VkWaylandSurfaceCreateInfoKHR,
-    VkWin32SurfaceCreateInfoKHR,
-    VkWriteDescriptorSet,
-    VkXcbSurfaceCreateInfoKHR,
-    VkXlibSurfaceCreateInfoKHR,
-)
+from ._vulkan_type.VkAccelerationStructureBuildGeometryInfoKHR import CType as VkAccelerationStructureBuildGeometryInfoKHR
+from ._vulkan_type.VkAccelerationStructureBuildRangeInfoKHR import CType as VkAccelerationStructureBuildRangeInfoKHR
+from ._vulkan_type.VkAccelerationStructureBuildSizesInfoKHR import CType as VkAccelerationStructureBuildSizesInfoKHR
+from ._vulkan_type.VkAccelerationStructureCaptureDescriptorDataInfoEXT import CType as VkAccelerationStructureCaptureDescriptorDataInfoEXT
+from ._vulkan_type.VkAccelerationStructureCreateInfoKHR import CType as VkAccelerationStructureCreateInfoKHR
+from ._vulkan_type.VkAccelerationStructureCreateInfoNV import CType as VkAccelerationStructureCreateInfoNV
+from ._vulkan_type.VkAccelerationStructureDeviceAddressInfoKHR import CType as VkAccelerationStructureDeviceAddressInfoKHR
+from ._vulkan_type.VkAccelerationStructureInfoNV import CType as VkAccelerationStructureInfoNV
+from ._vulkan_type.VkAccelerationStructureMemoryRequirementsInfoNV import CType as VkAccelerationStructureMemoryRequirementsInfoNV
+from ._vulkan_type.VkAccelerationStructureVersionInfoKHR import CType as VkAccelerationStructureVersionInfoKHR
+from ._vulkan_type.VkAcquireNextImageInfoKHR import CType as VkAcquireNextImageInfoKHR
+from ._vulkan_type.VkAcquireProfilingLockInfoKHR import CType as VkAcquireProfilingLockInfoKHR
+from ._vulkan_type.VkAllocationCallbacks import CType as VkAllocationCallbacks
+from ._vulkan_type.VkAndroidHardwareBufferPropertiesANDROID import CType as VkAndroidHardwareBufferPropertiesANDROID
+from ._vulkan_type.VkAndroidSurfaceCreateInfoKHR import CType as VkAndroidSurfaceCreateInfoKHR
+from ._vulkan_type.VkBaseOutStructure import CType as VkBaseOutStructure
+from ._vulkan_type.VkBindAccelerationStructureMemoryInfoNV import CType as VkBindAccelerationStructureMemoryInfoNV
+from ._vulkan_type.VkBindBufferMemoryInfo import CType as VkBindBufferMemoryInfo
+from ._vulkan_type.VkBindDescriptorBufferEmbeddedSamplersInfoEXT import CType as VkBindDescriptorBufferEmbeddedSamplersInfoEXT
+from ._vulkan_type.VkBindDescriptorSetsInfoKHR import CType as VkBindDescriptorSetsInfoKHR
+from ._vulkan_type.VkBindImageMemoryInfo import CType as VkBindImageMemoryInfo
+from ._vulkan_type.VkBindSparseInfo import CType as VkBindSparseInfo
+from ._vulkan_type.VkBindVideoSessionMemoryInfoKHR import CType as VkBindVideoSessionMemoryInfoKHR
+from ._vulkan_type.VkBlitImageInfo2 import CType as VkBlitImageInfo2
+from ._vulkan_type.VkBufferCaptureDescriptorDataInfoEXT import CType as VkBufferCaptureDescriptorDataInfoEXT
+from ._vulkan_type.VkBufferCollectionCreateInfoFUCHSIA import CType as VkBufferCollectionCreateInfoFUCHSIA
+from ._vulkan_type.VkBufferCollectionPropertiesFUCHSIA import CType as VkBufferCollectionPropertiesFUCHSIA
+from ._vulkan_type.VkBufferConstraintsInfoFUCHSIA import CType as VkBufferConstraintsInfoFUCHSIA
+from ._vulkan_type.VkBufferCopy import CType as VkBufferCopy
+from ._vulkan_type.VkBufferCreateInfo import CType as VkBufferCreateInfo
+from ._vulkan_type.VkBufferDeviceAddressInfo import CType as VkBufferDeviceAddressInfo
+from ._vulkan_type.VkBufferImageCopy import CType as VkBufferImageCopy
+from ._vulkan_type.VkBufferMemoryBarrier import CType as VkBufferMemoryBarrier
+from ._vulkan_type.VkBufferMemoryRequirementsInfo2 import CType as VkBufferMemoryRequirementsInfo2
+from ._vulkan_type.VkBufferViewCreateInfo import CType as VkBufferViewCreateInfo
+from ._vulkan_type.VkCalibratedTimestampInfoKHR import CType as VkCalibratedTimestampInfoKHR
+from ._vulkan_type.VkCheckpointData2NV import CType as VkCheckpointData2NV
+from ._vulkan_type.VkCheckpointDataNV import CType as VkCheckpointDataNV
+from ._vulkan_type.VkClearAttachment import CType as VkClearAttachment
+from ._vulkan_type.VkClearColorValue import CType as VkClearColorValue
+from ._vulkan_type.VkClearDepthStencilValue import CType as VkClearDepthStencilValue
+from ._vulkan_type.VkClearRect import CType as VkClearRect
+from ._vulkan_type.VkCoarseSampleOrderCustomNV import CType as VkCoarseSampleOrderCustomNV
+from ._vulkan_type.VkColorBlendAdvancedEXT import CType as VkColorBlendAdvancedEXT
+from ._vulkan_type.VkColorBlendEquationEXT import CType as VkColorBlendEquationEXT
+from ._vulkan_type.VkCommandBufferAllocateInfo import CType as VkCommandBufferAllocateInfo
+from ._vulkan_type.VkCommandBufferBeginInfo import CType as VkCommandBufferBeginInfo
+from ._vulkan_type.VkCommandPoolCreateInfo import CType as VkCommandPoolCreateInfo
+from ._vulkan_type.VkCommandPoolMemoryConsumption import CType as VkCommandPoolMemoryConsumption
+from ._vulkan_type.VkComputePipelineCreateInfo import CType as VkComputePipelineCreateInfo
+from ._vulkan_type.VkConditionalRenderingBeginInfoEXT import CType as VkConditionalRenderingBeginInfoEXT
+from ._vulkan_type.VkCooperativeMatrixPropertiesKHR import CType as VkCooperativeMatrixPropertiesKHR
+from ._vulkan_type.VkCooperativeMatrixPropertiesNV import CType as VkCooperativeMatrixPropertiesNV
+from ._vulkan_type.VkCopyAccelerationStructureInfoKHR import CType as VkCopyAccelerationStructureInfoKHR
+from ._vulkan_type.VkCopyAccelerationStructureToMemoryInfoKHR import CType as VkCopyAccelerationStructureToMemoryInfoKHR
+from ._vulkan_type.VkCopyBufferInfo2 import CType as VkCopyBufferInfo2
+from ._vulkan_type.VkCopyBufferToImageInfo2 import CType as VkCopyBufferToImageInfo2
+from ._vulkan_type.VkCopyDescriptorSet import CType as VkCopyDescriptorSet
+from ._vulkan_type.VkCopyImageInfo2 import CType as VkCopyImageInfo2
+from ._vulkan_type.VkCopyImageToBufferInfo2 import CType as VkCopyImageToBufferInfo2
+from ._vulkan_type.VkCopyImageToImageInfoEXT import CType as VkCopyImageToImageInfoEXT
+from ._vulkan_type.VkCopyImageToMemoryInfoEXT import CType as VkCopyImageToMemoryInfoEXT
+from ._vulkan_type.VkCopyMemoryToAccelerationStructureInfoKHR import CType as VkCopyMemoryToAccelerationStructureInfoKHR
+from ._vulkan_type.VkCopyMemoryToImageInfoEXT import CType as VkCopyMemoryToImageInfoEXT
+from ._vulkan_type.VkCopyMemoryToMicromapInfoEXT import CType as VkCopyMemoryToMicromapInfoEXT
+from ._vulkan_type.VkCopyMicromapInfoEXT import CType as VkCopyMicromapInfoEXT
+from ._vulkan_type.VkCopyMicromapToMemoryInfoEXT import CType as VkCopyMicromapToMemoryInfoEXT
+from ._vulkan_type.VkCuFunctionCreateInfoNVX import CType as VkCuFunctionCreateInfoNVX
+from ._vulkan_type.VkCuLaunchInfoNVX import CType as VkCuLaunchInfoNVX
+from ._vulkan_type.VkCuModuleCreateInfoNVX import CType as VkCuModuleCreateInfoNVX
+from ._vulkan_type.VkCudaFunctionCreateInfoNV import CType as VkCudaFunctionCreateInfoNV
+from ._vulkan_type.VkCudaLaunchInfoNV import CType as VkCudaLaunchInfoNV
+from ._vulkan_type.VkCudaModuleCreateInfoNV import CType as VkCudaModuleCreateInfoNV
+from ._vulkan_type.VkDebugMarkerMarkerInfoEXT import CType as VkDebugMarkerMarkerInfoEXT
+from ._vulkan_type.VkDebugMarkerObjectNameInfoEXT import CType as VkDebugMarkerObjectNameInfoEXT
+from ._vulkan_type.VkDebugMarkerObjectTagInfoEXT import CType as VkDebugMarkerObjectTagInfoEXT
+from ._vulkan_type.VkDebugReportCallbackCreateInfoEXT import CType as VkDebugReportCallbackCreateInfoEXT
+from ._vulkan_type.VkDebugUtilsLabelEXT import CType as VkDebugUtilsLabelEXT
+from ._vulkan_type.VkDebugUtilsMessengerCallbackDataEXT import CType as VkDebugUtilsMessengerCallbackDataEXT
+from ._vulkan_type.VkDebugUtilsMessengerCreateInfoEXT import CType as VkDebugUtilsMessengerCreateInfoEXT
+from ._vulkan_type.VkDebugUtilsObjectNameInfoEXT import CType as VkDebugUtilsObjectNameInfoEXT
+from ._vulkan_type.VkDebugUtilsObjectTagInfoEXT import CType as VkDebugUtilsObjectTagInfoEXT
+from ._vulkan_type.VkDecompressMemoryRegionNV import CType as VkDecompressMemoryRegionNV
+from ._vulkan_type.VkDependencyInfo import CType as VkDependencyInfo
+from ._vulkan_type.VkDepthBiasInfoEXT import CType as VkDepthBiasInfoEXT
+from ._vulkan_type.VkDescriptorBufferBindingInfoEXT import CType as VkDescriptorBufferBindingInfoEXT
+from ._vulkan_type.VkDescriptorGetInfoEXT import CType as VkDescriptorGetInfoEXT
+from ._vulkan_type.VkDescriptorPoolCreateInfo import CType as VkDescriptorPoolCreateInfo
+from ._vulkan_type.VkDescriptorSetAllocateInfo import CType as VkDescriptorSetAllocateInfo
+from ._vulkan_type.VkDescriptorSetBindingReferenceVALVE import CType as VkDescriptorSetBindingReferenceVALVE
+from ._vulkan_type.VkDescriptorSetLayoutCreateInfo import CType as VkDescriptorSetLayoutCreateInfo
+from ._vulkan_type.VkDescriptorSetLayoutHostMappingInfoVALVE import CType as VkDescriptorSetLayoutHostMappingInfoVALVE
+from ._vulkan_type.VkDescriptorSetLayoutSupport import CType as VkDescriptorSetLayoutSupport
+from ._vulkan_type.VkDescriptorUpdateTemplateCreateInfo import CType as VkDescriptorUpdateTemplateCreateInfo
+from ._vulkan_type.VkDeviceBufferMemoryRequirements import CType as VkDeviceBufferMemoryRequirements
+from ._vulkan_type.VkDeviceCreateInfo import CType as VkDeviceCreateInfo
+from ._vulkan_type.VkDeviceEventInfoEXT import CType as VkDeviceEventInfoEXT
+from ._vulkan_type.VkDeviceFaultCountsEXT import CType as VkDeviceFaultCountsEXT
+from ._vulkan_type.VkDeviceFaultInfoEXT import CType as VkDeviceFaultInfoEXT
+from ._vulkan_type.VkDeviceGroupPresentCapabilitiesKHR import CType as VkDeviceGroupPresentCapabilitiesKHR
+from ._vulkan_type.VkDeviceImageMemoryRequirements import CType as VkDeviceImageMemoryRequirements
+from ._vulkan_type.VkDeviceImageSubresourceInfoKHR import CType as VkDeviceImageSubresourceInfoKHR
+from ._vulkan_type.VkDeviceMemoryOpaqueCaptureAddressInfo import CType as VkDeviceMemoryOpaqueCaptureAddressInfo
+from ._vulkan_type.VkDeviceQueueInfo2 import CType as VkDeviceQueueInfo2
+from ._vulkan_type.VkDirectFBSurfaceCreateInfoEXT import CType as VkDirectFBSurfaceCreateInfoEXT
+from ._vulkan_type.VkDispatchGraphCountInfoAMDX import CType as VkDispatchGraphCountInfoAMDX
+from ._vulkan_type.VkDisplayEventInfoEXT import CType as VkDisplayEventInfoEXT
+from ._vulkan_type.VkDisplayModeCreateInfoKHR import CType as VkDisplayModeCreateInfoKHR
+from ._vulkan_type.VkDisplayModeProperties2KHR import CType as VkDisplayModeProperties2KHR
+from ._vulkan_type.VkDisplayModePropertiesKHR import CType as VkDisplayModePropertiesKHR
+from ._vulkan_type.VkDisplayPlaneCapabilities2KHR import CType as VkDisplayPlaneCapabilities2KHR
+from ._vulkan_type.VkDisplayPlaneCapabilitiesKHR import CType as VkDisplayPlaneCapabilitiesKHR
+from ._vulkan_type.VkDisplayPlaneInfo2KHR import CType as VkDisplayPlaneInfo2KHR
+from ._vulkan_type.VkDisplayPlaneProperties2KHR import CType as VkDisplayPlaneProperties2KHR
+from ._vulkan_type.VkDisplayPlanePropertiesKHR import CType as VkDisplayPlanePropertiesKHR
+from ._vulkan_type.VkDisplayPowerInfoEXT import CType as VkDisplayPowerInfoEXT
+from ._vulkan_type.VkDisplayProperties2KHR import CType as VkDisplayProperties2KHR
+from ._vulkan_type.VkDisplayPropertiesKHR import CType as VkDisplayPropertiesKHR
+from ._vulkan_type.VkDisplaySurfaceCreateInfoKHR import CType as VkDisplaySurfaceCreateInfoKHR
+from ._vulkan_type.VkEventCreateInfo import CType as VkEventCreateInfo
+from ._vulkan_type.VkExecutionGraphPipelineCreateInfoAMDX import CType as VkExecutionGraphPipelineCreateInfoAMDX
+from ._vulkan_type.VkExecutionGraphPipelineScratchSizeAMDX import CType as VkExecutionGraphPipelineScratchSizeAMDX
+from ._vulkan_type.VkExportMetalObjectsInfoEXT import CType as VkExportMetalObjectsInfoEXT
+from ._vulkan_type.VkExtensionProperties import CType as VkExtensionProperties
+from ._vulkan_type.VkExtent2D import CType as VkExtent2D
+from ._vulkan_type.VkExternalBufferProperties import CType as VkExternalBufferProperties
+from ._vulkan_type.VkExternalFenceProperties import CType as VkExternalFenceProperties
+from ._vulkan_type.VkExternalImageFormatPropertiesNV import CType as VkExternalImageFormatPropertiesNV
+from ._vulkan_type.VkExternalSemaphoreProperties import CType as VkExternalSemaphoreProperties
+from ._vulkan_type.VkFaultData import CType as VkFaultData
+from ._vulkan_type.VkFenceCreateInfo import CType as VkFenceCreateInfo
+from ._vulkan_type.VkFenceGetFdInfoKHR import CType as VkFenceGetFdInfoKHR
+from ._vulkan_type.VkFenceGetSciSyncInfoNV import CType as VkFenceGetSciSyncInfoNV
+from ._vulkan_type.VkFenceGetWin32HandleInfoKHR import CType as VkFenceGetWin32HandleInfoKHR
+from ._vulkan_type.VkFormatProperties import CType as VkFormatProperties
+from ._vulkan_type.VkFormatProperties2 import CType as VkFormatProperties2
+from ._vulkan_type.VkFramebufferCreateInfo import CType as VkFramebufferCreateInfo
+from ._vulkan_type.VkFramebufferMixedSamplesCombinationNV import CType as VkFramebufferMixedSamplesCombinationNV
+from ._vulkan_type.VkGeneratedCommandsInfoNV import CType as VkGeneratedCommandsInfoNV
+from ._vulkan_type.VkGeneratedCommandsMemoryRequirementsInfoNV import CType as VkGeneratedCommandsMemoryRequirementsInfoNV
+from ._vulkan_type.VkGetLatencyMarkerInfoNV import CType as VkGetLatencyMarkerInfoNV
+from ._vulkan_type.VkGraphicsPipelineCreateInfo import CType as VkGraphicsPipelineCreateInfo
+from ._vulkan_type.VkHdrMetadataEXT import CType as VkHdrMetadataEXT
+from ._vulkan_type.VkHeadlessSurfaceCreateInfoEXT import CType as VkHeadlessSurfaceCreateInfoEXT
+from ._vulkan_type.VkHostImageLayoutTransitionInfoEXT import CType as VkHostImageLayoutTransitionInfoEXT
+from ._vulkan_type.VkIOSSurfaceCreateInfoMVK import CType as VkIOSSurfaceCreateInfoMVK
+from ._vulkan_type.VkImageBlit import CType as VkImageBlit
+from ._vulkan_type.VkImageCaptureDescriptorDataInfoEXT import CType as VkImageCaptureDescriptorDataInfoEXT
+from ._vulkan_type.VkImageConstraintsInfoFUCHSIA import CType as VkImageConstraintsInfoFUCHSIA
+from ._vulkan_type.VkImageCopy import CType as VkImageCopy
+from ._vulkan_type.VkImageCreateInfo import CType as VkImageCreateInfo
+from ._vulkan_type.VkImageDrmFormatModifierPropertiesEXT import CType as VkImageDrmFormatModifierPropertiesEXT
+from ._vulkan_type.VkImageFormatProperties import CType as VkImageFormatProperties
+from ._vulkan_type.VkImageFormatProperties2 import CType as VkImageFormatProperties2
+from ._vulkan_type.VkImageMemoryBarrier import CType as VkImageMemoryBarrier
+from ._vulkan_type.VkImageMemoryRequirementsInfo2 import CType as VkImageMemoryRequirementsInfo2
+from ._vulkan_type.VkImagePipeSurfaceCreateInfoFUCHSIA import CType as VkImagePipeSurfaceCreateInfoFUCHSIA
+from ._vulkan_type.VkImageResolve import CType as VkImageResolve
+from ._vulkan_type.VkImageSparseMemoryRequirementsInfo2 import CType as VkImageSparseMemoryRequirementsInfo2
+from ._vulkan_type.VkImageSubresource import CType as VkImageSubresource
+from ._vulkan_type.VkImageSubresource2KHR import CType as VkImageSubresource2KHR
+from ._vulkan_type.VkImageSubresourceLayers import CType as VkImageSubresourceLayers
+from ._vulkan_type.VkImageSubresourceRange import CType as VkImageSubresourceRange
+from ._vulkan_type.VkImageViewAddressPropertiesNVX import CType as VkImageViewAddressPropertiesNVX
+from ._vulkan_type.VkImageViewCaptureDescriptorDataInfoEXT import CType as VkImageViewCaptureDescriptorDataInfoEXT
+from ._vulkan_type.VkImageViewCreateInfo import CType as VkImageViewCreateInfo
+from ._vulkan_type.VkImageViewHandleInfoNVX import CType as VkImageViewHandleInfoNVX
+from ._vulkan_type.VkImportFenceFdInfoKHR import CType as VkImportFenceFdInfoKHR
+from ._vulkan_type.VkImportFenceSciSyncInfoNV import CType as VkImportFenceSciSyncInfoNV
+from ._vulkan_type.VkImportFenceWin32HandleInfoKHR import CType as VkImportFenceWin32HandleInfoKHR
+from ._vulkan_type.VkImportSemaphoreFdInfoKHR import CType as VkImportSemaphoreFdInfoKHR
+from ._vulkan_type.VkImportSemaphoreSciSyncInfoNV import CType as VkImportSemaphoreSciSyncInfoNV
+from ._vulkan_type.VkImportSemaphoreWin32HandleInfoKHR import CType as VkImportSemaphoreWin32HandleInfoKHR
+from ._vulkan_type.VkImportSemaphoreZirconHandleInfoFUCHSIA import CType as VkImportSemaphoreZirconHandleInfoFUCHSIA
+from ._vulkan_type.VkIndirectCommandsLayoutCreateInfoNV import CType as VkIndirectCommandsLayoutCreateInfoNV
+from ._vulkan_type.VkInitializePerformanceApiInfoINTEL import CType as VkInitializePerformanceApiInfoINTEL
+from ._vulkan_type.VkInstanceCreateInfo import CType as VkInstanceCreateInfo
+from ._vulkan_type.VkLatencySleepInfoNV import CType as VkLatencySleepInfoNV
+from ._vulkan_type.VkLatencySleepModeInfoNV import CType as VkLatencySleepModeInfoNV
+from ._vulkan_type.VkLayerProperties import CType as VkLayerProperties
+from ._vulkan_type.VkMacOSSurfaceCreateInfoMVK import CType as VkMacOSSurfaceCreateInfoMVK
+from ._vulkan_type.VkMappedMemoryRange import CType as VkMappedMemoryRange
+from ._vulkan_type.VkMemoryAllocateInfo import CType as VkMemoryAllocateInfo
+from ._vulkan_type.VkMemoryBarrier import CType as VkMemoryBarrier
+from ._vulkan_type.VkMemoryFdPropertiesKHR import CType as VkMemoryFdPropertiesKHR
+from ._vulkan_type.VkMemoryGetAndroidHardwareBufferInfoANDROID import CType as VkMemoryGetAndroidHardwareBufferInfoANDROID
+from ._vulkan_type.VkMemoryGetFdInfoKHR import CType as VkMemoryGetFdInfoKHR
+from ._vulkan_type.VkMemoryGetRemoteAddressInfoNV import CType as VkMemoryGetRemoteAddressInfoNV
+from ._vulkan_type.VkMemoryGetSciBufInfoNV import CType as VkMemoryGetSciBufInfoNV
+from ._vulkan_type.VkMemoryGetWin32HandleInfoKHR import CType as VkMemoryGetWin32HandleInfoKHR
+from ._vulkan_type.VkMemoryGetZirconHandleInfoFUCHSIA import CType as VkMemoryGetZirconHandleInfoFUCHSIA
+from ._vulkan_type.VkMemoryHostPointerPropertiesEXT import CType as VkMemoryHostPointerPropertiesEXT
+from ._vulkan_type.VkMemoryMapInfoKHR import CType as VkMemoryMapInfoKHR
+from ._vulkan_type.VkMemoryRequirements import CType as VkMemoryRequirements
+from ._vulkan_type.VkMemoryRequirements2 import CType as VkMemoryRequirements2
+from ._vulkan_type.VkMemorySciBufPropertiesNV import CType as VkMemorySciBufPropertiesNV
+from ._vulkan_type.VkMemoryUnmapInfoKHR import CType as VkMemoryUnmapInfoKHR
+from ._vulkan_type.VkMemoryWin32HandlePropertiesKHR import CType as VkMemoryWin32HandlePropertiesKHR
+from ._vulkan_type.VkMemoryZirconHandlePropertiesFUCHSIA import CType as VkMemoryZirconHandlePropertiesFUCHSIA
+from ._vulkan_type.VkMetalSurfaceCreateInfoEXT import CType as VkMetalSurfaceCreateInfoEXT
+from ._vulkan_type.VkMicromapBuildInfoEXT import CType as VkMicromapBuildInfoEXT
+from ._vulkan_type.VkMicromapBuildSizesInfoEXT import CType as VkMicromapBuildSizesInfoEXT
+from ._vulkan_type.VkMicromapCreateInfoEXT import CType as VkMicromapCreateInfoEXT
+from ._vulkan_type.VkMicromapVersionInfoEXT import CType as VkMicromapVersionInfoEXT
+from ._vulkan_type.VkMultiDrawIndexedInfoEXT import CType as VkMultiDrawIndexedInfoEXT
+from ._vulkan_type.VkMultiDrawInfoEXT import CType as VkMultiDrawInfoEXT
+from ._vulkan_type.VkMultisamplePropertiesEXT import CType as VkMultisamplePropertiesEXT
+from ._vulkan_type.VkOpticalFlowExecuteInfoNV import CType as VkOpticalFlowExecuteInfoNV
+from ._vulkan_type.VkOpticalFlowImageFormatInfoNV import CType as VkOpticalFlowImageFormatInfoNV
+from ._vulkan_type.VkOpticalFlowImageFormatPropertiesNV import CType as VkOpticalFlowImageFormatPropertiesNV
+from ._vulkan_type.VkOpticalFlowSessionCreateInfoNV import CType as VkOpticalFlowSessionCreateInfoNV
+from ._vulkan_type.VkOutOfBandQueueTypeInfoNV import CType as VkOutOfBandQueueTypeInfoNV
+from ._vulkan_type.VkPastPresentationTimingGOOGLE import CType as VkPastPresentationTimingGOOGLE
+from ._vulkan_type.VkPerformanceConfigurationAcquireInfoINTEL import CType as VkPerformanceConfigurationAcquireInfoINTEL
+from ._vulkan_type.VkPerformanceCounterDescriptionKHR import CType as VkPerformanceCounterDescriptionKHR
+from ._vulkan_type.VkPerformanceCounterKHR import CType as VkPerformanceCounterKHR
+from ._vulkan_type.VkPerformanceMarkerInfoINTEL import CType as VkPerformanceMarkerInfoINTEL
+from ._vulkan_type.VkPerformanceOverrideInfoINTEL import CType as VkPerformanceOverrideInfoINTEL
+from ._vulkan_type.VkPerformanceStreamMarkerInfoINTEL import CType as VkPerformanceStreamMarkerInfoINTEL
+from ._vulkan_type.VkPerformanceValueINTEL import CType as VkPerformanceValueINTEL
+from ._vulkan_type.VkPhysicalDeviceExternalBufferInfo import CType as VkPhysicalDeviceExternalBufferInfo
+from ._vulkan_type.VkPhysicalDeviceExternalFenceInfo import CType as VkPhysicalDeviceExternalFenceInfo
+from ._vulkan_type.VkPhysicalDeviceExternalSemaphoreInfo import CType as VkPhysicalDeviceExternalSemaphoreInfo
+from ._vulkan_type.VkPhysicalDeviceFeatures import CType as VkPhysicalDeviceFeatures
+from ._vulkan_type.VkPhysicalDeviceFeatures2 import CType as VkPhysicalDeviceFeatures2
+from ._vulkan_type.VkPhysicalDeviceFragmentShadingRateKHR import CType as VkPhysicalDeviceFragmentShadingRateKHR
+from ._vulkan_type.VkPhysicalDeviceGroupProperties import CType as VkPhysicalDeviceGroupProperties
+from ._vulkan_type.VkPhysicalDeviceImageFormatInfo2 import CType as VkPhysicalDeviceImageFormatInfo2
+from ._vulkan_type.VkPhysicalDeviceMemoryProperties import CType as VkPhysicalDeviceMemoryProperties
+from ._vulkan_type.VkPhysicalDeviceMemoryProperties2 import CType as VkPhysicalDeviceMemoryProperties2
+from ._vulkan_type.VkPhysicalDeviceProperties import CType as VkPhysicalDeviceProperties
+from ._vulkan_type.VkPhysicalDeviceProperties2 import CType as VkPhysicalDeviceProperties2
+from ._vulkan_type.VkPhysicalDeviceSparseImageFormatInfo2 import CType as VkPhysicalDeviceSparseImageFormatInfo2
+from ._vulkan_type.VkPhysicalDeviceSurfaceInfo2KHR import CType as VkPhysicalDeviceSurfaceInfo2KHR
+from ._vulkan_type.VkPhysicalDeviceToolProperties import CType as VkPhysicalDeviceToolProperties
+from ._vulkan_type.VkPhysicalDeviceVideoEncodeQualityLevelInfoKHR import CType as VkPhysicalDeviceVideoEncodeQualityLevelInfoKHR
+from ._vulkan_type.VkPhysicalDeviceVideoFormatInfoKHR import CType as VkPhysicalDeviceVideoFormatInfoKHR
+from ._vulkan_type.VkPipelineCacheCreateInfo import CType as VkPipelineCacheCreateInfo
+from ._vulkan_type.VkPipelineExecutableInfoKHR import CType as VkPipelineExecutableInfoKHR
+from ._vulkan_type.VkPipelineExecutableInternalRepresentationKHR import CType as VkPipelineExecutableInternalRepresentationKHR
+from ._vulkan_type.VkPipelineExecutablePropertiesKHR import CType as VkPipelineExecutablePropertiesKHR
+from ._vulkan_type.VkPipelineExecutableStatisticKHR import CType as VkPipelineExecutableStatisticKHR
+from ._vulkan_type.VkPipelineIndirectDeviceAddressInfoNV import CType as VkPipelineIndirectDeviceAddressInfoNV
+from ._vulkan_type.VkPipelineInfoKHR import CType as VkPipelineInfoKHR
+from ._vulkan_type.VkPipelineLayoutCreateInfo import CType as VkPipelineLayoutCreateInfo
+from ._vulkan_type.VkPipelineShaderStageNodeCreateInfoAMDX import CType as VkPipelineShaderStageNodeCreateInfoAMDX
+from ._vulkan_type.VkPresentInfoKHR import CType as VkPresentInfoKHR
+from ._vulkan_type.VkPrivateDataSlotCreateInfo import CType as VkPrivateDataSlotCreateInfo
+from ._vulkan_type.VkPushConstantsInfoKHR import CType as VkPushConstantsInfoKHR
+from ._vulkan_type.VkPushDescriptorSetInfoKHR import CType as VkPushDescriptorSetInfoKHR
+from ._vulkan_type.VkPushDescriptorSetWithTemplateInfoKHR import CType as VkPushDescriptorSetWithTemplateInfoKHR
+from ._vulkan_type.VkQueryPoolCreateInfo import CType as VkQueryPoolCreateInfo
+from ._vulkan_type.VkQueryPoolPerformanceCreateInfoKHR import CType as VkQueryPoolPerformanceCreateInfoKHR
+from ._vulkan_type.VkQueueFamilyProperties import CType as VkQueueFamilyProperties
+from ._vulkan_type.VkQueueFamilyProperties2 import CType as VkQueueFamilyProperties2
+from ._vulkan_type.VkRayTracingPipelineCreateInfoKHR import CType as VkRayTracingPipelineCreateInfoKHR
+from ._vulkan_type.VkRayTracingPipelineCreateInfoNV import CType as VkRayTracingPipelineCreateInfoNV
+from ._vulkan_type.VkRect2D import CType as VkRect2D
+from ._vulkan_type.VkRefreshCycleDurationGOOGLE import CType as VkRefreshCycleDurationGOOGLE
+from ._vulkan_type.VkRefreshObjectListKHR import CType as VkRefreshObjectListKHR
+from ._vulkan_type.VkReleaseSwapchainImagesInfoEXT import CType as VkReleaseSwapchainImagesInfoEXT
+from ._vulkan_type.VkRenderPassBeginInfo import CType as VkRenderPassBeginInfo
+from ._vulkan_type.VkRenderPassCreateInfo import CType as VkRenderPassCreateInfo
+from ._vulkan_type.VkRenderPassCreateInfo2 import CType as VkRenderPassCreateInfo2
+from ._vulkan_type.VkRenderingAreaInfoKHR import CType as VkRenderingAreaInfoKHR
+from ._vulkan_type.VkRenderingAttachmentLocationInfoKHR import CType as VkRenderingAttachmentLocationInfoKHR
+from ._vulkan_type.VkRenderingInfo import CType as VkRenderingInfo
+from ._vulkan_type.VkRenderingInputAttachmentIndexInfoKHR import CType as VkRenderingInputAttachmentIndexInfoKHR
+from ._vulkan_type.VkResolveImageInfo2 import CType as VkResolveImageInfo2
+from ._vulkan_type.VkSampleLocationsInfoEXT import CType as VkSampleLocationsInfoEXT
+from ._vulkan_type.VkSamplerCaptureDescriptorDataInfoEXT import CType as VkSamplerCaptureDescriptorDataInfoEXT
+from ._vulkan_type.VkSamplerCreateInfo import CType as VkSamplerCreateInfo
+from ._vulkan_type.VkSamplerYcbcrConversionCreateInfo import CType as VkSamplerYcbcrConversionCreateInfo
+from ._vulkan_type.VkSciSyncAttributesInfoNV import CType as VkSciSyncAttributesInfoNV
+from ._vulkan_type.VkScreenBufferPropertiesQNX import CType as VkScreenBufferPropertiesQNX
+from ._vulkan_type.VkScreenSurfaceCreateInfoQNX import CType as VkScreenSurfaceCreateInfoQNX
+from ._vulkan_type.VkSemaphoreCreateInfo import CType as VkSemaphoreCreateInfo
+from ._vulkan_type.VkSemaphoreGetFdInfoKHR import CType as VkSemaphoreGetFdInfoKHR
+from ._vulkan_type.VkSemaphoreGetSciSyncInfoNV import CType as VkSemaphoreGetSciSyncInfoNV
+from ._vulkan_type.VkSemaphoreGetWin32HandleInfoKHR import CType as VkSemaphoreGetWin32HandleInfoKHR
+from ._vulkan_type.VkSemaphoreGetZirconHandleInfoFUCHSIA import CType as VkSemaphoreGetZirconHandleInfoFUCHSIA
+from ._vulkan_type.VkSemaphoreSciSyncPoolCreateInfoNV import CType as VkSemaphoreSciSyncPoolCreateInfoNV
+from ._vulkan_type.VkSemaphoreSignalInfo import CType as VkSemaphoreSignalInfo
+from ._vulkan_type.VkSemaphoreWaitInfo import CType as VkSemaphoreWaitInfo
+from ._vulkan_type.VkSetDescriptorBufferOffsetsInfoEXT import CType as VkSetDescriptorBufferOffsetsInfoEXT
+from ._vulkan_type.VkSetLatencyMarkerInfoNV import CType as VkSetLatencyMarkerInfoNV
+from ._vulkan_type.VkShaderCreateInfoEXT import CType as VkShaderCreateInfoEXT
+from ._vulkan_type.VkShaderModuleCreateInfo import CType as VkShaderModuleCreateInfo
+from ._vulkan_type.VkShaderModuleIdentifierEXT import CType as VkShaderModuleIdentifierEXT
+from ._vulkan_type.VkShadingRatePaletteNV import CType as VkShadingRatePaletteNV
+from ._vulkan_type.VkSparseImageFormatProperties import CType as VkSparseImageFormatProperties
+from ._vulkan_type.VkSparseImageFormatProperties2 import CType as VkSparseImageFormatProperties2
+from ._vulkan_type.VkSparseImageMemoryRequirements import CType as VkSparseImageMemoryRequirements
+from ._vulkan_type.VkSparseImageMemoryRequirements2 import CType as VkSparseImageMemoryRequirements2
+from ._vulkan_type.VkStreamDescriptorSurfaceCreateInfoGGP import CType as VkStreamDescriptorSurfaceCreateInfoGGP
+from ._vulkan_type.VkStridedDeviceAddressRegionKHR import CType as VkStridedDeviceAddressRegionKHR
+from ._vulkan_type.VkSubmitInfo import CType as VkSubmitInfo
+from ._vulkan_type.VkSubmitInfo2 import CType as VkSubmitInfo2
+from ._vulkan_type.VkSubpassBeginInfo import CType as VkSubpassBeginInfo
+from ._vulkan_type.VkSubpassEndInfo import CType as VkSubpassEndInfo
+from ._vulkan_type.VkSubresourceLayout import CType as VkSubresourceLayout
+from ._vulkan_type.VkSubresourceLayout2KHR import CType as VkSubresourceLayout2KHR
+from ._vulkan_type.VkSurfaceCapabilities2EXT import CType as VkSurfaceCapabilities2EXT
+from ._vulkan_type.VkSurfaceCapabilities2KHR import CType as VkSurfaceCapabilities2KHR
+from ._vulkan_type.VkSurfaceCapabilitiesKHR import CType as VkSurfaceCapabilitiesKHR
+from ._vulkan_type.VkSurfaceFormat2KHR import CType as VkSurfaceFormat2KHR
+from ._vulkan_type.VkSurfaceFormatKHR import CType as VkSurfaceFormatKHR
+from ._vulkan_type.VkSwapchainCreateInfoKHR import CType as VkSwapchainCreateInfoKHR
+from ._vulkan_type.VkTilePropertiesQCOM import CType as VkTilePropertiesQCOM
+from ._vulkan_type.VkValidationCacheCreateInfoEXT import CType as VkValidationCacheCreateInfoEXT
+from ._vulkan_type.VkVertexInputAttributeDescription2EXT import CType as VkVertexInputAttributeDescription2EXT
+from ._vulkan_type.VkVertexInputBindingDescription2EXT import CType as VkVertexInputBindingDescription2EXT
+from ._vulkan_type.VkViSurfaceCreateInfoNN import CType as VkViSurfaceCreateInfoNN
+from ._vulkan_type.VkVideoBeginCodingInfoKHR import CType as VkVideoBeginCodingInfoKHR
+from ._vulkan_type.VkVideoCapabilitiesKHR import CType as VkVideoCapabilitiesKHR
+from ._vulkan_type.VkVideoCodingControlInfoKHR import CType as VkVideoCodingControlInfoKHR
+from ._vulkan_type.VkVideoDecodeInfoKHR import CType as VkVideoDecodeInfoKHR
+from ._vulkan_type.VkVideoEncodeInfoKHR import CType as VkVideoEncodeInfoKHR
+from ._vulkan_type.VkVideoEncodeQualityLevelPropertiesKHR import CType as VkVideoEncodeQualityLevelPropertiesKHR
+from ._vulkan_type.VkVideoEncodeSessionParametersFeedbackInfoKHR import CType as VkVideoEncodeSessionParametersFeedbackInfoKHR
+from ._vulkan_type.VkVideoEncodeSessionParametersGetInfoKHR import CType as VkVideoEncodeSessionParametersGetInfoKHR
+from ._vulkan_type.VkVideoEndCodingInfoKHR import CType as VkVideoEndCodingInfoKHR
+from ._vulkan_type.VkVideoFormatPropertiesKHR import CType as VkVideoFormatPropertiesKHR
+from ._vulkan_type.VkVideoProfileInfoKHR import CType as VkVideoProfileInfoKHR
+from ._vulkan_type.VkVideoSessionCreateInfoKHR import CType as VkVideoSessionCreateInfoKHR
+from ._vulkan_type.VkVideoSessionMemoryRequirementsKHR import CType as VkVideoSessionMemoryRequirementsKHR
+from ._vulkan_type.VkVideoSessionParametersCreateInfoKHR import CType as VkVideoSessionParametersCreateInfoKHR
+from ._vulkan_type.VkVideoSessionParametersUpdateInfoKHR import CType as VkVideoSessionParametersUpdateInfoKHR
+from ._vulkan_type.VkViewport import CType as VkViewport
+from ._vulkan_type.VkViewportSwizzleNV import CType as VkViewportSwizzleNV
+from ._vulkan_type.VkViewportWScalingNV import CType as VkViewportWScalingNV
+from ._vulkan_type.VkWaylandSurfaceCreateInfoKHR import CType as VkWaylandSurfaceCreateInfoKHR
+from ._vulkan_type.VkWin32SurfaceCreateInfoKHR import CType as VkWin32SurfaceCreateInfoKHR
+from ._vulkan_type.VkWriteDescriptorSet import CType as VkWriteDescriptorSet
+from ._vulkan_type.VkXcbSurfaceCreateInfoKHR import CType as VkXcbSurfaceCreateInfoKHR
+from ._vulkan_type.VkXlibSurfaceCreateInfoKHR import CType as VkXlibSurfaceCreateInfoKHR
 from .vulkan_callback import (
     vkVoidFunction,
 )

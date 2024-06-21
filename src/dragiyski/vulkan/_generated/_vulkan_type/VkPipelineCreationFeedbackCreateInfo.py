@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineCreationFeedbackCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineCreationFeedbackCreateInfo
+from .VkPipelineCreationFeedback import CType as VkPipelineCreationFeedback
 
-from . import VkPipelineCreationFeedback
-
-VkPipelineCreationFeedbackCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pPipelineCreationFeedback', ctypes.POINTER(VkPipelineCreationFeedback)),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoDecodeH264SessionParametersCreateInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoDecodeH264SessionParametersCreateInfoKHR
+from .VkVideoDecodeH264SessionParametersAddInfoKHR import CType as VkVideoDecodeH264SessionParametersAddInfoKHR
 
-from . import VkVideoDecodeH264SessionParametersAddInfoKHR
-
-VkVideoDecodeH264SessionParametersCreateInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('maxStdSPSCount', ctypes.c_uint32),

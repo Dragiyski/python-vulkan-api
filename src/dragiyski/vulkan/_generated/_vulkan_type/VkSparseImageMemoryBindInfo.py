@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSparseImageMemoryBindInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSparseImageMemoryBindInfo
+from .VkSparseImageMemoryBind import CType as VkSparseImageMemoryBind
 
-from . import VkSparseImageMemoryBind
-
-VkSparseImageMemoryBindInfo._fields_ = [
+CType._fields_ = [
     ('image', ctypes.c_void_p),
     ('bindCount', ctypes.c_uint32),
     ('pBinds', ctypes.POINTER(VkSparseImageMemoryBind)),

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceFeatures(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('robustBufferAccess', ctypes.c_uint32),
         ('fullDrawIndexUint32', ctypes.c_uint32),
@@ -58,5 +58,3 @@ class VkPhysicalDeviceFeatures(ctypes.Structure):
         ('variableMultisampleRate', ctypes.c_uint32),
         ('inheritedQueries', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceFeatures

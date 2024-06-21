@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkImportFenceWin32HandleInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -10,5 +10,3 @@ class VkImportFenceWin32HandleInfoKHR(ctypes.Structure):
         ('handle', ctypes.c_void_p),
         ('name', ctypes.c_wchar_p),
     ]
-
-sys.modules[__name__] = VkImportFenceWin32HandleInfoKHR

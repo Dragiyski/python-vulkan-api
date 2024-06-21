@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1TimingInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoAV1TimingInfo
+from .StdVideoAV1TimingInfoFlags import CType as StdVideoAV1TimingInfoFlags
 
-from . import StdVideoAV1TimingInfoFlags
-
-StdVideoAV1TimingInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoAV1TimingInfoFlags),
     ('num_units_in_display_tick', ctypes.c_uint32),
     ('time_scale', ctypes.c_uint32),

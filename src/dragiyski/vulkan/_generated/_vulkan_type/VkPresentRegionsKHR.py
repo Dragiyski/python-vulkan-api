@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPresentRegionsKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPresentRegionsKHR
+from .VkPresentRegionKHR import CType as VkPresentRegionKHR
 
-from . import VkPresentRegionKHR
-
-VkPresentRegionsKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('swapchainCount', ctypes.c_uint32),

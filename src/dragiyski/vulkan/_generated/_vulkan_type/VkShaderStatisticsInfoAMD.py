@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkShaderStatisticsInfoAMD(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkShaderStatisticsInfoAMD
+from .VkShaderResourceUsageAMD import CType as VkShaderResourceUsageAMD
 
-from . import VkShaderResourceUsageAMD
-
-VkShaderStatisticsInfoAMD._fields_ = [
+CType._fields_ = [
     ('shaderStageMask', ctypes.c_uint32),
     ('resourceUsage', VkShaderResourceUsageAMD),
     ('numPhysicalVgprs', ctypes.c_uint32),

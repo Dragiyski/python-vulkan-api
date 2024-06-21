@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkAabbPositionsKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('minX', ctypes.c_float),
         ('minY', ctypes.c_float),
@@ -9,5 +9,3 @@ class VkAabbPositionsKHR(ctypes.Structure):
         ('maxY', ctypes.c_float),
         ('maxZ', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkAabbPositionsKHR

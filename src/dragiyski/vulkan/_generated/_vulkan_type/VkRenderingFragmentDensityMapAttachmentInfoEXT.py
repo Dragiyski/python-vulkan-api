@@ -1,11 +1,9 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderingFragmentDensityMapAttachmentInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
         ('imageView', ctypes.c_void_p),
         ('imageLayout', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkRenderingFragmentDensityMapAttachmentInfoEXT

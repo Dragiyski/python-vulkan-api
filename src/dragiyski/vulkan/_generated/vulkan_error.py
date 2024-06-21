@@ -1,5 +1,14 @@
+from ._vulkan_value.VkResult import Value as VkResult
+
 class VkException(Exception):
     from_code = {}
+
+    @classmethod
+    def check(cls, code: VkResult|int):
+        if code != VkResult.VK_SUCCESS:
+            if code in cls.from_code:
+                raise cls.from_code[code]
+            raise cls(str(code))
 
 class VkError(VkException):
     pass
@@ -191,3 +200,55 @@ VkException.from_code[1000001003] = VkSuboptimal
 VkException.from_code[1000268001] = VkThreadDone
 VkException.from_code[1000268000] = VkThreadIdle
 VkException.from_code[2] = VkTimeout
+
+__all__ = [
+    'VkException',
+    'VkError',
+    'VkStatus',
+    'VkCompressionExhaustedError',
+    'VkDeviceLostError',
+    'VkEventReset',
+    'VkEventSet',
+    'VkExtensionNotPresentError',
+    'VkFeatureNotPresentError',
+    'VkFormatNotSupportedError',
+    'VkFragmentationError',
+    'VkFragmentedPoolError',
+    'VkFullScreenExclusiveModeLostError',
+    'VkImageUsageNotSupportedError',
+    'VkIncompatibleDisplayError',
+    'VkIncompatibleDriverError',
+    'VkIncompatibleShaderBinary',
+    'VkIncomplete',
+    'VkInitializationFailedError',
+    'VkInvalidDrmFormatModifierPlaneLayoutError',
+    'VkInvalidExternalHandleError',
+    'VkInvalidOpaqueCaptureAddressError',
+    'VkInvalidShaderError',
+    'VkInvalidVideoStdParametersError',
+    'VkLayerNotPresentError',
+    'VkMemoryMapFailedError',
+    'VkNativeWindowInUseError',
+    'VkNotPermittedError',
+    'VkNotReady',
+    'VkOperationDeferred',
+    'VkOperationNotDeferred',
+    'VkOutOfDateError',
+    'VkOutOfDeviceMemoryError',
+    'VkOutOfHostMemoryError',
+    'VkOutOfPoolMemoryError',
+    'VkPipelineCompileRequired',
+    'VkSuboptimal',
+    'VkSurfaceLostError',
+    'VkThreadDone',
+    'VkThreadIdle',
+    'VkTimeout',
+    'VkTooManyObjectsError',
+    'VkUnknownError',
+    'VkValidationFailedError',
+    'VkVideoPictureLayoutNotSupportedError',
+    'VkVideoProfileCodecNotSupportedError',
+    'VkVideoProfileFormatNotSupportedError',
+    'VkVideoProfileOperationNotSupportedError',
+    'VkVideoStdVersionNotSupportedError',
+]

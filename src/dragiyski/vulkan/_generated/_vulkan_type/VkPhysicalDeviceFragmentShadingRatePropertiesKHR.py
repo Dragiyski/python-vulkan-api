@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceFragmentShadingRatePropertiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceFragmentShadingRatePropertiesKHR
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkPhysicalDeviceFragmentShadingRatePropertiesKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('minFragmentShadingRateAttachmentTexelSize', VkExtent2D),

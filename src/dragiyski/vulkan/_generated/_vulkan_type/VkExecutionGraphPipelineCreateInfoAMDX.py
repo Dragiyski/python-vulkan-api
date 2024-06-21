@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkExecutionGraphPipelineCreateInfoAMDX(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkExecutionGraphPipelineCreateInfoAMDX
+from .VkPipelineLibraryCreateInfoKHR import CType as VkPipelineLibraryCreateInfoKHR
+from .VkPipelineShaderStageCreateInfo import CType as VkPipelineShaderStageCreateInfo
 
-from . import VkPipelineLibraryCreateInfoKHR
-from . import VkPipelineShaderStageCreateInfo
-
-VkExecutionGraphPipelineCreateInfoAMDX._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

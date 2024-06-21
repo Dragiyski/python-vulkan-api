@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265HrdParameters(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoH265HrdParameters
+from .StdVideoH265HrdFlags import CType as StdVideoH265HrdFlags
+from .StdVideoH265SubLayerHrdParameters import CType as StdVideoH265SubLayerHrdParameters
 
-from . import StdVideoH265HrdFlags
-from . import StdVideoH265SubLayerHrdParameters
-
-StdVideoH265HrdParameters._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoH265HrdFlags),
     ('tick_divisor_minus2', ctypes.c_uint8),
     ('du_cpb_removal_delay_increment_length_minus1', ctypes.c_uint8),

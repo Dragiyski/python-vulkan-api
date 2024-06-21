@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkDependencyInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDependencyInfo
+from .VkBufferMemoryBarrier2 import CType as VkBufferMemoryBarrier2
+from .VkImageMemoryBarrier2 import CType as VkImageMemoryBarrier2
+from .VkMemoryBarrier2 import CType as VkMemoryBarrier2
 
-from . import VkBufferMemoryBarrier2
-from . import VkImageMemoryBarrier2
-from . import VkMemoryBarrier2
-
-VkDependencyInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('dependencyFlags', ctypes.c_uint32),

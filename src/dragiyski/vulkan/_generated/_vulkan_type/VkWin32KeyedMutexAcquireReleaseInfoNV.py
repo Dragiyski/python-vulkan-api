@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkWin32KeyedMutexAcquireReleaseInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -12,5 +12,3 @@ class VkWin32KeyedMutexAcquireReleaseInfoNV(ctypes.Structure):
         ('pReleaseSyncs', ctypes.POINTER(ctypes.c_void_p)),
         ('pReleaseKeys', ctypes.POINTER(ctypes.c_uint64)),
     ]
-
-sys.modules[__name__] = VkWin32KeyedMutexAcquireReleaseInfoNV

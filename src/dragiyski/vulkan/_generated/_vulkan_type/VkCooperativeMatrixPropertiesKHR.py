@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkCooperativeMatrixPropertiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -14,5 +14,3 @@ class VkCooperativeMatrixPropertiesKHR(ctypes.Structure):
         ('saturatingAccumulation', ctypes.c_uint32),
         ('scope', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkCooperativeMatrixPropertiesKHR

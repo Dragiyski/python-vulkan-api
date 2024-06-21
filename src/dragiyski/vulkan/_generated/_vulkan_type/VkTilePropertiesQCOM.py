@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkTilePropertiesQCOM(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkTilePropertiesQCOM
+from .VkExtent2D import CType as VkExtent2D
+from .VkExtent3D import CType as VkExtent3D
+from .VkOffset2D import CType as VkOffset2D
 
-from . import VkExtent2D
-from . import VkExtent3D
-from . import VkOffset2D
-
-VkTilePropertiesQCOM._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('tileSize', VkExtent3D),

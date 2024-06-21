@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkFragmentShadingRateAttachmentInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkFragmentShadingRateAttachmentInfoKHR
+from .VkAttachmentReference2 import CType as VkAttachmentReference2
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkAttachmentReference2
-from . import VkExtent2D
-
-VkFragmentShadingRateAttachmentInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pFragmentShadingRateAttachment', ctypes.POINTER(VkAttachmentReference2)),

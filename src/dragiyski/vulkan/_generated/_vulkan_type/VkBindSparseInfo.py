@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkBindSparseInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkBindSparseInfo
+from .VkSparseBufferMemoryBindInfo import CType as VkSparseBufferMemoryBindInfo
+from .VkSparseImageMemoryBindInfo import CType as VkSparseImageMemoryBindInfo
+from .VkSparseImageOpaqueMemoryBindInfo import CType as VkSparseImageOpaqueMemoryBindInfo
 
-from . import VkSparseBufferMemoryBindInfo
-from . import VkSparseImageMemoryBindInfo
-from . import VkSparseImageOpaqueMemoryBindInfo
-
-VkBindSparseInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('waitSemaphoreCount', ctypes.c_uint32),

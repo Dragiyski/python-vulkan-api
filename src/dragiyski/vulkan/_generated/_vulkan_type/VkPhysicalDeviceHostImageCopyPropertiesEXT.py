@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceHostImageCopyPropertiesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -11,5 +11,3 @@ class VkPhysicalDeviceHostImageCopyPropertiesEXT(ctypes.Structure):
         ('optimalTilingLayoutUUID', ctypes.ARRAY(ctypes.c_uint8, 16)),
         ('identicalMemoryTypeRequirements', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceHostImageCopyPropertiesEXT

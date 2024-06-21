@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkMicromapBuildInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkMicromapBuildInfoEXT
+from .VkDeviceOrHostAddressConstKHR import CType as VkDeviceOrHostAddressConstKHR
+from .VkDeviceOrHostAddressKHR import CType as VkDeviceOrHostAddressKHR
+from .VkMicromapUsageEXT import CType as VkMicromapUsageEXT
 
-from . import VkDeviceOrHostAddressConstKHR
-from . import VkDeviceOrHostAddressKHR
-from . import VkMicromapUsageEXT
-
-VkMicromapBuildInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('type', ctypes.c_int),

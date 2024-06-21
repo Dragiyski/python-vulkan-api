@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoDecodeH264PictureInfoFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('field_pic_flag', ctypes.c_uint32, 1),
         ('is_intra', ctypes.c_uint32, 1),
@@ -9,5 +9,3 @@ class StdVideoDecodeH264PictureInfoFlags(ctypes.Structure):
         ('is_reference', ctypes.c_uint32, 1),
         ('complementary_field_pair', ctypes.c_uint32, 1),
     ]
-
-sys.modules[__name__] = StdVideoDecodeH264PictureInfoFlags

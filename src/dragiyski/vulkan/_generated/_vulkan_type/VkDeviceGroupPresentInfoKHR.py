@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkDeviceGroupPresentInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkDeviceGroupPresentInfoKHR(ctypes.Structure):
         ('pDeviceMasks', ctypes.POINTER(ctypes.c_uint32)),
         ('mode', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkDeviceGroupPresentInfoKHR

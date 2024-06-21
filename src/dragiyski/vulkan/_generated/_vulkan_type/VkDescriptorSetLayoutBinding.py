@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkDescriptorSetLayoutBinding(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('binding', ctypes.c_uint32),
         ('descriptorType', ctypes.c_int),
@@ -8,5 +8,3 @@ class VkDescriptorSetLayoutBinding(ctypes.Structure):
         ('stageFlags', ctypes.c_uint32),
         ('pImmutableSamplers', ctypes.POINTER(ctypes.c_void_p)),
     ]
-
-sys.modules[__name__] = VkDescriptorSetLayoutBinding

@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkClearValue(ctypes.Union):
+class CType(ctypes.Union):
     pass
 
-sys.modules[__name__] = VkClearValue
+from .VkClearColorValue import CType as VkClearColorValue
+from .VkClearDepthStencilValue import CType as VkClearDepthStencilValue
 
-from . import VkClearColorValue
-from . import VkClearDepthStencilValue
-
-VkClearValue._fields_ = [
+CType._fields_ = [
     ('color', VkClearColorValue),
     ('depthStencil', VkClearDepthStencilValue),
 ]

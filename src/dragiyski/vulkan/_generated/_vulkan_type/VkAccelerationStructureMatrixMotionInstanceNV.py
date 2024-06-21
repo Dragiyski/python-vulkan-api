@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureMatrixMotionInstanceNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureMatrixMotionInstanceNV
+from .VkTransformMatrixKHR import CType as VkTransformMatrixKHR
 
-from . import VkTransformMatrixKHR
-
-VkAccelerationStructureMatrixMotionInstanceNV._fields_ = [
+CType._fields_ = [
     ('transformT0', VkTransformMatrixKHR),
     ('transformT1', VkTransformMatrixKHR),
     ('instanceCustomIndex', ctypes.c_uint32, 24),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceFeatures2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceFeatures2
+from .VkPhysicalDeviceFeatures import CType as VkPhysicalDeviceFeatures
 
-from . import VkPhysicalDeviceFeatures
-
-VkPhysicalDeviceFeatures2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('features', VkPhysicalDeviceFeatures),

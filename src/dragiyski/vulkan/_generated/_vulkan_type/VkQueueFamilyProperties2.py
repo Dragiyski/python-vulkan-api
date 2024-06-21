@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkQueueFamilyProperties2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkQueueFamilyProperties2
+from .VkQueueFamilyProperties import CType as VkQueueFamilyProperties
 
-from . import VkQueueFamilyProperties
-
-VkQueueFamilyProperties2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('queueFamilyProperties', VkQueueFamilyProperties),

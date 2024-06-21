@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkMutableDescriptorTypeListEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('descriptorTypeCount', ctypes.c_uint32),
         ('pDescriptorTypes', ctypes.POINTER(ctypes.c_int)),
     ]
-
-sys.modules[__name__] = VkMutableDescriptorTypeListEXT

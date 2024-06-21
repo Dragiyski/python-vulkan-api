@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkQueueFamilyProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkQueueFamilyProperties
+from .VkExtent3D import CType as VkExtent3D
 
-from . import VkExtent3D
-
-VkQueueFamilyProperties._fields_ = [
+CType._fields_ = [
     ('queueFlags', ctypes.c_uint32),
     ('queueCount', ctypes.c_uint32),
     ('timestampValidBits', ctypes.c_uint32),

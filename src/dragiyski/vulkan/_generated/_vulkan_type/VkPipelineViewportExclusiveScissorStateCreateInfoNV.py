@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineViewportExclusiveScissorStateCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineViewportExclusiveScissorStateCreateInfoNV
+from .VkRect2D import CType as VkRect2D
 
-from . import VkRect2D
-
-VkPipelineViewportExclusiveScissorStateCreateInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('exclusiveScissorCount', ctypes.c_uint32),

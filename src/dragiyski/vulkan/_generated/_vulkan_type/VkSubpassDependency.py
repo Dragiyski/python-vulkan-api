@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkSubpassDependency(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('srcSubpass', ctypes.c_uint32),
         ('dstSubpass', ctypes.c_uint32),
@@ -10,5 +10,3 @@ class VkSubpassDependency(ctypes.Structure):
         ('dstAccessMask', ctypes.c_uint32),
         ('dependencyFlags', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkSubpassDependency

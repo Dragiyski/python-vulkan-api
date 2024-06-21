@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDeviceImageMemoryRequirements(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDeviceImageMemoryRequirements
+from .VkImageCreateInfo import CType as VkImageCreateInfo
 
-from . import VkImageCreateInfo
-
-VkDeviceImageMemoryRequirements._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pCreateInfo', ctypes.POINTER(VkImageCreateInfo)),

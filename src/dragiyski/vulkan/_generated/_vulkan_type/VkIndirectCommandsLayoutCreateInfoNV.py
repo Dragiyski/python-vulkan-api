@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkIndirectCommandsLayoutCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkIndirectCommandsLayoutCreateInfoNV
+from .VkIndirectCommandsLayoutTokenNV import CType as VkIndirectCommandsLayoutTokenNV
 
-from . import VkIndirectCommandsLayoutTokenNV
-
-VkIndirectCommandsLayoutCreateInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

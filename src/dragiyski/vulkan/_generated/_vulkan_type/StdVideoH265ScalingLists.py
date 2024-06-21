@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265ScalingLists(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('ScalingList4x4', ctypes.ARRAY(ctypes.ARRAY(ctypes.c_uint8, 16), 6)),
         ('ScalingList8x8', ctypes.ARRAY(ctypes.ARRAY(ctypes.c_uint8, 64), 6)),
@@ -9,5 +9,3 @@ class StdVideoH265ScalingLists(ctypes.Structure):
         ('ScalingListDCCoef16x16', ctypes.ARRAY(ctypes.c_uint8, 6)),
         ('ScalingListDCCoef32x32', ctypes.ARRAY(ctypes.c_uint8, 2)),
     ]
-
-sys.modules[__name__] = StdVideoH265ScalingLists

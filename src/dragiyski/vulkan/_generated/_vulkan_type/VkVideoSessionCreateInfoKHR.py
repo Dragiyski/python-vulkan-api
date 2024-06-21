@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoSessionCreateInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoSessionCreateInfoKHR
+from .VkExtensionProperties import CType as VkExtensionProperties
+from .VkExtent2D import CType as VkExtent2D
+from .VkVideoProfileInfoKHR import CType as VkVideoProfileInfoKHR
 
-from . import VkExtensionProperties
-from . import VkExtent2D
-from . import VkVideoProfileInfoKHR
-
-VkVideoSessionCreateInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('queueFamilyIndex', ctypes.c_uint32),

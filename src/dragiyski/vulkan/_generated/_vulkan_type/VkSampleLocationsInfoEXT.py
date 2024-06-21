@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkSampleLocationsInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSampleLocationsInfoEXT
+from .VkExtent2D import CType as VkExtent2D
+from .VkSampleLocationEXT import CType as VkSampleLocationEXT
 
-from . import VkExtent2D
-from . import VkSampleLocationEXT
-
-VkSampleLocationsInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('sampleLocationsPerPixel', ctypes.c_uint32),

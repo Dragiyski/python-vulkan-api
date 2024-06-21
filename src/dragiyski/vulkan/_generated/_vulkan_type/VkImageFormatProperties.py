@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkImageFormatProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageFormatProperties
+from .VkExtent3D import CType as VkExtent3D
 
-from . import VkExtent3D
-
-VkImageFormatProperties._fields_ = [
+CType._fields_ = [
     ('maxExtent', VkExtent3D),
     ('maxMipLevels', ctypes.c_uint32),
     ('maxArrayLayers', ctypes.c_uint32),

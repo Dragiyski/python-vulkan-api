@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkDebugUtilsMessengerCallbackDataEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDebugUtilsMessengerCallbackDataEXT
+from .VkDebugUtilsLabelEXT import CType as VkDebugUtilsLabelEXT
+from .VkDebugUtilsObjectNameInfoEXT import CType as VkDebugUtilsObjectNameInfoEXT
 
-from . import VkDebugUtilsLabelEXT
-from . import VkDebugUtilsObjectNameInfoEXT
-
-VkDebugUtilsMessengerCallbackDataEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

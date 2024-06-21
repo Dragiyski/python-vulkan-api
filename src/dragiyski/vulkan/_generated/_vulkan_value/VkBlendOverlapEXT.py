@@ -1,0 +1,6 @@
+from enum import IntEnum
+
+class Value(IntEnum):
+    VK_BLEND_OVERLAP_CONJOINT_EXT = 2
+    VK_BLEND_OVERLAP_DISJOINT_EXT = 1
+    VK_BLEND_OVERLAP_UNCORRELATED_EXT = 0

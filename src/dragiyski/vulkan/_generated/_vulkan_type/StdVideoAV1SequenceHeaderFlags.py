@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1SequenceHeaderFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('still_picture', ctypes.c_uint32, 1),
         ('reduced_still_picture_header', ctypes.c_uint32, 1),
@@ -23,5 +23,3 @@ class StdVideoAV1SequenceHeaderFlags(ctypes.Structure):
         ('initial_display_delay_present_flag', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 13),
     ]
-
-sys.modules[__name__] = StdVideoAV1SequenceHeaderFlags

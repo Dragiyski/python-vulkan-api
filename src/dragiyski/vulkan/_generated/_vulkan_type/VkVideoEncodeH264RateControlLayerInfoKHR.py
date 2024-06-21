@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoEncodeH264RateControlLayerInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoEncodeH264RateControlLayerInfoKHR
+from .VkVideoEncodeH264FrameSizeKHR import CType as VkVideoEncodeH264FrameSizeKHR
+from .VkVideoEncodeH264QpKHR import CType as VkVideoEncodeH264QpKHR
 
-from . import VkVideoEncodeH264FrameSizeKHR
-from . import VkVideoEncodeH264QpKHR
-
-VkVideoEncodeH264RateControlLayerInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('useMinQp', ctypes.c_uint32),

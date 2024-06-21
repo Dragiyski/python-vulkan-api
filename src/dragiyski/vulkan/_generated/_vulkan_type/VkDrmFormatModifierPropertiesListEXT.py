@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDrmFormatModifierPropertiesListEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDrmFormatModifierPropertiesListEXT
+from .VkDrmFormatModifierPropertiesEXT import CType as VkDrmFormatModifierPropertiesEXT
 
-from . import VkDrmFormatModifierPropertiesEXT
-
-VkDrmFormatModifierPropertiesListEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('drmFormatModifierCount', ctypes.c_uint32),

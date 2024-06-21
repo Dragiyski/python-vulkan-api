@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSubpassSampleLocationsEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSubpassSampleLocationsEXT
+from .VkSampleLocationsInfoEXT import CType as VkSampleLocationsInfoEXT
 
-from . import VkSampleLocationsInfoEXT
-
-VkSubpassSampleLocationsEXT._fields_ = [
+CType._fields_ = [
     ('subpassIndex', ctypes.c_uint32),
     ('sampleLocationsInfo', VkSampleLocationsInfoEXT),
 ]

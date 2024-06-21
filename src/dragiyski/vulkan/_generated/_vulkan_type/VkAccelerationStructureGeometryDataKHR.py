@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureGeometryDataKHR(ctypes.Union):
+class CType(ctypes.Union):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureGeometryDataKHR
+from .VkAccelerationStructureGeometryAabbsDataKHR import CType as VkAccelerationStructureGeometryAabbsDataKHR
+from .VkAccelerationStructureGeometryInstancesDataKHR import CType as VkAccelerationStructureGeometryInstancesDataKHR
+from .VkAccelerationStructureGeometryTrianglesDataKHR import CType as VkAccelerationStructureGeometryTrianglesDataKHR
 
-from . import VkAccelerationStructureGeometryAabbsDataKHR
-from . import VkAccelerationStructureGeometryInstancesDataKHR
-from . import VkAccelerationStructureGeometryTrianglesDataKHR
-
-VkAccelerationStructureGeometryDataKHR._fields_ = [
+CType._fields_ = [
     ('triangles', VkAccelerationStructureGeometryTrianglesDataKHR),
     ('aabbs', VkAccelerationStructureGeometryAabbsDataKHR),
     ('instances', VkAccelerationStructureGeometryInstancesDataKHR),

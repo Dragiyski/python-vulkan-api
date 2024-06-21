@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAndroidHardwareBufferFormatProperties2ANDROID(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAndroidHardwareBufferFormatProperties2ANDROID
+from .VkComponentMapping import CType as VkComponentMapping
 
-from . import VkComponentMapping
-
-VkAndroidHardwareBufferFormatProperties2ANDROID._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('format', ctypes.c_int),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSurfacePresentScalingCapabilitiesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSurfacePresentScalingCapabilitiesEXT
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkSurfacePresentScalingCapabilitiesEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('supportedPresentScaling', ctypes.c_uint32),

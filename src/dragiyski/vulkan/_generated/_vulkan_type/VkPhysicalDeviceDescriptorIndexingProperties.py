@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceDescriptorIndexingProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -28,5 +28,3 @@ class VkPhysicalDeviceDescriptorIndexingProperties(ctypes.Structure):
         ('maxDescriptorSetUpdateAfterBindStorageImages', ctypes.c_uint32),
         ('maxDescriptorSetUpdateAfterBindInputAttachments', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceDescriptorIndexingProperties

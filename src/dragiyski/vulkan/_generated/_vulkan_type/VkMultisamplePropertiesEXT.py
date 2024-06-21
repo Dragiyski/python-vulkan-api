@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkMultisamplePropertiesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkMultisamplePropertiesEXT
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkMultisamplePropertiesEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('maxSampleLocationGridSize', VkExtent2D),

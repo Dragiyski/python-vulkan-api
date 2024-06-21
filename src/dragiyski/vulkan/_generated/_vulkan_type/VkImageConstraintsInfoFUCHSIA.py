@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkImageConstraintsInfoFUCHSIA(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageConstraintsInfoFUCHSIA
+from .VkBufferCollectionConstraintsInfoFUCHSIA import CType as VkBufferCollectionConstraintsInfoFUCHSIA
+from .VkImageFormatConstraintsInfoFUCHSIA import CType as VkImageFormatConstraintsInfoFUCHSIA
 
-from . import VkBufferCollectionConstraintsInfoFUCHSIA
-from . import VkImageFormatConstraintsInfoFUCHSIA
-
-VkImageConstraintsInfoFUCHSIA._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('formatConstraintsCount', ctypes.c_uint32),

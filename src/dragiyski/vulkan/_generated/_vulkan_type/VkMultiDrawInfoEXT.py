@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkMultiDrawInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('firstVertex', ctypes.c_uint32),
         ('vertexCount', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkMultiDrawInfoEXT

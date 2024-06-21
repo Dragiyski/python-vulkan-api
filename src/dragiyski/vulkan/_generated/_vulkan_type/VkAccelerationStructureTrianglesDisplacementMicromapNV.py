@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureTrianglesDisplacementMicromapNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureTrianglesDisplacementMicromapNV
+from .VkDeviceOrHostAddressConstKHR import CType as VkDeviceOrHostAddressConstKHR
+from .VkMicromapUsageEXT import CType as VkMicromapUsageEXT
 
-from . import VkDeviceOrHostAddressConstKHR
-from . import VkMicromapUsageEXT
-
-VkAccelerationStructureTrianglesDisplacementMicromapNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('displacementBiasAndScaleFormat', ctypes.c_int),

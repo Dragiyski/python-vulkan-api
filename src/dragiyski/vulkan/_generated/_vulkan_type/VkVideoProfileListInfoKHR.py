@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoProfileListInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoProfileListInfoKHR
+from .VkVideoProfileInfoKHR import CType as VkVideoProfileInfoKHR
 
-from . import VkVideoProfileInfoKHR
-
-VkVideoProfileListInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('profileCount', ctypes.c_uint32),

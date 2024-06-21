@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkAttachmentReference(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('attachment', ctypes.c_uint32),
         ('layout', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkAttachmentReference

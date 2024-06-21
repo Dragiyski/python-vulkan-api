@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineViewportStateCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineViewportStateCreateInfo
+from .VkRect2D import CType as VkRect2D
+from .VkViewport import CType as VkViewport
 
-from . import VkRect2D
-from . import VkViewport
-
-VkPipelineViewportStateCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

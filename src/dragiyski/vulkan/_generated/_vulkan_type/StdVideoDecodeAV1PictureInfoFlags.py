@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoDecodeAV1PictureInfoFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('error_resilient_mode', ctypes.c_uint32, 1),
         ('disable_cdf_update', ctypes.c_uint32, 1),
@@ -33,5 +33,3 @@ class StdVideoDecodeAV1PictureInfoFlags(ctypes.Structure):
         ('apply_grain', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 3),
     ]
-
-sys.modules[__name__] = StdVideoDecodeAV1PictureInfoFlags

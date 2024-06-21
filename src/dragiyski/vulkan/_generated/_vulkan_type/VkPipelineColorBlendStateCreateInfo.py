@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineColorBlendStateCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineColorBlendStateCreateInfo
+from .VkPipelineColorBlendAttachmentState import CType as VkPipelineColorBlendAttachmentState
 
-from . import VkPipelineColorBlendAttachmentState
-
-VkPipelineColorBlendStateCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

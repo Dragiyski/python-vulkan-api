@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkReleaseSwapchainImagesInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkReleaseSwapchainImagesInfoEXT(ctypes.Structure):
         ('imageIndexCount', ctypes.c_uint32),
         ('pImageIndices', ctypes.POINTER(ctypes.c_uint32)),
     ]
-
-sys.modules[__name__] = VkReleaseSwapchainImagesInfoEXT

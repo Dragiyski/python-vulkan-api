@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDirectDriverLoadingListLUNARG(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDirectDriverLoadingListLUNARG
+from .VkDirectDriverLoadingInfoLUNARG import CType as VkDirectDriverLoadingInfoLUNARG
 
-from . import VkDirectDriverLoadingInfoLUNARG
-
-VkDirectDriverLoadingListLUNARG._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('mode', ctypes.c_int),

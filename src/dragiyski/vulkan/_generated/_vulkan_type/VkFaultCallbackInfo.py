@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkFaultCallbackInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkFaultCallbackInfo
-
 from ..vulkan_callback import vkFaultCallbackFunction
-from . import VkFaultData
+from .VkFaultData import CType as VkFaultData
 
-VkFaultCallbackInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('faultCount', ctypes.c_uint32),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassSubpassFeedbackCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassSubpassFeedbackCreateInfoEXT
+from .VkRenderPassSubpassFeedbackInfoEXT import CType as VkRenderPassSubpassFeedbackInfoEXT
 
-from . import VkRenderPassSubpassFeedbackInfoEXT
-
-VkRenderPassSubpassFeedbackCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pSubpassFeedback', ctypes.POINTER(VkRenderPassSubpassFeedbackInfoEXT)),

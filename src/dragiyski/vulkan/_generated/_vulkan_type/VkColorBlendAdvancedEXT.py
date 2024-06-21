@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkColorBlendAdvancedEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('advancedBlendOp', ctypes.c_int),
         ('srcPremultiplied', ctypes.c_uint32),
@@ -8,5 +8,3 @@ class VkColorBlendAdvancedEXT(ctypes.Structure):
         ('blendOverlap', ctypes.c_int),
         ('clampResults', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkColorBlendAdvancedEXT

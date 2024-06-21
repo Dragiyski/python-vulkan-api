@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSubpassDescription(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSubpassDescription
+from .VkAttachmentReference import CType as VkAttachmentReference
 
-from . import VkAttachmentReference
-
-VkSubpassDescription._fields_ = [
+CType._fields_ = [
     ('flags', ctypes.c_uint32),
     ('pipelineBindPoint', ctypes.c_int),
     ('inputAttachmentCount', ctypes.c_uint32),

@@ -86,9 +86,8 @@ class Generator:
             raise GeneratorError('No enum named "%s" found.' % enum_name, name=enum_name)
         descriptor = context.enum_map[enum_name]
         type_descriptor = context.plain_ctype_class[descriptor['class']][descriptor['ctype'].ctype()]
-        code = ['import ctypes, sys', 'from ..vulkan_base import %s' % type_descriptor['class_name'], '']
-        code.append('class %s(%s):' % (enum_name, type_descriptor['class_name']))
-        value_count = len(descriptor['values'])
+        code = ['from enum import %s' % type_descriptor['base_class_name'], '']
+        code.append('class Value(%s):' % type_descriptor['base_class_name'])
         values = {}
         for value_name in descriptor['values']:
             value_descriptor = context.value_map[value_name]
@@ -96,16 +95,14 @@ class Generator:
         if len(values) > 0:
             for value_name in sorted(values.keys()):
                 code.append(values[value_name])
+            alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in values }
+            for name in sorted(alias.keys()):
+                value = alias[name]
+                code.append('    %s = %s' % (name, value))
         else:
             code.append('    pass')
         code.append('')
-        code.append('sys.modules[__name__] = %s' % enum_name)
-        code.append('')
-        alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in values }
-        for name in sorted(alias.keys()):
-            value = alias[name]
-            code.append('%s.%s = %s.%s' % (enum_name, name, enum_name, value))
-        code.append('')
+        
         return linesep.join(code)
     
     def _generate_value_source(self, context: Context):
@@ -115,10 +112,8 @@ class Generator:
         for descriptor in context.value_map.values():
             if 'enum_name' in descriptor:
                 enum_set.add(descriptor['enum_name'])
-        code.append('from ._vulkan_enum import (')
         for enum_name in sorted(enum_set):
-            code.append('    %s,' % enum_name)
-        code.append(')')
+            code.append('from ._vulkan_value.%s import Value as %s' % (enum_name, enum_name))
         value_map = {}
         for name, descriptor in context.value_map.items():
             exports.add(name)
@@ -151,9 +146,9 @@ class Generator:
         return linesep.join(code)
 
     def _generate_complex_source(self, context: Context, name: str):
-        code = ['import ctypes, sys', '']
+        code = ['import ctypes', '']
         ctype = context.ctypes_map[name]
-        code.append('class %s(ctypes.%s):' % (name, ctype.constructor))
+        code.append('class CType(ctypes.%s):' % (ctype.constructor))
         member_types = [ctype.member_map[x]['node'].get('type').get_text() for x in ctype.member_list]
         complex_member_types = set([x for x in member_types if x in context.type_node_map['complex']])
         funcpointer_member_types = set([x for x in member_types if x in context.type_node_map['funcpointer']])
@@ -161,37 +156,31 @@ class Generator:
         if delay_fields or len(complex_member_types) > 0 or len(funcpointer_member_types) > 0:
             code.extend([
                 '    pass',
-                '',
-                'sys.modules[__name__] = %s' % name,
                 ''
             ])
             if len(funcpointer_member_types) > 0:
                 code.append('from ..vulkan_callback import %s' % ', '.join(sorted([context.ctypes_map[t].deref().name for t in funcpointer_member_types])))
             for dependency in sorted(complex_member_types):
                 if dependency != name:
-                    code.append('from . import %s' % dependency)
-            code.extend(['', '%s._fields_ = [' % name])
-            for member_name in ctype.member_list:
-                member_desc = ctype.member_map[member_name]
-                if 'bitsize' in member_desc:
-                    code.append('    (%r, %s, %d),' % (member_name, member_desc['ctype'].to_source(), member_desc['bitsize']))
-                else:
-                    code.append('    (%r, %s),' % (member_name, member_desc['ctype'].to_source()))
-            code.extend([']', ''])
+                    code.append('from .%s import CType as %s' % (dependency, dependency))
+            code.append('')
+            if name in complex_member_types:
+                code.append('%s = CType' % name)
+            code.append('CType._fields_ = [')
+            indent = 1
         else:
             code.append('    _fields_ = [')
-            for member_name in ctype.member_list:
-                member_desc = ctype.member_map[member_name]
-                if 'bitsize' in member_desc:
-                    code.append('        (%r, %s, %d),' % (member_name, member_desc['ctype'].to_source(), member_desc['bitsize']))
-                else:
-                    code.append('        (%r, %s),' % (member_name, member_desc['ctype'].to_source()))
-            code.extend([
-                '    ]',
-                '',
-                'sys.modules[__name__] = %s' % name,
-                ''
-            ])
+            indent = 2
+        for member_name in ctype.member_list:
+            member_desc = ctype.member_map[member_name]
+            if 'bitsize' in member_desc:
+                code.append('%s(%r, %s, %d),' % ('    ' * indent, member_name, member_desc['ctype'].to_source(), member_desc['bitsize']))
+            else:
+                code.append('%s(%r, %s),' % ('    ' * indent, member_name, member_desc['ctype'].to_source()))
+        code.append('    ' * (indent - 1) + ']')
+        if name in complex_member_types:
+            code.append('del %s' % name)
+        code.append('')
         return linesep.join(code)
     
     def _generate_command_source(self, context: Context):
@@ -224,10 +213,8 @@ class Generator:
             )
             fn_list.append(fn_type.name)
         if 'struct' in dep_map and len(dep_map['struct']) > 0:
-            code.append('from ._vulkan_type import (')
             for dep_name in sorted(dep_map['struct']):
-                code.append('    %s,' % dep_name)
-            code.append(')')
+                code.append('from ._vulkan_type.%s import CType as %s' % (dep_name, dep_name))
         if 'callback' in dep_map and len(dep_map['callback']) > 0:
             code.append('from .vulkan_callback import (')
             for dep_name in sorted(dep_map['callback']):
@@ -257,7 +244,7 @@ class Generator:
             elif isinstance(ctype, CArrayType):
                 check_type_dep(ctype.item_ctype)
             elif isinstance(ctype, CComplexType):
-                code.append('from ._vulkan_type import %s' % ctype.name)
+                code.append('from ._vulkan_type.%s import CType as %s' % (ctype.name, ctype.name))
             elif isinstance(ctype, CFunctionType):
                 if ctype.name not in fn_list:
                     fn_list.append(ctype.name)
@@ -289,10 +276,9 @@ class Generator:
         return linesep.join(code)
     
     def _generate_enum_public_source(self, context: Context):
-        code = ['from ._vulkan_enum import (']
+        code = []
         for enum_name in sorted(context.enum_map.keys()):
-            code.append('    %s,' % enum_name)
-        code.extend([')', ''])
+            code.append('from ._vulkan_value.%s import Value as %s' % (enum_name, enum_name))
         alias = { name: value for name, value in { name: context.resolve_alias(name) for name in context.alias_map }.items() if value in context.enum_map }
         for name in sorted(alias.keys()):
             code.append('%s = %s' % (name, alias[name]))
@@ -300,10 +286,10 @@ class Generator:
         return linesep.join(code)
     
     def _generate_struct_public_source(self, context: Context):
-        code = ['from ._vulkan_type import (']
-        for enum_name in sorted(context.type_node_map['complex'].keys()):
-            code.append('    %s,' % enum_name)
-        code.extend([')', ''])
+        code = []
+        for struct_name in sorted(context.type_node_map['complex'].keys()):
+            code.append('from ._vulkan_type.%s import CType as %s' % (struct_name, struct_name))
+        code.append('')
         alias = {
             name: value for name, value in {
                 name: context.resolve_alias(name) for name in context.alias_map
@@ -316,8 +302,17 @@ class Generator:
     
     def _generate_error_source(self, context: Context):
         code = [
+            'from ._vulkan_value.VkResult import Value as VkResult',
+            '',
             'class VkException(Exception):',
             '    from_code = {}',
+            '',
+            '    @classmethod',
+            '    def check(cls, code: VkResult|int):',
+            '        if code != VkResult.VK_SUCCESS:',
+            '            if code in cls.from_code:',
+            '                raise cls.from_code[code]',
+            '            raise cls(str(code))',
             '',
             'class VkError(VkException):',
             '    pass',
@@ -352,6 +347,14 @@ class Generator:
         for error_code, class_name in exception_by_code.items():
             code.append('VkException.from_code[%d] = %s' % (error_code, class_name))
         code.append('')
+        code.append('__all__ = [')
+        code.append('    %r,' % 'VkException')
+        code.append('    %r,' % 'VkError')
+        code.append('    %r,' % 'VkStatus')
+        for error_name in sorted(exception_by_code.values()):
+            code.append('    %r,' % error_name)
+        code.append(']')
+        code.append('')
         return linesep.join(code)
     
     def _generate_command_loader_source(self, context: Context):
@@ -365,7 +368,7 @@ class Generator:
         source = self._generate_base_source(context)
         with open(self.base_dir.joinpath('vulkan_base.py'), 'w') as file:
             file.write(source)
-        enum_dir = self.base_dir.joinpath('_vulkan_enum')
+        enum_dir = self.base_dir.joinpath('_vulkan_value')
         enum_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         for name in context.enum_map.keys():
             filename = enum_dir.joinpath(name + '.py')

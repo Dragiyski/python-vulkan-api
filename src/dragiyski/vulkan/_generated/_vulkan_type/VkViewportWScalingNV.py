@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkViewportWScalingNV(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('xcoeff', ctypes.c_float),
         ('ycoeff', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkViewportWScalingNV

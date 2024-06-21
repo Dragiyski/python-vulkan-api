@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSubpassFragmentDensityMapOffsetEndInfoQCOM(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSubpassFragmentDensityMapOffsetEndInfoQCOM
+from .VkOffset2D import CType as VkOffset2D
 
-from . import VkOffset2D
-
-VkSubpassFragmentDensityMapOffsetEndInfoQCOM._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('fragmentDensityOffsetCount', ctypes.c_uint32),

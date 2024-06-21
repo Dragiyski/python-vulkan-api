@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkAttachmentDescription(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('flags', ctypes.c_uint32),
         ('format', ctypes.c_int),
@@ -12,5 +12,3 @@ class VkAttachmentDescription(ctypes.Structure):
         ('initialLayout', ctypes.c_int),
         ('finalLayout', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkAttachmentDescription

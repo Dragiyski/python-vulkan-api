@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDisplayPresentInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDisplayPresentInfoKHR
+from .VkRect2D import CType as VkRect2D
 
-from . import VkRect2D
-
-VkDisplayPresentInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('srcRect', VkRect2D),

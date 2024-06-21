@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkGetLatencyMarkerInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkGetLatencyMarkerInfoNV
+from .VkLatencyTimingsFrameReportNV import CType as VkLatencyTimingsFrameReportNV
 
-from . import VkLatencyTimingsFrameReportNV
-
-VkGetLatencyMarkerInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('timingCount', ctypes.c_uint32),

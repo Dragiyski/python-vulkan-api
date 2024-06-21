@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkImageSubresource2KHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageSubresource2KHR
+from .VkImageSubresource import CType as VkImageSubresource
 
-from . import VkImageSubresource
-
-VkImageSubresource2KHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('imageSubresource', VkImageSubresource),

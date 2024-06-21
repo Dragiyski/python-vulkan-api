@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureMotionInstanceNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureMotionInstanceNV
+from .VkAccelerationStructureMotionInstanceDataNV import CType as VkAccelerationStructureMotionInstanceDataNV
 
-from . import VkAccelerationStructureMotionInstanceDataNV
-
-VkAccelerationStructureMotionInstanceNV._fields_ = [
+CType._fields_ = [
     ('type', ctypes.c_int),
     ('flags', ctypes.c_uint32),
     ('data', VkAccelerationStructureMotionInstanceDataNV),

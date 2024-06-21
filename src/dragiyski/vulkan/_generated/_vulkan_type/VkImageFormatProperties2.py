@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkImageFormatProperties2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageFormatProperties2
+from .VkImageFormatProperties import CType as VkImageFormatProperties
 
-from . import VkImageFormatProperties
-
-VkImageFormatProperties2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('imageFormatProperties', VkImageFormatProperties),

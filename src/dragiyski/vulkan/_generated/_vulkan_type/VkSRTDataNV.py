@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkSRTDataNV(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sx', ctypes.c_float),
         ('a', ctypes.c_float),
@@ -19,5 +19,3 @@ class VkSRTDataNV(ctypes.Structure):
         ('ty', ctypes.c_float),
         ('tz', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkSRTDataNV

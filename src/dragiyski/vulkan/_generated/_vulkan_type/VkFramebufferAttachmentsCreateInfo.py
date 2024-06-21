@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkFramebufferAttachmentsCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkFramebufferAttachmentsCreateInfo
+from .VkFramebufferAttachmentImageInfo import CType as VkFramebufferAttachmentImageInfo
 
-from . import VkFramebufferAttachmentImageInfo
-
-VkFramebufferAttachmentsCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('attachmentImageInfoCount', ctypes.c_uint32),

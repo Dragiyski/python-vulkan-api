@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkGeometryNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkGeometryNV
+from .VkGeometryDataNV import CType as VkGeometryDataNV
 
-from . import VkGeometryDataNV
-
-VkGeometryNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('geometryType', ctypes.c_int),

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH265SliceSegmentHeaderFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('first_slice_segment_in_pic_flag', ctypes.c_uint32, 1),
         ('dependent_slice_segment_flag', ctypes.c_uint32, 1),
@@ -16,5 +16,3 @@ class StdVideoEncodeH265SliceSegmentHeaderFlags(ctypes.Structure):
         ('slice_loop_filter_across_slices_enabled_flag', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 20),
     ]
-
-sys.modules[__name__] = StdVideoEncodeH265SliceSegmentHeaderFlags

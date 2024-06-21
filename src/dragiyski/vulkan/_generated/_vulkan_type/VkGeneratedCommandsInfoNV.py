@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkGeneratedCommandsInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkGeneratedCommandsInfoNV
+from .VkIndirectCommandsStreamNV import CType as VkIndirectCommandsStreamNV
 
-from . import VkIndirectCommandsStreamNV
-
-VkGeneratedCommandsInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pipelineBindPoint', ctypes.c_int),

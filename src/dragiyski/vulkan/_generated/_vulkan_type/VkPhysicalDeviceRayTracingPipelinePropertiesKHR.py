@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceRayTracingPipelinePropertiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -13,5 +13,3 @@ class VkPhysicalDeviceRayTracingPipelinePropertiesKHR(ctypes.Structure):
         ('shaderGroupHandleAlignment', ctypes.c_uint32),
         ('maxRayHitAttributeSize', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceRayTracingPipelinePropertiesKHR

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineCacheHeaderVersionSafetyCriticalOne(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineCacheHeaderVersionSafetyCriticalOne
+from .VkPipelineCacheHeaderVersionOne import CType as VkPipelineCacheHeaderVersionOne
 
-from . import VkPipelineCacheHeaderVersionOne
-
-VkPipelineCacheHeaderVersionSafetyCriticalOne._fields_ = [
+CType._fields_ = [
     ('headerVersionOne', VkPipelineCacheHeaderVersionOne),
     ('validationVersion', ctypes.c_int),
     ('implementationData', ctypes.c_uint32),

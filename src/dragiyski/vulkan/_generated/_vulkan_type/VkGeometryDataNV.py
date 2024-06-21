@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkGeometryDataNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkGeometryDataNV
+from .VkGeometryAABBNV import CType as VkGeometryAABBNV
+from .VkGeometryTrianglesNV import CType as VkGeometryTrianglesNV
 
-from . import VkGeometryAABBNV
-from . import VkGeometryTrianglesNV
-
-VkGeometryDataNV._fields_ = [
+CType._fields_ = [
     ('triangles', VkGeometryTrianglesNV),
     ('aabbs', VkGeometryAABBNV),
 ]

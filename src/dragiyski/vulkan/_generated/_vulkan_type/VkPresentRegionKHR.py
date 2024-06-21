@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPresentRegionKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPresentRegionKHR
+from .VkRectLayerKHR import CType as VkRectLayerKHR
 
-from . import VkRectLayerKHR
-
-VkPresentRegionKHR._fields_ = [
+CType._fields_ = [
     ('rectangleCount', ctypes.c_uint32),
     ('pRectangles', ctypes.POINTER(VkRectLayerKHR)),
 ]

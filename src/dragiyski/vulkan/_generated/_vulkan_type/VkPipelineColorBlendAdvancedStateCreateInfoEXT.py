@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineColorBlendAdvancedStateCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkPipelineColorBlendAdvancedStateCreateInfoEXT(ctypes.Structure):
         ('dstPremultiplied', ctypes.c_uint32),
         ('blendOverlap', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkPipelineColorBlendAdvancedStateCreateInfoEXT

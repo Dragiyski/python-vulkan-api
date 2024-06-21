@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkDrawIndexedIndirectCommand(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('indexCount', ctypes.c_uint32),
         ('instanceCount', ctypes.c_uint32),
@@ -8,5 +8,3 @@ class VkDrawIndexedIndirectCommand(ctypes.Structure):
         ('vertexOffset', ctypes.c_int32),
         ('firstInstance', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkDrawIndexedIndirectCommand

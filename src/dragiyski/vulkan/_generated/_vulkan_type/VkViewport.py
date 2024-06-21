@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkViewport(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('x', ctypes.c_float),
         ('y', ctypes.c_float),
@@ -9,5 +9,3 @@ class VkViewport(ctypes.Structure):
         ('minDepth', ctypes.c_float),
         ('maxDepth', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkViewport

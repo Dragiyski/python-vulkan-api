@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkCopyAccelerationStructureToMemoryInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkCopyAccelerationStructureToMemoryInfoKHR
+from .VkDeviceOrHostAddressKHR import CType as VkDeviceOrHostAddressKHR
 
-from . import VkDeviceOrHostAddressKHR
-
-VkCopyAccelerationStructureToMemoryInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('src', ctypes.c_void_p),

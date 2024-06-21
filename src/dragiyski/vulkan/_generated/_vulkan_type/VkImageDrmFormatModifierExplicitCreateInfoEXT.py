@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkImageDrmFormatModifierExplicitCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageDrmFormatModifierExplicitCreateInfoEXT
+from .VkSubresourceLayout import CType as VkSubresourceLayout
 
-from . import VkSubresourceLayout
-
-VkImageDrmFormatModifierExplicitCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('drmFormatModifier', ctypes.c_uint64),

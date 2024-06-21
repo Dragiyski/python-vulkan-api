@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassSampleLocationsBeginInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassSampleLocationsBeginInfoEXT
+from .VkAttachmentSampleLocationsEXT import CType as VkAttachmentSampleLocationsEXT
+from .VkSubpassSampleLocationsEXT import CType as VkSubpassSampleLocationsEXT
 
-from . import VkAttachmentSampleLocationsEXT
-from . import VkSubpassSampleLocationsEXT
-
-VkRenderPassSampleLocationsBeginInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('attachmentInitialSampleLocationsCount', ctypes.c_uint32),

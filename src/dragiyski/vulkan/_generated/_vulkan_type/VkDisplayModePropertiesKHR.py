@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDisplayModePropertiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDisplayModePropertiesKHR
+from .VkDisplayModeParametersKHR import CType as VkDisplayModeParametersKHR
 
-from . import VkDisplayModeParametersKHR
-
-VkDisplayModePropertiesKHR._fields_ = [
+CType._fields_ = [
     ('displayMode', ctypes.c_void_p),
     ('parameters', VkDisplayModeParametersKHR),
 ]

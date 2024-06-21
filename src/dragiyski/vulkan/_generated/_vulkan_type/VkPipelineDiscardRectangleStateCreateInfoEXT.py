@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineDiscardRectangleStateCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineDiscardRectangleStateCreateInfoEXT
+from .VkRect2D import CType as VkRect2D
 
-from . import VkRect2D
-
-VkPipelineDiscardRectangleStateCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH264PpsFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('transform_8x8_mode_flag', ctypes.c_uint32, 1),
         ('redundant_pic_cnt_present_flag', ctypes.c_uint32, 1),
@@ -11,5 +11,3 @@ class StdVideoH264PpsFlags(ctypes.Structure):
         ('entropy_coding_mode_flag', ctypes.c_uint32, 1),
         ('pic_scaling_matrix_present_flag', ctypes.c_uint32, 1),
     ]
-
-sys.modules[__name__] = StdVideoH264PpsFlags

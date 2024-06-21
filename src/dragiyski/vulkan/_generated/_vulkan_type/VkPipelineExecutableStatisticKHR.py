@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineExecutableStatisticKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineExecutableStatisticKHR
+from .VkPipelineExecutableStatisticValueKHR import CType as VkPipelineExecutableStatisticValueKHR
 
-from . import VkPipelineExecutableStatisticValueKHR
-
-VkPipelineExecutableStatisticKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('name', ctypes.ARRAY(ctypes.c_char, 256)),

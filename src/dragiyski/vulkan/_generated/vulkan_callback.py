@@ -1,8 +1,8 @@
 import ctypes
 from .vulkan_base import VKAPI_PTR, VKAPI_CALL
-from ._vulkan_type import VkDebugUtilsMessengerCallbackDataEXT
-from ._vulkan_type import VkDeviceMemoryReportCallbackDataEXT
-from ._vulkan_type import VkFaultData
+from ._vulkan_type.VkDebugUtilsMessengerCallbackDataEXT import CType as VkDebugUtilsMessengerCallbackDataEXT
+from ._vulkan_type.VkDeviceMemoryReportCallbackDataEXT import CType as VkDeviceMemoryReportCallbackDataEXT
+from ._vulkan_type.VkFaultData import CType as VkFaultData
 
 vkAllocationFunction = VKAPI_PTR(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.c_int)
 vkDebugReportCallbackEXT = VKAPI_PTR(ctypes.c_uint32, ctypes.c_uint32, ctypes.c_int, ctypes.c_uint64, ctypes.c_size_t, ctypes.c_int32, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_void_p)

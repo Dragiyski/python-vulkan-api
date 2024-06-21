@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureSRTMotionInstanceNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureSRTMotionInstanceNV
+from .VkSRTDataNV import CType as VkSRTDataNV
 
-from . import VkSRTDataNV
-
-VkAccelerationStructureSRTMotionInstanceNV._fields_ = [
+CType._fields_ = [
     ('transformT0', VkSRTDataNV),
     ('transformT1', VkSRTDataNV),
     ('instanceCustomIndex', ctypes.c_uint32, 24),

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceVulkan12Features(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -52,5 +52,3 @@ class VkPhysicalDeviceVulkan12Features(ctypes.Structure):
         ('shaderOutputLayer', ctypes.c_uint32),
         ('subgroupBroadcastDynamicId', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceVulkan12Features

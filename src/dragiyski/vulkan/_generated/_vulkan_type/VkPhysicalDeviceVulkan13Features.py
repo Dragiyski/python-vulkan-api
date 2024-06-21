@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceVulkan13Features(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -20,5 +20,3 @@ class VkPhysicalDeviceVulkan13Features(ctypes.Structure):
         ('shaderIntegerDotProduct', ctypes.c_uint32),
         ('maintenance4', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceVulkan13Features

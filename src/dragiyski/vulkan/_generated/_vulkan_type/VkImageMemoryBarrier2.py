@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkImageMemoryBarrier2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageMemoryBarrier2
+from .VkImageSubresourceRange import CType as VkImageSubresourceRange
 
-from . import VkImageSubresourceRange
-
-VkImageMemoryBarrier2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('srcStageMask', ctypes.c_uint64),

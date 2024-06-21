@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineVertexInputStateCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineVertexInputStateCreateInfo
+from .VkVertexInputAttributeDescription import CType as VkVertexInputAttributeDescription
+from .VkVertexInputBindingDescription import CType as VkVertexInputBindingDescription
 
-from . import VkVertexInputAttributeDescription
-from . import VkVertexInputBindingDescription
-
-VkPipelineVertexInputStateCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

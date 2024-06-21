@@ -1,12 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkBaseOutStructure(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkBaseOutStructure
 
-
-VkBaseOutStructure._fields_ = [
+VkBaseOutStructure = CType
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.POINTER(VkBaseOutStructure)),
 ]
+del VkBaseOutStructure

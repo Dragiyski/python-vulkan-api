@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkResolveImageInfo2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkResolveImageInfo2
+from .VkImageResolve2 import CType as VkImageResolve2
 
-from . import VkImageResolve2
-
-VkResolveImageInfo2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('srcImage', ctypes.c_void_p),

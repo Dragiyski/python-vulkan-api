@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceVulkanMemoryModelFeatures(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkPhysicalDeviceVulkanMemoryModelFeatures(ctypes.Structure):
         ('vulkanMemoryModelDeviceScope', ctypes.c_uint32),
         ('vulkanMemoryModelAvailabilityVisibilityChains', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceVulkanMemoryModelFeatures

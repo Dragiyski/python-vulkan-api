@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkExternalImageFormatPropertiesNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkExternalImageFormatPropertiesNV
+from .VkImageFormatProperties import CType as VkImageFormatProperties
 
-from . import VkImageFormatProperties
-
-VkExternalImageFormatPropertiesNV._fields_ = [
+CType._fields_ = [
     ('imageFormatProperties', VkImageFormatProperties),
     ('externalMemoryFeatures', ctypes.c_uint32),
     ('exportFromImportedHandleTypes', ctypes.c_uint32),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDescriptorUpdateTemplateCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDescriptorUpdateTemplateCreateInfo
+from .VkDescriptorUpdateTemplateEntry import CType as VkDescriptorUpdateTemplateEntry
 
-from . import VkDescriptorUpdateTemplateEntry
-
-VkDescriptorUpdateTemplateCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

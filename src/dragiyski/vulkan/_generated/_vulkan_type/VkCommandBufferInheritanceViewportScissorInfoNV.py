@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkCommandBufferInheritanceViewportScissorInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkCommandBufferInheritanceViewportScissorInfoNV
+from .VkViewport import CType as VkViewport
 
-from . import VkViewport
-
-VkCommandBufferInheritanceViewportScissorInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('viewportScissor2D', ctypes.c_uint32),

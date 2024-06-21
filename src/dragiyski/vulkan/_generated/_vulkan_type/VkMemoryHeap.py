@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkMemoryHeap(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('size', ctypes.c_uint64),
         ('flags', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkMemoryHeap

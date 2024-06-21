@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkCopyImageInfo2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkCopyImageInfo2
+from .VkImageCopy2 import CType as VkImageCopy2
 
-from . import VkImageCopy2
-
-VkCopyImageInfo2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('srcImage', ctypes.c_void_p),

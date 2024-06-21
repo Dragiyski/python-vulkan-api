@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -17,5 +17,3 @@ class VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(ctypes.Structure):
         ('sparseImageFloat32Atomics', ctypes.c_uint32),
         ('sparseImageFloat32AtomicAdd', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceShaderAtomicFloatFeaturesEXT

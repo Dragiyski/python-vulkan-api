@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoDecodeAV1SessionParametersCreateInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoDecodeAV1SessionParametersCreateInfoKHR
+from .StdVideoAV1SequenceHeader import CType as StdVideoAV1SequenceHeader
 
-from . import StdVideoAV1SequenceHeader
-
-VkVideoDecodeAV1SessionParametersCreateInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pStdSequenceHeader', ctypes.POINTER(StdVideoAV1SequenceHeader)),

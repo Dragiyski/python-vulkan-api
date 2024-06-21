@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkCooperativeMatrixPropertiesNV(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -13,5 +13,3 @@ class VkCooperativeMatrixPropertiesNV(ctypes.Structure):
         ('DType', ctypes.c_int),
         ('scope', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkCooperativeMatrixPropertiesNV

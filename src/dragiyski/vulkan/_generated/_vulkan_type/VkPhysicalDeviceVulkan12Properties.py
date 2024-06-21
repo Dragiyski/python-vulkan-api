@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceVulkan12Properties(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceVulkan12Properties
+from .VkConformanceVersion import CType as VkConformanceVersion
 
-from . import VkConformanceVersion
-
-VkPhysicalDeviceVulkan12Properties._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('driverID', ctypes.c_int),

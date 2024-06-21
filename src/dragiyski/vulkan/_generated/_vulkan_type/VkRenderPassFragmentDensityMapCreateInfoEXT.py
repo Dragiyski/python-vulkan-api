@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassFragmentDensityMapCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassFragmentDensityMapCreateInfoEXT
+from .VkAttachmentReference import CType as VkAttachmentReference
 
-from . import VkAttachmentReference
-
-VkRenderPassFragmentDensityMapCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('fragmentDensityMapAttachment', VkAttachmentReference),

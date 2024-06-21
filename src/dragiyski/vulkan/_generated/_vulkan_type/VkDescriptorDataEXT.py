@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkDescriptorDataEXT(ctypes.Union):
+class CType(ctypes.Union):
     pass
 
-sys.modules[__name__] = VkDescriptorDataEXT
+from .VkDescriptorAddressInfoEXT import CType as VkDescriptorAddressInfoEXT
+from .VkDescriptorImageInfo import CType as VkDescriptorImageInfo
 
-from . import VkDescriptorAddressInfoEXT
-from . import VkDescriptorImageInfo
-
-VkDescriptorDataEXT._fields_ = [
+CType._fields_ = [
     ('pSampler', ctypes.POINTER(ctypes.c_void_p)),
     ('pCombinedImageSampler', ctypes.POINTER(VkDescriptorImageInfo)),
     ('pInputAttachmentImage', ctypes.POINTER(VkDescriptorImageInfo)),

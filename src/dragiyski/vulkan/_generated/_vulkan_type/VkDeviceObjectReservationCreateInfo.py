@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkDeviceObjectReservationCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDeviceObjectReservationCreateInfo
+from .VkPipelineCacheCreateInfo import CType as VkPipelineCacheCreateInfo
+from .VkPipelinePoolSize import CType as VkPipelinePoolSize
 
-from . import VkPipelineCacheCreateInfo
-from . import VkPipelinePoolSize
-
-VkDeviceObjectReservationCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pipelineCacheCreateInfoCount', ctypes.c_uint32),

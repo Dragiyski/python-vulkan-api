@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceDrmPropertiesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -11,5 +11,3 @@ class VkPhysicalDeviceDrmPropertiesEXT(ctypes.Structure):
         ('renderMajor', ctypes.c_int64),
         ('renderMinor', ctypes.c_int64),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceDrmPropertiesEXT

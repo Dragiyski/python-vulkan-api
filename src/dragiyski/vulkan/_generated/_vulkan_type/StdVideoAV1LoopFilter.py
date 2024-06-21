@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1LoopFilter(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoAV1LoopFilter
+from .StdVideoAV1LoopFilterFlags import CType as StdVideoAV1LoopFilterFlags
 
-from . import StdVideoAV1LoopFilterFlags
-
-StdVideoAV1LoopFilter._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoAV1LoopFilterFlags),
     ('loop_filter_level', ctypes.ARRAY(ctypes.c_uint8, 4)),
     ('loop_filter_sharpness', ctypes.c_uint8),

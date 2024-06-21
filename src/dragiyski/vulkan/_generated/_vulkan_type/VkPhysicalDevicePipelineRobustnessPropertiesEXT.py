@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDevicePipelineRobustnessPropertiesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -9,5 +9,3 @@ class VkPhysicalDevicePipelineRobustnessPropertiesEXT(ctypes.Structure):
         ('defaultRobustnessVertexInputs', ctypes.c_int),
         ('defaultRobustnessImages', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkPhysicalDevicePipelineRobustnessPropertiesEXT

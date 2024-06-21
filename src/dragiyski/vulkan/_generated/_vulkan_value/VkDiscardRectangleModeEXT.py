@@ -1,0 +1,5 @@
+from enum import IntEnum
+
+class Value(IntEnum):
+    VK_DISCARD_RECTANGLE_MODE_EXCLUSIVE_EXT = 1
+    VK_DISCARD_RECTANGLE_MODE_INCLUSIVE_EXT = 0

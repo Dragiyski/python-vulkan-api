@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkImageCopy(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageCopy
+from .VkExtent3D import CType as VkExtent3D
+from .VkImageSubresourceLayers import CType as VkImageSubresourceLayers
+from .VkOffset3D import CType as VkOffset3D
 
-from . import VkExtent3D
-from . import VkImageSubresourceLayers
-from . import VkOffset3D
-
-VkImageCopy._fields_ = [
+CType._fields_ = [
     ('srcSubresource', VkImageSubresourceLayers),
     ('srcOffset', VkOffset3D),
     ('dstSubresource', VkImageSubresourceLayers),

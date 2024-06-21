@@ -1,10 +1,8 @@
-import ctypes, sys
+import ctypes
 
-class VkDescriptorImageInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sampler', ctypes.c_void_p),
         ('imageView', ctypes.c_void_p),
         ('imageLayout', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkDescriptorImageInfo

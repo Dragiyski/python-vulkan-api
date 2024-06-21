@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH264HrdParameters(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('cpb_cnt_minus1', ctypes.c_uint8),
         ('bit_rate_scale', ctypes.c_uint8),
@@ -14,5 +14,3 @@ class StdVideoH264HrdParameters(ctypes.Structure):
         ('dpb_output_delay_length_minus1', ctypes.c_uint32),
         ('time_offset_length', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = StdVideoH264HrdParameters

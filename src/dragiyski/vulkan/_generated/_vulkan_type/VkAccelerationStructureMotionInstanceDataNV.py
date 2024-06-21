@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureMotionInstanceDataNV(ctypes.Union):
+class CType(ctypes.Union):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureMotionInstanceDataNV
+from .VkAccelerationStructureInstanceKHR import CType as VkAccelerationStructureInstanceKHR
+from .VkAccelerationStructureMatrixMotionInstanceNV import CType as VkAccelerationStructureMatrixMotionInstanceNV
+from .VkAccelerationStructureSRTMotionInstanceNV import CType as VkAccelerationStructureSRTMotionInstanceNV
 
-from . import VkAccelerationStructureInstanceKHR
-from . import VkAccelerationStructureMatrixMotionInstanceNV
-from . import VkAccelerationStructureSRTMotionInstanceNV
-
-VkAccelerationStructureMotionInstanceDataNV._fields_ = [
+CType._fields_ = [
     ('staticInstance', VkAccelerationStructureInstanceKHR),
     ('matrixMotionInstance', VkAccelerationStructureMatrixMotionInstanceNV),
     ('srtMotionInstance', VkAccelerationStructureSRTMotionInstanceNV),

@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH264ReferenceListsInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoEncodeH264ReferenceListsInfo
+from .StdVideoEncodeH264RefListModEntry import CType as StdVideoEncodeH264RefListModEntry
+from .StdVideoEncodeH264RefPicMarkingEntry import CType as StdVideoEncodeH264RefPicMarkingEntry
+from .StdVideoEncodeH264ReferenceListsInfoFlags import CType as StdVideoEncodeH264ReferenceListsInfoFlags
 
-from . import StdVideoEncodeH264RefListModEntry
-from . import StdVideoEncodeH264RefPicMarkingEntry
-from . import StdVideoEncodeH264ReferenceListsInfoFlags
-
-StdVideoEncodeH264ReferenceListsInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoEncodeH264ReferenceListsInfoFlags),
     ('num_ref_idx_l0_active_minus1', ctypes.c_uint8),
     ('num_ref_idx_l1_active_minus1', ctypes.c_uint8),

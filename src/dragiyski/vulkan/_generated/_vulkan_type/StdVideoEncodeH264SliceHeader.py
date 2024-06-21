@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH264SliceHeader(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoEncodeH264SliceHeader
+from .StdVideoEncodeH264SliceHeaderFlags import CType as StdVideoEncodeH264SliceHeaderFlags
+from .StdVideoEncodeH264WeightTable import CType as StdVideoEncodeH264WeightTable
 
-from . import StdVideoEncodeH264SliceHeaderFlags
-from . import StdVideoEncodeH264WeightTable
-
-StdVideoEncodeH264SliceHeader._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoEncodeH264SliceHeaderFlags),
     ('first_mb_in_slice', ctypes.c_uint32),
     ('slice_type', ctypes.c_int),

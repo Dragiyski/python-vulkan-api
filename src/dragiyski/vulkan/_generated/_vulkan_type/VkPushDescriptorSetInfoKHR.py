@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPushDescriptorSetInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPushDescriptorSetInfoKHR
+from .VkWriteDescriptorSet import CType as VkWriteDescriptorSet
 
-from . import VkWriteDescriptorSet
-
-VkPushDescriptorSetInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('stageFlags', ctypes.c_uint32),

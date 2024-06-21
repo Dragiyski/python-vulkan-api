@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkSubmitInfo2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSubmitInfo2
+from .VkCommandBufferSubmitInfo import CType as VkCommandBufferSubmitInfo
+from .VkSemaphoreSubmitInfo import CType as VkSemaphoreSubmitInfo
 
-from . import VkCommandBufferSubmitInfo
-from . import VkSemaphoreSubmitInfo
-
-VkSubmitInfo2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

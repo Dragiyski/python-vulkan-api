@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineViewportShadingRateImageStateCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineViewportShadingRateImageStateCreateInfoNV
+from .VkShadingRatePaletteNV import CType as VkShadingRatePaletteNV
 
-from . import VkShadingRatePaletteNV
-
-VkPipelineViewportShadingRateImageStateCreateInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('shadingRateImageEnable', ctypes.c_uint32),

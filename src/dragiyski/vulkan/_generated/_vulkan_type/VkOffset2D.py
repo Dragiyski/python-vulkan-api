@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkOffset2D(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('x', ctypes.c_int32),
         ('y', ctypes.c_int32),
     ]
-
-sys.modules[__name__] = VkOffset2D

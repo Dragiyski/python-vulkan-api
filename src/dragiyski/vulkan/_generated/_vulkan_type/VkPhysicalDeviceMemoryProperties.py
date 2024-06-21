@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceMemoryProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceMemoryProperties
+from .VkMemoryHeap import CType as VkMemoryHeap
+from .VkMemoryType import CType as VkMemoryType
 
-from . import VkMemoryHeap
-from . import VkMemoryType
-
-VkPhysicalDeviceMemoryProperties._fields_ = [
+CType._fields_ = [
     ('memoryTypeCount', ctypes.c_uint32),
     ('memoryTypes', ctypes.ARRAY(VkMemoryType, 32)),
     ('memoryHeapCount', ctypes.c_uint32),

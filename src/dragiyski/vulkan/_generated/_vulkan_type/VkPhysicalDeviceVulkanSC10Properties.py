@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceVulkanSC10Properties(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -23,5 +23,3 @@ class VkPhysicalDeviceVulkanSC10Properties(ctypes.Structure):
         ('maxCommandPoolCommandBuffers', ctypes.c_uint32),
         ('maxCommandBufferSize', ctypes.c_uint64),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceVulkanSC10Properties

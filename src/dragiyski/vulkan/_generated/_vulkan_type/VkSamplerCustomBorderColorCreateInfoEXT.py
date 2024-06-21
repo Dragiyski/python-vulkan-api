@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSamplerCustomBorderColorCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSamplerCustomBorderColorCreateInfoEXT
+from .VkClearColorValue import CType as VkClearColorValue
 
-from . import VkClearColorValue
-
-VkSamplerCustomBorderColorCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('customBorderColor', VkClearColorValue),

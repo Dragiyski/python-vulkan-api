@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineOfflineCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkPipelineOfflineCreateInfo(ctypes.Structure):
         ('matchControl', ctypes.c_int),
         ('poolEntrySize', ctypes.c_uint64),
     ]
-
-sys.modules[__name__] = VkPipelineOfflineCreateInfo

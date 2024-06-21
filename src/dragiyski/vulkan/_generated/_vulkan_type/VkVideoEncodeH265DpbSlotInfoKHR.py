@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoEncodeH265DpbSlotInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoEncodeH265DpbSlotInfoKHR
+from .StdVideoEncodeH265ReferenceInfo import CType as StdVideoEncodeH265ReferenceInfo
 
-from . import StdVideoEncodeH265ReferenceInfo
-
-VkVideoEncodeH265DpbSlotInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pStdReferenceInfo', ctypes.POINTER(StdVideoEncodeH265ReferenceInfo)),

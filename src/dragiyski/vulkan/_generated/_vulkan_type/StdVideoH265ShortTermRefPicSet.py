@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265ShortTermRefPicSet(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoH265ShortTermRefPicSet
+from .StdVideoH265ShortTermRefPicSetFlags import CType as StdVideoH265ShortTermRefPicSetFlags
 
-from . import StdVideoH265ShortTermRefPicSetFlags
-
-StdVideoH265ShortTermRefPicSet._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoH265ShortTermRefPicSetFlags),
     ('delta_idx_minus1', ctypes.c_uint32),
     ('use_delta_flag', ctypes.c_uint16),

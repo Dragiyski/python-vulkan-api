@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineViewportCoarseSampleOrderStateCreateInfoNV
+from .VkCoarseSampleOrderCustomNV import CType as VkCoarseSampleOrderCustomNV
 
-from . import VkCoarseSampleOrderCustomNV
-
-VkPipelineViewportCoarseSampleOrderStateCreateInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('sampleOrderType', ctypes.c_int),

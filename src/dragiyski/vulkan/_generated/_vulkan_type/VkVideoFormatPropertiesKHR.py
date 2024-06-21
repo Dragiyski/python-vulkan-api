@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoFormatPropertiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoFormatPropertiesKHR
+from .VkComponentMapping import CType as VkComponentMapping
 
-from . import VkComponentMapping
-
-VkVideoFormatPropertiesKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('format', ctypes.c_int),

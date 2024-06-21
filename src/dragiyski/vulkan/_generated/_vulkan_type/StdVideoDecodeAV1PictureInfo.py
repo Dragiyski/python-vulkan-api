@@ -1,21 +1,19 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoDecodeAV1PictureInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoDecodeAV1PictureInfo
+from .StdVideoAV1CDEF import CType as StdVideoAV1CDEF
+from .StdVideoAV1FilmGrain import CType as StdVideoAV1FilmGrain
+from .StdVideoAV1GlobalMotion import CType as StdVideoAV1GlobalMotion
+from .StdVideoAV1LoopFilter import CType as StdVideoAV1LoopFilter
+from .StdVideoAV1LoopRestoration import CType as StdVideoAV1LoopRestoration
+from .StdVideoAV1Quantization import CType as StdVideoAV1Quantization
+from .StdVideoAV1Segmentation import CType as StdVideoAV1Segmentation
+from .StdVideoAV1TileInfo import CType as StdVideoAV1TileInfo
+from .StdVideoDecodeAV1PictureInfoFlags import CType as StdVideoDecodeAV1PictureInfoFlags
 
-from . import StdVideoAV1CDEF
-from . import StdVideoAV1FilmGrain
-from . import StdVideoAV1GlobalMotion
-from . import StdVideoAV1LoopFilter
-from . import StdVideoAV1LoopRestoration
-from . import StdVideoAV1Quantization
-from . import StdVideoAV1Segmentation
-from . import StdVideoAV1TileInfo
-from . import StdVideoDecodeAV1PictureInfoFlags
-
-StdVideoDecodeAV1PictureInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoDecodeAV1PictureInfoFlags),
     ('frame_type', ctypes.c_int),
     ('current_frame_id', ctypes.c_uint32),

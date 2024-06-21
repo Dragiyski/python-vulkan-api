@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkDeviceFaultInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDeviceFaultInfoEXT
+from .VkDeviceFaultAddressInfoEXT import CType as VkDeviceFaultAddressInfoEXT
+from .VkDeviceFaultVendorInfoEXT import CType as VkDeviceFaultVendorInfoEXT
 
-from . import VkDeviceFaultAddressInfoEXT
-from . import VkDeviceFaultVendorInfoEXT
-
-VkDeviceFaultInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('description', ctypes.ARRAY(ctypes.c_char, 256)),

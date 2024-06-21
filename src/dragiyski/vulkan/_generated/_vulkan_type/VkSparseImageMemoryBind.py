@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkSparseImageMemoryBind(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSparseImageMemoryBind
+from .VkExtent3D import CType as VkExtent3D
+from .VkImageSubresource import CType as VkImageSubresource
+from .VkOffset3D import CType as VkOffset3D
 
-from . import VkExtent3D
-from . import VkImageSubresource
-from . import VkOffset3D
-
-VkSparseImageMemoryBind._fields_ = [
+CType._fields_ = [
     ('subresource', VkImageSubresource),
     ('offset', VkOffset3D),
     ('extent', VkExtent3D),

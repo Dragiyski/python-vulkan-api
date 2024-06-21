@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAllocationCallbacks(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
-
-sys.modules[__name__] = VkAllocationCallbacks
 
 from ..vulkan_callback import vkAllocationFunction, vkFreeFunction, vkInternalAllocationNotification, vkInternalFreeNotification, vkReallocationFunction
 
-VkAllocationCallbacks._fields_ = [
+CType._fields_ = [
     ('pUserData', ctypes.c_void_p),
     ('pfnAllocation', ctypes.POINTER(vkAllocationFunction)),
     ('pfnReallocation', ctypes.POINTER(vkReallocationFunction)),

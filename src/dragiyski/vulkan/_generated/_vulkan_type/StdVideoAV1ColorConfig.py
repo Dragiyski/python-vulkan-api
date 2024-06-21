@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1ColorConfig(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoAV1ColorConfig
+from .StdVideoAV1ColorConfigFlags import CType as StdVideoAV1ColorConfigFlags
 
-from . import StdVideoAV1ColorConfigFlags
-
-StdVideoAV1ColorConfig._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoAV1ColorConfigFlags),
     ('BitDepth', ctypes.c_uint8),
     ('subsampling_x', ctypes.c_uint8),

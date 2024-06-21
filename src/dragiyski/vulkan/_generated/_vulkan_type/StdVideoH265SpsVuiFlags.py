@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265SpsVuiFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('aspect_ratio_info_present_flag', ctypes.c_uint32, 1),
         ('overscan_info_present_flag', ctypes.c_uint32, 1),
@@ -21,5 +21,3 @@ class StdVideoH265SpsVuiFlags(ctypes.Structure):
         ('motion_vectors_over_pic_boundaries_flag', ctypes.c_uint32, 1),
         ('restricted_ref_pic_lists_flag', ctypes.c_uint32, 1),
     ]
-
-sys.modules[__name__] = StdVideoH265SpsVuiFlags

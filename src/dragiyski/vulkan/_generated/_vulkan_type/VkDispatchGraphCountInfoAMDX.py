@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDispatchGraphCountInfoAMDX(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDispatchGraphCountInfoAMDX
+from .VkDeviceOrHostAddressConstAMDX import CType as VkDeviceOrHostAddressConstAMDX
 
-from . import VkDeviceOrHostAddressConstAMDX
-
-VkDispatchGraphCountInfoAMDX._fields_ = [
+CType._fields_ = [
     ('count', ctypes.c_uint32),
     ('infos', VkDeviceOrHostAddressConstAMDX),
     ('stride', ctypes.c_uint64),

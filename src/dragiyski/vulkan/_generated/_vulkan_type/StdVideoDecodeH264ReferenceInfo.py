@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoDecodeH264ReferenceInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoDecodeH264ReferenceInfo
+from .StdVideoDecodeH264ReferenceInfoFlags import CType as StdVideoDecodeH264ReferenceInfoFlags
 
-from . import StdVideoDecodeH264ReferenceInfoFlags
-
-StdVideoDecodeH264ReferenceInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoDecodeH264ReferenceInfoFlags),
     ('FrameNum', ctypes.c_uint16),
     ('reserved', ctypes.c_uint16),

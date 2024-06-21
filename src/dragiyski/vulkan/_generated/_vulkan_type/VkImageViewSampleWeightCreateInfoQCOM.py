@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkImageViewSampleWeightCreateInfoQCOM(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageViewSampleWeightCreateInfoQCOM
+from .VkExtent2D import CType as VkExtent2D
+from .VkOffset2D import CType as VkOffset2D
 
-from . import VkExtent2D
-from . import VkOffset2D
-
-VkImageViewSampleWeightCreateInfoQCOM._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('filterCenter', VkOffset2D),

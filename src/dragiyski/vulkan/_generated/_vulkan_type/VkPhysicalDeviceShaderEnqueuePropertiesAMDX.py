@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceShaderEnqueuePropertiesAMDX(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -10,5 +10,3 @@ class VkPhysicalDeviceShaderEnqueuePropertiesAMDX(ctypes.Structure):
         ('maxExecutionGraphShaderPayloadCount', ctypes.c_uint32),
         ('executionGraphDispatchAddressAlignment', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceShaderEnqueuePropertiesAMDX

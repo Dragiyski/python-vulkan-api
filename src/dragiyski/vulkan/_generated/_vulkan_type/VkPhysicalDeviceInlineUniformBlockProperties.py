@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceInlineUniformBlockProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -10,5 +10,3 @@ class VkPhysicalDeviceInlineUniformBlockProperties(ctypes.Structure):
         ('maxDescriptorSetInlineUniformBlocks', ctypes.c_uint32),
         ('maxDescriptorSetUpdateAfterBindInlineUniformBlocks', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceInlineUniformBlockProperties

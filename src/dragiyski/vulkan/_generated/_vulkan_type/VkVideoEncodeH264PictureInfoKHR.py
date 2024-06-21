@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoEncodeH264PictureInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoEncodeH264PictureInfoKHR
+from .StdVideoEncodeH264PictureInfo import CType as StdVideoEncodeH264PictureInfo
+from .VkVideoEncodeH264NaluSliceInfoKHR import CType as VkVideoEncodeH264NaluSliceInfoKHR
 
-from . import StdVideoEncodeH264PictureInfo
-from . import VkVideoEncodeH264NaluSliceInfoKHR
-
-VkVideoEncodeH264PictureInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('naluSliceEntryCount', ctypes.c_uint32),

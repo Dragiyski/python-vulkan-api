@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkDepthBiasInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkDepthBiasInfoEXT(ctypes.Structure):
         ('depthBiasClamp', ctypes.c_float),
         ('depthBiasSlopeFactor', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkDepthBiasInfoEXT

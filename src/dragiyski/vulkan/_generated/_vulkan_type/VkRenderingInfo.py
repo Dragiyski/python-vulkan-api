@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderingInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderingInfo
+from .VkRect2D import CType as VkRect2D
+from .VkRenderingAttachmentInfo import CType as VkRenderingAttachmentInfo
 
-from . import VkRect2D
-from . import VkRenderingAttachmentInfo
-
-VkRenderingInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

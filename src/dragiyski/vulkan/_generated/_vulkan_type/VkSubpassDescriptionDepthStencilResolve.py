@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSubpassDescriptionDepthStencilResolve(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSubpassDescriptionDepthStencilResolve
+from .VkAttachmentReference2 import CType as VkAttachmentReference2
 
-from . import VkAttachmentReference2
-
-VkSubpassDescriptionDepthStencilResolve._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('depthResolveMode', ctypes.c_uint32),

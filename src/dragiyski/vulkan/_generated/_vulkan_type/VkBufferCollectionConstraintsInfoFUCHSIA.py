@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkBufferCollectionConstraintsInfoFUCHSIA(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -10,5 +10,3 @@ class VkBufferCollectionConstraintsInfoFUCHSIA(ctypes.Structure):
         ('minBufferCountForDedicatedSlack', ctypes.c_uint32),
         ('minBufferCountForSharedSlack', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkBufferCollectionConstraintsInfoFUCHSIA

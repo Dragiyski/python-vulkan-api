@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSurfaceCapabilitiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSurfaceCapabilitiesKHR
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkSurfaceCapabilitiesKHR._fields_ = [
+CType._fields_ = [
     ('minImageCount', ctypes.c_uint32),
     ('maxImageCount', ctypes.c_uint32),
     ('currentExtent', VkExtent2D),

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceShaderIntegerDotProductProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -35,5 +35,3 @@ class VkPhysicalDeviceShaderIntegerDotProductProperties(ctypes.Structure):
         ('integerDotProductAccumulatingSaturating64BitSignedAccelerated', ctypes.c_uint32),
         ('integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceShaderIntegerDotProductProperties

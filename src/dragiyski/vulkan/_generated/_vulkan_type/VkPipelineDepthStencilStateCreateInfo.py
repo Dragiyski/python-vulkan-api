@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineDepthStencilStateCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineDepthStencilStateCreateInfo
+from .VkStencilOpState import CType as VkStencilOpState
 
-from . import VkStencilOpState
-
-VkPipelineDepthStencilStateCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

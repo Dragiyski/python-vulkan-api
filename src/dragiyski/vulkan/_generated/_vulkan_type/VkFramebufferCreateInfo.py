@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkFramebufferCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -12,5 +12,3 @@ class VkFramebufferCreateInfo(ctypes.Structure):
         ('height', ctypes.c_uint32),
         ('layers', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkFramebufferCreateInfo

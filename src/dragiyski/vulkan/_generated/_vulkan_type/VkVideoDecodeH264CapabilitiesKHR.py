@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoDecodeH264CapabilitiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoDecodeH264CapabilitiesKHR
+from .VkOffset2D import CType as VkOffset2D
 
-from . import VkOffset2D
-
-VkVideoDecodeH264CapabilitiesKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('maxLevelIdc', ctypes.c_int),

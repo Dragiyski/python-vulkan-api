@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkImageViewCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageViewCreateInfo
+from .VkComponentMapping import CType as VkComponentMapping
+from .VkImageSubresourceRange import CType as VkImageSubresourceRange
 
-from . import VkComponentMapping
-from . import VkImageSubresourceRange
-
-VkImageViewCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

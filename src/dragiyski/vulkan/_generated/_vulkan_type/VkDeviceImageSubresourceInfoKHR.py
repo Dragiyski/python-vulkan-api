@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkDeviceImageSubresourceInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDeviceImageSubresourceInfoKHR
+from .VkImageCreateInfo import CType as VkImageCreateInfo
+from .VkImageSubresource2KHR import CType as VkImageSubresource2KHR
 
-from . import VkImageCreateInfo
-from . import VkImageSubresource2KHR
-
-VkDeviceImageSubresourceInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pCreateInfo', ctypes.POINTER(VkImageCreateInfo)),

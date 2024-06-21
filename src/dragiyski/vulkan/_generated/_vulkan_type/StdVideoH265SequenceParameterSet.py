@@ -1,20 +1,18 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265SequenceParameterSet(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoH265SequenceParameterSet
+from .StdVideoH265DecPicBufMgr import CType as StdVideoH265DecPicBufMgr
+from .StdVideoH265LongTermRefPicsSps import CType as StdVideoH265LongTermRefPicsSps
+from .StdVideoH265PredictorPaletteEntries import CType as StdVideoH265PredictorPaletteEntries
+from .StdVideoH265ProfileTierLevel import CType as StdVideoH265ProfileTierLevel
+from .StdVideoH265ScalingLists import CType as StdVideoH265ScalingLists
+from .StdVideoH265SequenceParameterSetVui import CType as StdVideoH265SequenceParameterSetVui
+from .StdVideoH265ShortTermRefPicSet import CType as StdVideoH265ShortTermRefPicSet
+from .StdVideoH265SpsFlags import CType as StdVideoH265SpsFlags
 
-from . import StdVideoH265DecPicBufMgr
-from . import StdVideoH265LongTermRefPicsSps
-from . import StdVideoH265PredictorPaletteEntries
-from . import StdVideoH265ProfileTierLevel
-from . import StdVideoH265ScalingLists
-from . import StdVideoH265SequenceParameterSetVui
-from . import StdVideoH265ShortTermRefPicSet
-from . import StdVideoH265SpsFlags
-
-StdVideoH265SequenceParameterSet._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoH265SpsFlags),
     ('chroma_format_idc', ctypes.c_int),
     ('pic_width_in_luma_samples', ctypes.c_uint32),

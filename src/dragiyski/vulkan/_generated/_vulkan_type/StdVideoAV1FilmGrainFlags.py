@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1FilmGrainFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('chroma_scaling_from_luma', ctypes.c_uint32, 1),
         ('overlap_flag', ctypes.c_uint32, 1),
@@ -8,5 +8,3 @@ class StdVideoAV1FilmGrainFlags(ctypes.Structure):
         ('update_grain', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 28),
     ]
-
-sys.modules[__name__] = StdVideoAV1FilmGrainFlags

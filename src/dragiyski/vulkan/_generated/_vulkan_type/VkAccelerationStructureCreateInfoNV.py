@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureCreateInfoNV
+from .VkAccelerationStructureInfoNV import CType as VkAccelerationStructureInfoNV
 
-from . import VkAccelerationStructureInfoNV
-
-VkAccelerationStructureCreateInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('compactedSize', ctypes.c_uint64),

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkSamplerCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -21,5 +21,3 @@ class VkSamplerCreateInfo(ctypes.Structure):
         ('borderColor', ctypes.c_int),
         ('unnormalizedCoordinates', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkSamplerCreateInfo

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceImageFormatInfo2(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -10,5 +10,3 @@ class VkPhysicalDeviceImageFormatInfo2(ctypes.Structure):
         ('usage', ctypes.c_uint32),
         ('flags', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceImageFormatInfo2

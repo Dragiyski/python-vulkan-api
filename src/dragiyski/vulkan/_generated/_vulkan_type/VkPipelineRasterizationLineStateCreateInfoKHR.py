@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineRasterizationLineStateCreateInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -9,5 +9,3 @@ class VkPipelineRasterizationLineStateCreateInfoKHR(ctypes.Structure):
         ('lineStippleFactor', ctypes.c_uint32),
         ('lineStipplePattern', ctypes.c_uint16),
     ]
-
-sys.modules[__name__] = VkPipelineRasterizationLineStateCreateInfoKHR

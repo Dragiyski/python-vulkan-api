@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkHdrMetadataEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkHdrMetadataEXT
+from .VkXYColorEXT import CType as VkXYColorEXT
 
-from . import VkXYColorEXT
-
-VkHdrMetadataEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('displayPrimaryRed', VkXYColorEXT),

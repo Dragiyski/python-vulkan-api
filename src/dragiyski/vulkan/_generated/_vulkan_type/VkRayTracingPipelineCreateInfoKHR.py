@@ -1,17 +1,15 @@
-import ctypes, sys
+import ctypes
 
-class VkRayTracingPipelineCreateInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRayTracingPipelineCreateInfoKHR
+from .VkPipelineDynamicStateCreateInfo import CType as VkPipelineDynamicStateCreateInfo
+from .VkPipelineLibraryCreateInfoKHR import CType as VkPipelineLibraryCreateInfoKHR
+from .VkPipelineShaderStageCreateInfo import CType as VkPipelineShaderStageCreateInfo
+from .VkRayTracingPipelineInterfaceCreateInfoKHR import CType as VkRayTracingPipelineInterfaceCreateInfoKHR
+from .VkRayTracingShaderGroupCreateInfoKHR import CType as VkRayTracingShaderGroupCreateInfoKHR
 
-from . import VkPipelineDynamicStateCreateInfo
-from . import VkPipelineLibraryCreateInfoKHR
-from . import VkPipelineShaderStageCreateInfo
-from . import VkRayTracingPipelineInterfaceCreateInfoKHR
-from . import VkRayTracingShaderGroupCreateInfoKHR
-
-VkRayTracingPipelineCreateInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

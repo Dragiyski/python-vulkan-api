@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1Quantization(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoAV1Quantization
+from .StdVideoAV1QuantizationFlags import CType as StdVideoAV1QuantizationFlags
 
-from . import StdVideoAV1QuantizationFlags
-
-StdVideoAV1Quantization._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoAV1QuantizationFlags),
     ('base_q_idx', ctypes.c_uint8),
     ('DeltaQYDc', ctypes.c_int8),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkFormatProperties2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkFormatProperties2
+from .VkFormatProperties import CType as VkFormatProperties
 
-from . import VkFormatProperties
-
-VkFormatProperties2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('formatProperties', VkFormatProperties),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureGeometryTrianglesDataKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureGeometryTrianglesDataKHR
+from .VkDeviceOrHostAddressConstKHR import CType as VkDeviceOrHostAddressConstKHR
 
-from . import VkDeviceOrHostAddressConstKHR
-
-VkAccelerationStructureGeometryTrianglesDataKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('vertexFormat', ctypes.c_int),

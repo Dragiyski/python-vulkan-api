@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkRectLayerKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRectLayerKHR
+from .VkExtent2D import CType as VkExtent2D
+from .VkOffset2D import CType as VkOffset2D
 
-from . import VkExtent2D
-from . import VkOffset2D
-
-VkRectLayerKHR._fields_ = [
+CType._fields_ = [
     ('offset', VkOffset2D),
     ('extent', VkExtent2D),
     ('layer', ctypes.c_uint32),

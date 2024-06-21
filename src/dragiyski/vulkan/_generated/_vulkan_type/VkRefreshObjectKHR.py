@@ -1,10 +1,8 @@
-import ctypes, sys
+import ctypes
 
-class VkRefreshObjectKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('objectType', ctypes.c_int),
         ('objectHandle', ctypes.c_uint64),
         ('flags', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkRefreshObjectKHR

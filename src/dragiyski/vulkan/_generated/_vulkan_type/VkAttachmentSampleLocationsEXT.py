@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAttachmentSampleLocationsEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAttachmentSampleLocationsEXT
+from .VkSampleLocationsInfoEXT import CType as VkSampleLocationsInfoEXT
 
-from . import VkSampleLocationsInfoEXT
-
-VkAttachmentSampleLocationsEXT._fields_ = [
+CType._fields_ = [
     ('attachmentIndex', ctypes.c_uint32),
     ('sampleLocationsInfo', VkSampleLocationsInfoEXT),
 ]

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoEncodeH265QualityLevelPropertiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoEncodeH265QualityLevelPropertiesKHR
+from .VkVideoEncodeH265QpKHR import CType as VkVideoEncodeH265QpKHR
 
-from . import VkVideoEncodeH265QpKHR
-
-VkVideoEncodeH265QualityLevelPropertiesKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('preferredRateControlFlags', ctypes.c_uint32),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDescriptorPoolCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDescriptorPoolCreateInfo
+from .VkDescriptorPoolSize import CType as VkDescriptorPoolSize
 
-from . import VkDescriptorPoolSize
-
-VkDescriptorPoolCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

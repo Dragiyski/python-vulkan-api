@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassCreationFeedbackCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassCreationFeedbackCreateInfoEXT
+from .VkRenderPassCreationFeedbackInfoEXT import CType as VkRenderPassCreationFeedbackInfoEXT
 
-from . import VkRenderPassCreationFeedbackInfoEXT
-
-VkRenderPassCreationFeedbackCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pRenderPassFeedback', ctypes.POINTER(VkRenderPassCreationFeedbackInfoEXT)),

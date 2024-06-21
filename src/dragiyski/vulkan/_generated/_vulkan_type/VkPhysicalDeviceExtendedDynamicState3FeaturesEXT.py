@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -36,5 +36,3 @@ class VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(ctypes.Structure):
         ('extendedDynamicState3RepresentativeFragmentTestEnable', ctypes.c_uint32),
         ('extendedDynamicState3ShadingRateImageEnable', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceExtendedDynamicState3FeaturesEXT

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineSampleLocationsStateCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineSampleLocationsStateCreateInfoEXT
+from .VkSampleLocationsInfoEXT import CType as VkSampleLocationsInfoEXT
 
-from . import VkSampleLocationsInfoEXT
-
-VkPipelineSampleLocationsStateCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('sampleLocationsEnable', ctypes.c_uint32),

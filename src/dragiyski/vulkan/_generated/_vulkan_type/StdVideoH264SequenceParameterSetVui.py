@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH264SequenceParameterSetVui(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoH264SequenceParameterSetVui
+from .StdVideoH264HrdParameters import CType as StdVideoH264HrdParameters
+from .StdVideoH264SpsVuiFlags import CType as StdVideoH264SpsVuiFlags
 
-from . import StdVideoH264HrdParameters
-from . import StdVideoH264SpsVuiFlags
-
-StdVideoH264SequenceParameterSetVui._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoH264SpsVuiFlags),
     ('aspect_ratio_idc', ctypes.c_int),
     ('sar_width', ctypes.c_uint16),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineShaderStageCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPipelineShaderStageCreateInfo
+from .VkSpecializationInfo import CType as VkSpecializationInfo
 
-from . import VkSpecializationInfo
-
-VkPipelineShaderStageCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

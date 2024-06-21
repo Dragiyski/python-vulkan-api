@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkGraphicsPipelineShaderGroupsCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkGraphicsPipelineShaderGroupsCreateInfoNV
+from .VkGraphicsShaderGroupCreateInfoNV import CType as VkGraphicsShaderGroupCreateInfoNV
 
-from . import VkGraphicsShaderGroupCreateInfoNV
-
-VkGraphicsPipelineShaderGroupsCreateInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('groupCount', ctypes.c_uint32),

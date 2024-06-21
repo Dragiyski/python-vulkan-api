@@ -1,8 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265PredictorPaletteEntries(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('PredictorPaletteEntries', ctypes.ARRAY(ctypes.ARRAY(ctypes.c_uint16, 128), 3)),
     ]
-
-sys.modules[__name__] = StdVideoH265PredictorPaletteEntries

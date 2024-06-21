@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkImageBlit2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkImageBlit2
+from .VkImageSubresourceLayers import CType as VkImageSubresourceLayers
+from .VkOffset3D import CType as VkOffset3D
 
-from . import VkImageSubresourceLayers
-from . import VkOffset3D
-
-VkImageBlit2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('srcSubresource', VkImageSubresourceLayers),

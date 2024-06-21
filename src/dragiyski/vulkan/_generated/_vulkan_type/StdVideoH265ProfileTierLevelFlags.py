@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265ProfileTierLevelFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('general_tier_flag', ctypes.c_uint32, 1),
         ('general_progressive_source_flag', ctypes.c_uint32, 1),
@@ -8,5 +8,3 @@ class StdVideoH265ProfileTierLevelFlags(ctypes.Structure):
         ('general_non_packed_constraint_flag', ctypes.c_uint32, 1),
         ('general_frame_only_constraint_flag', ctypes.c_uint32, 1),
     ]
-
-sys.modules[__name__] = StdVideoH265ProfileTierLevelFlags

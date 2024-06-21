@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH264WeightTable(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoEncodeH264WeightTable
+from .StdVideoEncodeH264WeightTableFlags import CType as StdVideoEncodeH264WeightTableFlags
 
-from . import StdVideoEncodeH264WeightTableFlags
-
-StdVideoEncodeH264WeightTable._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoEncodeH264WeightTableFlags),
     ('luma_log2_weight_denom', ctypes.c_uint8),
     ('chroma_log2_weight_denom', ctypes.c_uint8),

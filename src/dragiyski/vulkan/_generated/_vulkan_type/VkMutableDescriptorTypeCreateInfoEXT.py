@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkMutableDescriptorTypeCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkMutableDescriptorTypeCreateInfoEXT
+from .VkMutableDescriptorTypeListEXT import CType as VkMutableDescriptorTypeListEXT
 
-from . import VkMutableDescriptorTypeListEXT
-
-VkMutableDescriptorTypeCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('mutableDescriptorTypeListCount', ctypes.c_uint32),

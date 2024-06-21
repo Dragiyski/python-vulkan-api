@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkBufferCollectionPropertiesFUCHSIA(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkBufferCollectionPropertiesFUCHSIA
+from .VkComponentMapping import CType as VkComponentMapping
+from .VkSysmemColorSpaceFUCHSIA import CType as VkSysmemColorSpaceFUCHSIA
 
-from . import VkComponentMapping
-from . import VkSysmemColorSpaceFUCHSIA
-
-VkBufferCollectionPropertiesFUCHSIA._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('memoryTypeBits', ctypes.c_uint32),

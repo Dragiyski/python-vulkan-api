@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265HrdFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('nal_hrd_parameters_present_flag', ctypes.c_uint32, 1),
         ('vcl_hrd_parameters_present_flag', ctypes.c_uint32, 1),
@@ -10,5 +10,3 @@ class StdVideoH265HrdFlags(ctypes.Structure):
         ('fixed_pic_rate_within_cvs_flag', ctypes.c_uint32, 8),
         ('low_delay_hrd_flag', ctypes.c_uint32, 8),
     ]
-
-sys.modules[__name__] = StdVideoH265HrdFlags

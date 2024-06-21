@@ -1,10 +1,8 @@
-import ctypes, sys
+import ctypes
 
-class VkMemoryPriorityAllocateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
         ('priority', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkMemoryPriorityAllocateInfoEXT

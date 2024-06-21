@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH264SpsFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('constraint_set0_flag', ctypes.c_uint32, 1),
         ('constraint_set1_flag', ctypes.c_uint32, 1),
@@ -19,5 +19,3 @@ class StdVideoH264SpsFlags(ctypes.Structure):
         ('seq_scaling_matrix_present_flag', ctypes.c_uint32, 1),
         ('vui_parameters_present_flag', ctypes.c_uint32, 1),
     ]
-
-sys.modules[__name__] = StdVideoH264SpsFlags

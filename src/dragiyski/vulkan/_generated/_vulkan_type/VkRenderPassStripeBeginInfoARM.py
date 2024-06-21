@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassStripeBeginInfoARM(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassStripeBeginInfoARM
+from .VkRenderPassStripeInfoARM import CType as VkRenderPassStripeInfoARM
 
-from . import VkRenderPassStripeInfoARM
-
-VkRenderPassStripeBeginInfoARM._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('stripeInfoCount', ctypes.c_uint32),

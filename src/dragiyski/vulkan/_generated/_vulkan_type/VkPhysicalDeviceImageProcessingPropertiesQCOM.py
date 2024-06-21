@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceImageProcessingPropertiesQCOM(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceImageProcessingPropertiesQCOM
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkPhysicalDeviceImageProcessingPropertiesQCOM._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('maxWeightFilterPhases', ctypes.c_uint32),

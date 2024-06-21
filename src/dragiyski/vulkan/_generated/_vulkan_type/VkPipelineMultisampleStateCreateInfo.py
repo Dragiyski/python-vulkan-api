@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineMultisampleStateCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -12,5 +12,3 @@ class VkPipelineMultisampleStateCreateInfo(ctypes.Structure):
         ('alphaToCoverageEnable', ctypes.c_uint32),
         ('alphaToOneEnable', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPipelineMultisampleStateCreateInfo

@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceProperties
+from .VkPhysicalDeviceLimits import CType as VkPhysicalDeviceLimits
+from .VkPhysicalDeviceSparseProperties import CType as VkPhysicalDeviceSparseProperties
 
-from . import VkPhysicalDeviceLimits
-from . import VkPhysicalDeviceSparseProperties
-
-VkPhysicalDeviceProperties._fields_ = [
+CType._fields_ = [
     ('apiVersion', ctypes.c_uint32),
     ('driverVersion', ctypes.c_uint32),
     ('vendorID', ctypes.c_uint32),

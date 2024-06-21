@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPastPresentationTimingGOOGLE(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('presentID', ctypes.c_uint32),
         ('desiredPresentTime', ctypes.c_uint64),
@@ -8,5 +8,3 @@ class VkPastPresentationTimingGOOGLE(ctypes.Structure):
         ('earliestPresentTime', ctypes.c_uint64),
         ('presentMargin', ctypes.c_uint64),
     ]
-
-sys.modules[__name__] = VkPastPresentationTimingGOOGLE

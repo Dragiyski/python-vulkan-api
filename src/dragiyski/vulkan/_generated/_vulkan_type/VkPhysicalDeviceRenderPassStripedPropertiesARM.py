@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceRenderPassStripedPropertiesARM(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceRenderPassStripedPropertiesARM
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkPhysicalDeviceRenderPassStripedPropertiesARM._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('renderPassStripeGranularity', VkExtent2D),

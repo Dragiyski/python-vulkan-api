@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1FilmGrain(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoAV1FilmGrain
+from .StdVideoAV1FilmGrainFlags import CType as StdVideoAV1FilmGrainFlags
 
-from . import StdVideoAV1FilmGrainFlags
-
-StdVideoAV1FilmGrain._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoAV1FilmGrainFlags),
     ('grain_scaling_minus_8', ctypes.c_uint8),
     ('ar_coeff_lag', ctypes.c_uint8),

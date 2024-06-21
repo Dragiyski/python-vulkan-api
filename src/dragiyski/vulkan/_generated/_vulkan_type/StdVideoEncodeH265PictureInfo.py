@@ -1,16 +1,14 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH265PictureInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoEncodeH265PictureInfo
+from .StdVideoEncodeH265LongTermRefPics import CType as StdVideoEncodeH265LongTermRefPics
+from .StdVideoEncodeH265PictureInfoFlags import CType as StdVideoEncodeH265PictureInfoFlags
+from .StdVideoEncodeH265ReferenceListsInfo import CType as StdVideoEncodeH265ReferenceListsInfo
+from .StdVideoH265ShortTermRefPicSet import CType as StdVideoH265ShortTermRefPicSet
 
-from . import StdVideoEncodeH265LongTermRefPics
-from . import StdVideoEncodeH265PictureInfoFlags
-from . import StdVideoEncodeH265ReferenceListsInfo
-from . import StdVideoH265ShortTermRefPicSet
-
-StdVideoEncodeH265PictureInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoEncodeH265PictureInfoFlags),
     ('pic_type', ctypes.c_int),
     ('sps_video_parameter_set_id', ctypes.c_uint8),

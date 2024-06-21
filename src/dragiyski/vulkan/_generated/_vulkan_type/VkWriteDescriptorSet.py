@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkWriteDescriptorSet(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkWriteDescriptorSet
+from .VkDescriptorBufferInfo import CType as VkDescriptorBufferInfo
+from .VkDescriptorImageInfo import CType as VkDescriptorImageInfo
 
-from . import VkDescriptorBufferInfo
-from . import VkDescriptorImageInfo
-
-VkWriteDescriptorSet._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('dstSet', ctypes.c_void_p),

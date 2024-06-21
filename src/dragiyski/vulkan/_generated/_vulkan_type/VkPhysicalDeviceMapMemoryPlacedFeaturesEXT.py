@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceMapMemoryPlacedFeaturesEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkPhysicalDeviceMapMemoryPlacedFeaturesEXT(ctypes.Structure):
         ('memoryMapRangePlaced', ctypes.c_uint32),
         ('memoryUnmapReserve', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceMapMemoryPlacedFeaturesEXT

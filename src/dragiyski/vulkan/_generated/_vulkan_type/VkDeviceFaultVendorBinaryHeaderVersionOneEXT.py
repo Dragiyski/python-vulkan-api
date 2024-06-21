@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkDeviceFaultVendorBinaryHeaderVersionOneEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('headerSize', ctypes.c_uint32),
         ('headerVersion', ctypes.c_int),
@@ -14,5 +14,3 @@ class VkDeviceFaultVendorBinaryHeaderVersionOneEXT(ctypes.Structure):
         ('engineVersion', ctypes.c_uint32),
         ('apiVersion', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkDeviceFaultVendorBinaryHeaderVersionOneEXT

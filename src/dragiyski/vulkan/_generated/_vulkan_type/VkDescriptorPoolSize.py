@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkDescriptorPoolSize(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('type', ctypes.c_int),
         ('descriptorCount', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkDescriptorPoolSize

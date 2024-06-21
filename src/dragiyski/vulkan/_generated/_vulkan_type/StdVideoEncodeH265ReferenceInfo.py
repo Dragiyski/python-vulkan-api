@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH265ReferenceInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoEncodeH265ReferenceInfo
+from .StdVideoEncodeH265ReferenceInfoFlags import CType as StdVideoEncodeH265ReferenceInfoFlags
 
-from . import StdVideoEncodeH265ReferenceInfoFlags
-
-StdVideoEncodeH265ReferenceInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoEncodeH265ReferenceInfoFlags),
     ('pic_type', ctypes.c_int),
     ('PicOrderCntVal', ctypes.c_int32),

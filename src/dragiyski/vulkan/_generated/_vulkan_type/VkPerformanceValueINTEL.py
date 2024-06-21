@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPerformanceValueINTEL(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPerformanceValueINTEL
+from .VkPerformanceValueDataINTEL import CType as VkPerformanceValueDataINTEL
 
-from . import VkPerformanceValueDataINTEL
-
-VkPerformanceValueINTEL._fields_ = [
+CType._fields_ = [
     ('type', ctypes.c_int),
     ('data', VkPerformanceValueDataINTEL),
 ]

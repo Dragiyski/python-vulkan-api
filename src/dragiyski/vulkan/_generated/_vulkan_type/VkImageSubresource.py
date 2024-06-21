@@ -1,10 +1,8 @@
-import ctypes, sys
+import ctypes
 
-class VkImageSubresource(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('aspectMask', ctypes.c_uint32),
         ('mipLevel', ctypes.c_uint32),
         ('arrayLayer', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkImageSubresource

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSparseImageFormatProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSparseImageFormatProperties
+from .VkExtent3D import CType as VkExtent3D
 
-from . import VkExtent3D
-
-VkSparseImageFormatProperties._fields_ = [
+CType._fields_ = [
     ('aspectMask', ctypes.c_uint32),
     ('imageGranularity', VkExtent3D),
     ('flags', ctypes.c_uint32),

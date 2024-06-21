@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkHostImageLayoutTransitionInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkHostImageLayoutTransitionInfoEXT
+from .VkImageSubresourceRange import CType as VkImageSubresourceRange
 
-from . import VkImageSubresourceRange
-
-VkHostImageLayoutTransitionInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('image', ctypes.c_void_p),

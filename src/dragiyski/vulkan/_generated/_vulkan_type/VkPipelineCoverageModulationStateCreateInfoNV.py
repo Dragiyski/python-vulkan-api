@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineCoverageModulationStateCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -10,5 +10,3 @@ class VkPipelineCoverageModulationStateCreateInfoNV(ctypes.Structure):
         ('coverageModulationTableCount', ctypes.c_uint32),
         ('pCoverageModulationTable', ctypes.POINTER(ctypes.c_float)),
     ]
-
-sys.modules[__name__] = VkPipelineCoverageModulationStateCreateInfoNV

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH264PictureInfoFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('IdrPicFlag', ctypes.c_uint32, 1),
         ('is_reference', ctypes.c_uint32, 1),
@@ -9,5 +9,3 @@ class StdVideoEncodeH264PictureInfoFlags(ctypes.Structure):
         ('adaptive_ref_pic_marking_mode_flag', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 27),
     ]
-
-sys.modules[__name__] = StdVideoEncodeH264PictureInfoFlags

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineColorBlendAttachmentState(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('blendEnable', ctypes.c_uint32),
         ('srcColorBlendFactor', ctypes.c_int),
@@ -11,5 +11,3 @@ class VkPipelineColorBlendAttachmentState(ctypes.Structure):
         ('alphaBlendOp', ctypes.c_int),
         ('colorWriteMask', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPipelineColorBlendAttachmentState

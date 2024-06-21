@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkSampleLocationEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('x', ctypes.c_float),
         ('y', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkSampleLocationEXT

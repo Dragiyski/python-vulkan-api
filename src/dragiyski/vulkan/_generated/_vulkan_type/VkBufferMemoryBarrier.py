@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkBufferMemoryBarrier(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -12,5 +12,3 @@ class VkBufferMemoryBarrier(ctypes.Structure):
         ('offset', ctypes.c_uint64),
         ('size', ctypes.c_uint64),
     ]
-
-sys.modules[__name__] = VkBufferMemoryBarrier

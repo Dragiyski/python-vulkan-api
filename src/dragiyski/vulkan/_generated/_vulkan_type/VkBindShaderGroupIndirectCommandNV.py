@@ -1,8 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkBindShaderGroupIndirectCommandNV(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('groupIndex', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkBindShaderGroupIndirectCommandNV

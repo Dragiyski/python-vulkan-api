@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkDisplayPlaneCapabilitiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDisplayPlaneCapabilitiesKHR
+from .VkExtent2D import CType as VkExtent2D
+from .VkOffset2D import CType as VkOffset2D
 
-from . import VkExtent2D
-from . import VkOffset2D
-
-VkDisplayPlaneCapabilitiesKHR._fields_ = [
+CType._fields_ = [
     ('supportedAlpha', ctypes.c_uint32),
     ('minSrcPosition', VkOffset2D),
     ('maxSrcPosition', VkOffset2D),

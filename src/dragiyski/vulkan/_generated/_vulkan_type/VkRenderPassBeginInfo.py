@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassBeginInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassBeginInfo
+from .VkClearValue import CType as VkClearValue
+from .VkRect2D import CType as VkRect2D
 
-from . import VkClearValue
-from . import VkRect2D
-
-VkRenderPassBeginInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('renderPass', ctypes.c_void_p),

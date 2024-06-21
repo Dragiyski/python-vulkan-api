@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkClearRect(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkClearRect
+from .VkRect2D import CType as VkRect2D
 
-from . import VkRect2D
-
-VkClearRect._fields_ = [
+CType._fields_ = [
     ('rect', VkRect2D),
     ('baseArrayLayer', ctypes.c_uint32),
     ('layerCount', ctypes.c_uint32),

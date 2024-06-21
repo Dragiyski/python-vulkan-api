@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSparseImageMemoryRequirements2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSparseImageMemoryRequirements2
+from .VkSparseImageMemoryRequirements import CType as VkSparseImageMemoryRequirements
 
-from . import VkSparseImageMemoryRequirements
-
-VkSparseImageMemoryRequirements2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('memoryRequirements', VkSparseImageMemoryRequirements),

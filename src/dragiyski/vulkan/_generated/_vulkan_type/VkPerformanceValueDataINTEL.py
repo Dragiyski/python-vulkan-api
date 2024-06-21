@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPerformanceValueDataINTEL(ctypes.Union):
+class CType(ctypes.Union):
     _fields_ = [
         ('value32', ctypes.c_uint32),
         ('value64', ctypes.c_uint64),
@@ -8,5 +8,3 @@ class VkPerformanceValueDataINTEL(ctypes.Union):
         ('valueBool', ctypes.c_uint32),
         ('valueString', ctypes.c_char_p),
     ]
-
-sys.modules[__name__] = VkPerformanceValueDataINTEL

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkBlitImageInfo2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkBlitImageInfo2
+from .VkImageBlit2 import CType as VkImageBlit2
 
-from . import VkImageBlit2
-
-VkBlitImageInfo2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('srcImage', ctypes.c_void_p),

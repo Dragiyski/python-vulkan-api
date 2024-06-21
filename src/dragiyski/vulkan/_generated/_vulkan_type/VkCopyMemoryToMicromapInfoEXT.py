@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkCopyMemoryToMicromapInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkCopyMemoryToMicromapInfoEXT
+from .VkDeviceOrHostAddressConstKHR import CType as VkDeviceOrHostAddressConstKHR
 
-from . import VkDeviceOrHostAddressConstKHR
-
-VkCopyMemoryToMicromapInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('src', VkDeviceOrHostAddressConstKHR),

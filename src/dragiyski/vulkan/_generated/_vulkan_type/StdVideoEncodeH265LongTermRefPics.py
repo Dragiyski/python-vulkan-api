@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH265LongTermRefPics(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('num_long_term_sps', ctypes.c_uint8),
         ('num_long_term_pics', ctypes.c_uint8),
@@ -10,5 +10,3 @@ class StdVideoEncodeH265LongTermRefPics(ctypes.Structure):
         ('delta_poc_msb_present_flag', ctypes.ARRAY(ctypes.c_uint8, 48)),
         ('delta_poc_msb_cycle_lt', ctypes.ARRAY(ctypes.c_uint8, 48)),
     ]
-
-sys.modules[__name__] = StdVideoEncodeH265LongTermRefPics

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkLayerSettingsCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkLayerSettingsCreateInfoEXT
+from .VkLayerSettingEXT import CType as VkLayerSettingEXT
 
-from . import VkLayerSettingEXT
-
-VkLayerSettingsCreateInfoEXT._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('settingCount', ctypes.c_uint32),

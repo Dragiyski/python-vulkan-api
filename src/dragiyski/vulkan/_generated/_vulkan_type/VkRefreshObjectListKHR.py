@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkRefreshObjectListKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRefreshObjectListKHR
+from .VkRefreshObjectKHR import CType as VkRefreshObjectKHR
 
-from . import VkRefreshObjectKHR
-
-VkRefreshObjectListKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('objectCount', ctypes.c_uint32),

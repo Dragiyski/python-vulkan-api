@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSurfaceFormat2KHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSurfaceFormat2KHR
+from .VkSurfaceFormatKHR import CType as VkSurfaceFormatKHR
 
-from . import VkSurfaceFormatKHR
-
-VkSurfaceFormat2KHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('surfaceFormat', VkSurfaceFormatKHR),

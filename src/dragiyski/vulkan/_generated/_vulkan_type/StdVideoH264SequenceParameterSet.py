@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH264SequenceParameterSet(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoH264SequenceParameterSet
+from .StdVideoH264ScalingLists import CType as StdVideoH264ScalingLists
+from .StdVideoH264SequenceParameterSetVui import CType as StdVideoH264SequenceParameterSetVui
+from .StdVideoH264SpsFlags import CType as StdVideoH264SpsFlags
 
-from . import StdVideoH264ScalingLists
-from . import StdVideoH264SequenceParameterSetVui
-from . import StdVideoH264SpsFlags
-
-StdVideoH264SequenceParameterSet._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoH264SpsFlags),
     ('profile_idc', ctypes.c_int),
     ('level_idc', ctypes.c_int),

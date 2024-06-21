@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoH265PpsFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('dependent_slice_segments_enabled_flag', ctypes.c_uint32, 1),
         ('output_flag_present_flag', ctypes.c_uint32, 1),
@@ -34,5 +34,3 @@ class StdVideoH265PpsFlags(ctypes.Structure):
         ('monochrome_palette_flag', ctypes.c_uint32, 1),
         ('pps_range_extension_flag', ctypes.c_uint32, 1),
     ]
-
-sys.modules[__name__] = StdVideoH265PpsFlags

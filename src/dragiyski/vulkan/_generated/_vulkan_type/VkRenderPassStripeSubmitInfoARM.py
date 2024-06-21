@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassStripeSubmitInfoARM(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassStripeSubmitInfoARM
+from .VkSemaphoreSubmitInfo import CType as VkSemaphoreSubmitInfo
 
-from . import VkSemaphoreSubmitInfo
-
-VkRenderPassStripeSubmitInfoARM._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('stripeSemaphoreInfoCount', ctypes.c_uint32),

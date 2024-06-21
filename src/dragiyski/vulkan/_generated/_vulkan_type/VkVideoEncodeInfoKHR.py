@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoEncodeInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoEncodeInfoKHR
+from .VkVideoPictureResourceInfoKHR import CType as VkVideoPictureResourceInfoKHR
+from .VkVideoReferenceSlotInfoKHR import CType as VkVideoReferenceSlotInfoKHR
 
-from . import VkVideoPictureResourceInfoKHR
-from . import VkVideoReferenceSlotInfoKHR
-
-VkVideoEncodeInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

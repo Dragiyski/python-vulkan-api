@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkAccelerationStructureGeometryAabbsDataKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkAccelerationStructureGeometryAabbsDataKHR
+from .VkDeviceOrHostAddressConstKHR import CType as VkDeviceOrHostAddressConstKHR
 
-from . import VkDeviceOrHostAddressConstKHR
-
-VkAccelerationStructureGeometryAabbsDataKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('data', VkDeviceOrHostAddressConstKHR),

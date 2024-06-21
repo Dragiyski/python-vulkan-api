@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkGraphicsShaderGroupCreateInfoNV(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkGraphicsShaderGroupCreateInfoNV
+from .VkPipelineShaderStageCreateInfo import CType as VkPipelineShaderStageCreateInfo
+from .VkPipelineTessellationStateCreateInfo import CType as VkPipelineTessellationStateCreateInfo
+from .VkPipelineVertexInputStateCreateInfo import CType as VkPipelineVertexInputStateCreateInfo
 
-from . import VkPipelineShaderStageCreateInfo
-from . import VkPipelineTessellationStateCreateInfo
-from . import VkPipelineVertexInputStateCreateInfo
-
-VkGraphicsShaderGroupCreateInfoNV._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('stageCount', ctypes.c_uint32),

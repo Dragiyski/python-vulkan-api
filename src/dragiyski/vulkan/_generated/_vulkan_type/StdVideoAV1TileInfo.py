@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1TileInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoAV1TileInfo
+from .StdVideoAV1TileInfoFlags import CType as StdVideoAV1TileInfoFlags
 
-from . import StdVideoAV1TileInfoFlags
-
-StdVideoAV1TileInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoAV1TileInfoFlags),
     ('TileCols', ctypes.c_uint8),
     ('TileRows', ctypes.c_uint8),

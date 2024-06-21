@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSparseBufferMemoryBindInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSparseBufferMemoryBindInfo
+from .VkSparseMemoryBind import CType as VkSparseMemoryBind
 
-from . import VkSparseMemoryBind
-
-VkSparseBufferMemoryBindInfo._fields_ = [
+CType._fields_ = [
     ('buffer', ctypes.c_void_p),
     ('bindCount', ctypes.c_uint32),
     ('pBinds', ctypes.POINTER(VkSparseMemoryBind)),

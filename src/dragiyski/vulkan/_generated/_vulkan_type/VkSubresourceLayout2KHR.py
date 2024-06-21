@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSubresourceLayout2KHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSubresourceLayout2KHR
+from .VkSubresourceLayout import CType as VkSubresourceLayout
 
-from . import VkSubresourceLayout
-
-VkSubresourceLayout2KHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('subresourceLayout', VkSubresourceLayout),

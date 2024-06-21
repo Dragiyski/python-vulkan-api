@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPerformanceCounterResultKHR(ctypes.Union):
+class CType(ctypes.Union):
     _fields_ = [
         ('int32', ctypes.c_int32),
         ('int64', ctypes.c_int64),
@@ -9,5 +9,3 @@ class VkPerformanceCounterResultKHR(ctypes.Union):
         ('float32', ctypes.c_float),
         ('float64', ctypes.c_double),
     ]
-
-sys.modules[__name__] = VkPerformanceCounterResultKHR

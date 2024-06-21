@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceVideoEncodeQualityLevelInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkPhysicalDeviceVideoEncodeQualityLevelInfoKHR
+from .VkVideoProfileInfoKHR import CType as VkVideoProfileInfoKHR
 
-from . import VkVideoProfileInfoKHR
-
-VkPhysicalDeviceVideoEncodeQualityLevelInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pVideoProfile', ctypes.POINTER(VkVideoProfileInfoKHR)),

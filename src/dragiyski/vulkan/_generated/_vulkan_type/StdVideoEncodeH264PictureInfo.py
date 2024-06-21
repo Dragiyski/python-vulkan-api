@@ -1,14 +1,12 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH264PictureInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoEncodeH264PictureInfo
+from .StdVideoEncodeH264PictureInfoFlags import CType as StdVideoEncodeH264PictureInfoFlags
+from .StdVideoEncodeH264ReferenceListsInfo import CType as StdVideoEncodeH264ReferenceListsInfo
 
-from . import StdVideoEncodeH264PictureInfoFlags
-from . import StdVideoEncodeH264ReferenceListsInfo
-
-StdVideoEncodeH264PictureInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoEncodeH264PictureInfoFlags),
     ('seq_parameter_set_id', ctypes.c_uint8),
     ('pic_parameter_set_id', ctypes.c_uint8),

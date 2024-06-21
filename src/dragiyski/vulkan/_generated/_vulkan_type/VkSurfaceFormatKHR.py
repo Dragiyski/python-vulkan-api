@@ -1,9 +1,7 @@
-import ctypes, sys
+import ctypes
 
-class VkSurfaceFormatKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('format', ctypes.c_int),
         ('colorSpace', ctypes.c_int),
     ]
-
-sys.modules[__name__] = VkSurfaceFormatKHR

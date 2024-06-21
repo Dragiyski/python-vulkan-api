@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkCopyImageToBufferInfo2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkCopyImageToBufferInfo2
+from .VkBufferImageCopy2 import CType as VkBufferImageCopy2
 
-from . import VkBufferImageCopy2
-
-VkCopyImageToBufferInfo2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('srcImage', ctypes.c_void_p),

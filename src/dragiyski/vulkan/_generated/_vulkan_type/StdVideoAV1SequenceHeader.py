@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoAV1SequenceHeader(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoAV1SequenceHeader
+from .StdVideoAV1ColorConfig import CType as StdVideoAV1ColorConfig
+from .StdVideoAV1SequenceHeaderFlags import CType as StdVideoAV1SequenceHeaderFlags
+from .StdVideoAV1TimingInfo import CType as StdVideoAV1TimingInfo
 
-from . import StdVideoAV1ColorConfig
-from . import StdVideoAV1SequenceHeaderFlags
-from . import StdVideoAV1TimingInfo
-
-StdVideoAV1SequenceHeader._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoAV1SequenceHeaderFlags),
     ('seq_profile', ctypes.c_int),
     ('frame_width_bits_minus_1', ctypes.c_uint8),

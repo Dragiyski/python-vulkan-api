@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSparseImageMemoryRequirements(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSparseImageMemoryRequirements
+from .VkSparseImageFormatProperties import CType as VkSparseImageFormatProperties
 
-from . import VkSparseImageFormatProperties
-
-VkSparseImageMemoryRequirements._fields_ = [
+CType._fields_ = [
     ('formatProperties', VkSparseImageFormatProperties),
     ('imageMipTailFirstLod', ctypes.c_uint32),
     ('imageMipTailSize', ctypes.c_uint64),

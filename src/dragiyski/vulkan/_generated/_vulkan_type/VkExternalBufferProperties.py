@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkExternalBufferProperties(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkExternalBufferProperties
+from .VkExternalMemoryProperties import CType as VkExternalMemoryProperties
 
-from . import VkExternalMemoryProperties
-
-VkExternalBufferProperties._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('externalMemoryProperties', VkExternalMemoryProperties),

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDisplayPropertiesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDisplayPropertiesKHR
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkDisplayPropertiesKHR._fields_ = [
+CType._fields_ = [
     ('display', ctypes.c_void_p),
     ('displayName', ctypes.c_char_p),
     ('physicalDimensions', VkExtent2D),

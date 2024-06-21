@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkShaderResourceUsageAMD(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('numUsedVgprs', ctypes.c_uint32),
         ('numUsedSgprs', ctypes.c_uint32),
@@ -8,5 +8,3 @@ class VkShaderResourceUsageAMD(ctypes.Structure):
         ('ldsUsageSizeInBytes', ctypes.c_size_t),
         ('scratchMemUsageInBytes', ctypes.c_size_t),
     ]
-
-sys.modules[__name__] = VkShaderResourceUsageAMD

@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkSpecializationInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkSpecializationInfo
+from .VkSpecializationMapEntry import CType as VkSpecializationMapEntry
 
-from . import VkSpecializationMapEntry
-
-VkSpecializationInfo._fields_ = [
+CType._fields_ = [
     ('mapEntryCount', ctypes.c_uint32),
     ('pMapEntries', ctypes.POINTER(VkSpecializationMapEntry)),
     ('dataSize', ctypes.c_size_t),

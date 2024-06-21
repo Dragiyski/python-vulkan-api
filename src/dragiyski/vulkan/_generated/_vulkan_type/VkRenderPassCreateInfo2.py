@@ -1,15 +1,13 @@
-import ctypes, sys
+import ctypes
 
-class VkRenderPassCreateInfo2(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkRenderPassCreateInfo2
+from .VkAttachmentDescription2 import CType as VkAttachmentDescription2
+from .VkSubpassDependency2 import CType as VkSubpassDependency2
+from .VkSubpassDescription2 import CType as VkSubpassDescription2
 
-from . import VkAttachmentDescription2
-from . import VkSubpassDependency2
-from . import VkSubpassDescription2
-
-VkRenderPassCreateInfo2._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),

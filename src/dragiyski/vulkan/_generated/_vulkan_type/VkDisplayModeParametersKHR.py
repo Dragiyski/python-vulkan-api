@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkDisplayModeParametersKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkDisplayModeParametersKHR
+from .VkExtent2D import CType as VkExtent2D
 
-from . import VkExtent2D
-
-VkDisplayModeParametersKHR._fields_ = [
+CType._fields_ = [
     ('visibleRegion', VkExtent2D),
     ('refreshRate', ctypes.c_uint32),
 ]

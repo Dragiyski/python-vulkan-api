@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoDecodeH264PictureInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = StdVideoDecodeH264PictureInfo
+from .StdVideoDecodeH264PictureInfoFlags import CType as StdVideoDecodeH264PictureInfoFlags
 
-from . import StdVideoDecodeH264PictureInfoFlags
-
-StdVideoDecodeH264PictureInfo._fields_ = [
+CType._fields_ = [
     ('flags', StdVideoDecodeH264PictureInfoFlags),
     ('seq_parameter_set_id', ctypes.c_uint8),
     ('pic_parameter_set_id', ctypes.c_uint8),

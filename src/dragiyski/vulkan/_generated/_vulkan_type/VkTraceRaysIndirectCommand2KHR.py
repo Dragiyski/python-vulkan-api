@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkTraceRaysIndirectCommand2KHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('raygenShaderRecordAddress', ctypes.c_uint64),
         ('raygenShaderRecordSize', ctypes.c_uint64),
@@ -17,5 +17,3 @@ class VkTraceRaysIndirectCommand2KHR(ctypes.Structure):
         ('height', ctypes.c_uint32),
         ('depth', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkTraceRaysIndirectCommand2KHR

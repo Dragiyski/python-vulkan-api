@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkSparseMemoryBind(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('resourceOffset', ctypes.c_uint64),
         ('size', ctypes.c_uint64),
@@ -8,5 +8,3 @@ class VkSparseMemoryBind(ctypes.Structure):
         ('memoryOffset', ctypes.c_uint64),
         ('flags', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkSparseMemoryBind

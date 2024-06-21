@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceLimits(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('maxImageDimension1D', ctypes.c_uint32),
         ('maxImageDimension2D', ctypes.c_uint32),
@@ -109,5 +109,3 @@ class VkPhysicalDeviceLimits(ctypes.Structure):
         ('optimalBufferCopyRowPitchAlignment', ctypes.c_uint64),
         ('nonCoherentAtomSize', ctypes.c_uint64),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceLimits

@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class StdVideoEncodeH265PictureInfoFlags(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('is_reference', ctypes.c_uint32, 1),
         ('IrapPicFlag', ctypes.c_uint32, 1),
@@ -13,5 +13,3 @@ class StdVideoEncodeH265PictureInfoFlags(ctypes.Structure):
         ('slice_temporal_mvp_enabled_flag', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 23),
     ]
-
-sys.modules[__name__] = StdVideoEncodeH265PictureInfoFlags

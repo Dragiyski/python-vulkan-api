@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -9,5 +9,3 @@ class VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(ctypes.Structure)
         ('workgroupMemoryExplicitLayout8BitAccess', ctypes.c_uint32),
         ('workgroupMemoryExplicitLayout16BitAccess', ctypes.c_uint32),
     ]
-
-sys.modules[__name__] = VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR

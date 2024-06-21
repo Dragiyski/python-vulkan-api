@@ -1,8 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkTransformMatrixKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('matrix', ctypes.ARRAY(ctypes.ARRAY(ctypes.c_float, 4), 3)),
     ]
-
-sys.modules[__name__] = VkTransformMatrixKHR

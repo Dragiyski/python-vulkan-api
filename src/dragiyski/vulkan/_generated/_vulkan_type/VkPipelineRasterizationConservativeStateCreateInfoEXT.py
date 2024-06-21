@@ -1,6 +1,6 @@
-import ctypes, sys
+import ctypes
 
-class VkPipelineRasterizationConservativeStateCreateInfoEXT(ctypes.Structure):
+class CType(ctypes.Structure):
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,5 +8,3 @@ class VkPipelineRasterizationConservativeStateCreateInfoEXT(ctypes.Structure):
         ('conservativeRasterizationMode', ctypes.c_int),
         ('extraPrimitiveOverestimationSize', ctypes.c_float),
     ]
-
-sys.modules[__name__] = VkPipelineRasterizationConservativeStateCreateInfoEXT

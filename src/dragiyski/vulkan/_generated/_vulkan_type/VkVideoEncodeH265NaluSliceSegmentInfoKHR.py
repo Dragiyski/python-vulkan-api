@@ -1,13 +1,11 @@
-import ctypes, sys
+import ctypes
 
-class VkVideoEncodeH265NaluSliceSegmentInfoKHR(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkVideoEncodeH265NaluSliceSegmentInfoKHR
+from .StdVideoEncodeH265SliceSegmentHeader import CType as StdVideoEncodeH265SliceSegmentHeader
 
-from . import StdVideoEncodeH265SliceSegmentHeader
-
-VkVideoEncodeH265NaluSliceSegmentInfoKHR._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('constantQp', ctypes.c_int32),

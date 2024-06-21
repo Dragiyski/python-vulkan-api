@@ -1,22 +1,20 @@
-import ctypes, sys
+import ctypes
 
-class VkGraphicsPipelineCreateInfo(ctypes.Structure):
+class CType(ctypes.Structure):
     pass
 
-sys.modules[__name__] = VkGraphicsPipelineCreateInfo
+from .VkPipelineColorBlendStateCreateInfo import CType as VkPipelineColorBlendStateCreateInfo
+from .VkPipelineDepthStencilStateCreateInfo import CType as VkPipelineDepthStencilStateCreateInfo
+from .VkPipelineDynamicStateCreateInfo import CType as VkPipelineDynamicStateCreateInfo
+from .VkPipelineInputAssemblyStateCreateInfo import CType as VkPipelineInputAssemblyStateCreateInfo
+from .VkPipelineMultisampleStateCreateInfo import CType as VkPipelineMultisampleStateCreateInfo
+from .VkPipelineRasterizationStateCreateInfo import CType as VkPipelineRasterizationStateCreateInfo
+from .VkPipelineShaderStageCreateInfo import CType as VkPipelineShaderStageCreateInfo
+from .VkPipelineTessellationStateCreateInfo import CType as VkPipelineTessellationStateCreateInfo
+from .VkPipelineVertexInputStateCreateInfo import CType as VkPipelineVertexInputStateCreateInfo
+from .VkPipelineViewportStateCreateInfo import CType as VkPipelineViewportStateCreateInfo
 
-from . import VkPipelineColorBlendStateCreateInfo
-from . import VkPipelineDepthStencilStateCreateInfo
-from . import VkPipelineDynamicStateCreateInfo
-from . import VkPipelineInputAssemblyStateCreateInfo
-from . import VkPipelineMultisampleStateCreateInfo
-from . import VkPipelineRasterizationStateCreateInfo
-from . import VkPipelineShaderStageCreateInfo
-from . import VkPipelineTessellationStateCreateInfo
-from . import VkPipelineVertexInputStateCreateInfo
-from . import VkPipelineViewportStateCreateInfo
-
-VkGraphicsPipelineCreateInfo._fields_ = [
+CType._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('flags', ctypes.c_uint32),
