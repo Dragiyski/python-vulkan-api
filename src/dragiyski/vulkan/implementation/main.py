@@ -59,16 +59,16 @@ class VkExtension(str):
 
 class VkGlobal:
     def __init__(self, loader = Loader()):
-        self._loader = loader
+        self._loader_ = loader
 
     def enumerate_instance_version(self, *, use_api_version = True):
-        vkEnumerateInstanceVersion = self._loader.vkEnumerateInstanceVersion
+        vkEnumerateInstanceVersion = self._loader_.vkEnumerateInstanceVersion
         c_version = vkEnumerateInstanceVersion.argtypes[0]._type_()
         VkException.check(vkEnumerateInstanceVersion(ctypes.byref(c_version)))
         return (VkApiVersion if use_api_version else VkVersion)(c_version.value)
     
     def enumerate_instance_layer_properties(self):
-        vkEnumerateInstanceLayerProperties = self._loader.vkEnumerateInstanceLayerProperties
+        vkEnumerateInstanceLayerProperties = self._loader_.vkEnumerateInstanceLayerProperties
         length = vkEnumerateInstanceLayerProperties.argtypes[0]._type_(0)
         try:
             VkException.check(vkEnumerateInstanceLayerProperties(ctypes.byref(length), None))
@@ -91,7 +91,7 @@ class VkGlobal:
         if layer is not None:
             if isinstance(layer, str):
                 layer = layer.encode()
-        vkEnumerateInstanceExtensionProperties = self._loader.vkEnumerateInstanceExtensionProperties
+        vkEnumerateInstanceExtensionProperties = self._loader_.vkEnumerateInstanceExtensionProperties
         length = vkEnumerateInstanceExtensionProperties.argtypes[1]._type_(0)
         try:
             VkException.check(vkEnumerateInstanceExtensionProperties(layer, ctypes.byref(length), None))

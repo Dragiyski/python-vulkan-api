@@ -4,3 +4,4 @@ from ._generated.vulkan_command import *
 from ._generated.vulkan_enum import *
 from ._generated.vulkan_value import *
 from ._generated.vulkan_type import *
+from ._generated.vulkan_handle import *

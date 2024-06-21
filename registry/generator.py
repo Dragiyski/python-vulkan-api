@@ -357,11 +357,16 @@ class Generator:
         code.append('')
         return linesep.join(code)
     
-    def _generate_command_loader_source(self, context: Context):
-        code = []
-
-        global_functions = [k for k, v in context.command_map.items() if 'handle' not in 'v']
-        instance_functions = [k for k, v in context.command_map.items() if 'handle' not in 'v']
+    def _generate_handle_source(self, context: Context):
+        code = ['import ctypes', '']
+        for name in sorted(context.type_node_map['handle']):
+            ctype = context.ctypes_map[name]
+            code.append('%s = %s' % (name, ctype.to_source()))
+        code.extend(['', '__all__ = ['])
+        for name in sorted(context.type_node_map['handle']):
+            code.append('    %r,' % name)
+        code.extend([']', ''])
+        return linesep.join(code)
     
     def generate(self, context: Context):
         self.base_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
@@ -393,6 +398,9 @@ class Generator:
                 file.write(source)
         source = self._generate_struct_public_source(context)
         with open(self.base_dir.joinpath('vulkan_type.py'), 'w') as file:
+            file.write(source)
+        source = self._generate_handle_source(context)
+        with open(self.base_dir.joinpath('vulkan_handle.py'), 'w') as file:
             file.write(source)
         source = self._generate_command_source(context)
         with open(self.base_dir.joinpath('vulkan_command.py'), 'w') as file:
