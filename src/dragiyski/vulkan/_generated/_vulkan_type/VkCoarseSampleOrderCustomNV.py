@@ -11,3 +11,24 @@ CType._fields_ = [
     ('sampleLocationCount', ctypes.c_uint32),
     ('pSampleLocations', ctypes.POINTER(VkCoarseSampleLocationNV)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkCoarseSampleLocationNV',
+    },
+    'included_in': {
+        'VkPipelineViewportCoarseSampleOrderStateCreateInfoNV',
+    },
+    'input_of': {
+        'vkCmdSetCoarseSampleOrderNV',
+    },
+    'output_of': set(),
+    'member_map': {
+        'shadingRate': {'python_name': ['shading', 'rate'], 'type': 'VkShadingRatePaletteEntryNV'},
+        'sampleCount': {'python_name': ['sample', 'count']},
+        'sampleLocationCount': {'python_name': ['sample', 'location', 'count']},
+        'pSampleLocations': {'python_name': ['p', 'sample', 'locations'], 'len': [['sampleLocationCount']], 'type': 'VkCoarseSampleLocationNV'},
+    }
+}

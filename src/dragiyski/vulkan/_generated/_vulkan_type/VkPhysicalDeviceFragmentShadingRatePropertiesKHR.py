@@ -26,3 +26,37 @@ CType._fields_ = [
     ('fragmentShadingRateWithCustomSampleLocations', ctypes.c_uint32),
     ('fragmentShadingRateStrictMultiplyCombiner', ctypes.c_uint32),
 ]
+
+descriptor = {
+    'extends': {
+        'VkPhysicalDeviceProperties2',
+    },
+    'extended_by': set(),
+    'includes': {
+        'VkExtent2D',
+    },
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'minFragmentShadingRateAttachmentTexelSize': {'python_name': ['min', 'fragment', 'shading', 'rate', 'attachment', 'texel', 'size'], 'type': 'VkExtent2D'},
+        'maxFragmentShadingRateAttachmentTexelSize': {'python_name': ['max', 'fragment', 'shading', 'rate', 'attachment', 'texel', 'size'], 'type': 'VkExtent2D'},
+        'maxFragmentShadingRateAttachmentTexelSizeAspectRatio': {'python_name': ['max', 'fragment', 'shading', 'rate', 'attachment', 'texel', 'size', 'aspect', 'ratio']},
+        'primitiveFragmentShadingRateWithMultipleViewports': {'python_name': ['primitive', 'fragment', 'shading', 'rate', 'with', 'multiple', 'viewports']},
+        'layeredShadingRateAttachments': {'python_name': ['layered', 'shading', 'rate', 'attachments']},
+        'fragmentShadingRateNonTrivialCombinerOps': {'python_name': ['fragment', 'shading', 'rate', 'non', 'trivial', 'combiner', 'ops']},
+        'maxFragmentSize': {'python_name': ['max', 'fragment', 'size'], 'type': 'VkExtent2D'},
+        'maxFragmentSizeAspectRatio': {'python_name': ['max', 'fragment', 'size', 'aspect', 'ratio']},
+        'maxFragmentShadingRateCoverageSamples': {'python_name': ['max', 'fragment', 'shading', 'rate', 'coverage', 'samples']},
+        'maxFragmentShadingRateRasterizationSamples': {'python_name': ['max', 'fragment', 'shading', 'rate', 'rasterization', 'samples'], 'type': 'VkSampleCountFlagBits'},
+        'fragmentShadingRateWithShaderDepthStencilWrites': {'python_name': ['fragment', 'shading', 'rate', 'with', 'shader', 'depth', 'stencil', 'writes']},
+        'fragmentShadingRateWithSampleMask': {'python_name': ['fragment', 'shading', 'rate', 'with', 'sample', 'mask']},
+        'fragmentShadingRateWithShaderSampleMask': {'python_name': ['fragment', 'shading', 'rate', 'with', 'shader', 'sample', 'mask']},
+        'fragmentShadingRateWithConservativeRasterization': {'python_name': ['fragment', 'shading', 'rate', 'with', 'conservative', 'rasterization']},
+        'fragmentShadingRateWithFragmentShaderInterlock': {'python_name': ['fragment', 'shading', 'rate', 'with', 'fragment', 'shader', 'interlock']},
+        'fragmentShadingRateWithCustomSampleLocations': {'python_name': ['fragment', 'shading', 'rate', 'with', 'custom', 'sample', 'locations']},
+        'fragmentShadingRateStrictMultiplyCombiner': {'python_name': ['fragment', 'shading', 'rate', 'strict', 'multiply', 'combiner']},
+    }
+}

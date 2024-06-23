@@ -22,3 +22,35 @@ CType._fields_ = [
     ('triangleArray', VkDeviceOrHostAddressConstKHR),
     ('triangleArrayStride', ctypes.c_uint64),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkDeviceOrHostAddressConstKHR',
+        'VkDeviceOrHostAddressKHR',
+        'VkMicromapUsageEXT',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkBuildMicromapsEXT',
+        'vkCmdBuildMicromapsEXT',
+        'vkGetMicromapBuildSizesEXT',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_MICROMAP_BUILD_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'type': {'python_name': ['type'], 'type': 'VkMicromapTypeEXT'},
+        'flags': {'python_name': ['flags'], 'type': 'VkBuildMicromapFlagsEXT'},
+        'mode': {'python_name': ['mode'], 'type': 'VkBuildMicromapModeEXT'},
+        'dstMicromap': {'python_name': ['dst', 'micromap']},
+        'usageCountsCount': {'python_name': ['usage', 'counts', 'count']},
+        'pUsageCounts': {'python_name': ['p', 'usage', 'counts'], 'len': [['usageCountsCount']], 'type': 'VkMicromapUsageEXT'},
+        'ppUsageCounts': {'python_name': ['pp', 'usage', 'counts'], 'len': [['usageCountsCount'], ['1']], 'type': 'VkMicromapUsageEXT'},
+        'data': {'python_name': ['data'], 'type': 'VkDeviceOrHostAddressConstKHR'},
+        'scratchData': {'python_name': ['scratch', 'data'], 'type': 'VkDeviceOrHostAddressKHR'},
+        'triangleArray': {'python_name': ['triangle', 'array'], 'type': 'VkDeviceOrHostAddressConstKHR'},
+        'triangleArrayStride': {'python_name': ['triangle', 'array', 'stride']},
+    }
+}

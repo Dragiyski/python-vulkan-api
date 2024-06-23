@@ -181,6 +181,46 @@ class Generator:
         if name in complex_member_types:
             code.append('del %s' % name)
         code.append('')
+        struct_desc = context.struct_map[name]
+        code.append('descriptor = {')
+        for desc_name in ['extends', 'extended_by', 'includes', 'included_in', 'input_of', 'output_of']:
+            desc_value = struct_desc[desc_name]
+            if len(desc_value) > 0:
+                code.append('    %r: {' % desc_name)
+                for ref_name in sorted(desc_value):
+                    code.append('        %r,' % ref_name)
+                code.append('    },')
+            else:
+                code.append('    %r: set(),' % desc_name)
+        # TODO: Add python_name and other properties of the members in a key "properties" (we need @len parsed and maybe @externsync)
+        code.append('    %r: {' % 'member_map')
+        for member_name in ctype.member_list:
+            member_desc = ctype.member_map[member_name]
+            # Python name pointers prefix must be excluded.
+            # To exclude any kind of prefixes we can use regular expression r'([a-z])\1*',
+            # that is matching [a-z] and 0 or more repetition of everything in the first capture group
+            # We can use re.fullmatch against the first index in python_name
+
+            # len is an array or arrays that can contain member names and "null-terminated"
+            # if an array contain a member names, the first item is name of a member in this structure. If a second item appears,
+            # the first item should refer to member of a structure type, then the next refers to a member of the structure refered by the first item and so on.
+            # if an array contains "null-terminated" it should be the first and only element and the current member should be simple type pointer, most likely ctypes.c_char_p
+            # (although uint8_t* that is ctypes.POINTER(ctypes.c_uint8) is also poissible, in which case we should still use c_char_p, and cast the pointer at assignment)
+            
+            # If a member contains a type, it should be existing attribute in the binding referring to enum/flags or to another structure.
+
+            # If a member contains externsync, it is list of member references (itself also a list, as it is possible to refer to structures pointed by this structure).
+            # For each referred member we must create a threading.Lock/threading.RLock()
+            # When a structure containing the externsync is about to be passed to vk* command (including as part of the pNext chain),
+            # we must ensure to lock all externsync members. GIL won't help here, because it is released during the execution of the vk* command.
+            # It is possible to store and use structures, handles, etc. from multiple threads. However, when this structure refers to handles with externsync,
+            # it must be guaranteed that only one thread executes vk* command on that handle.
+            # Note: This is only for VK API calls. Anything scheduled within VkQueue can execute at later time independent from the handles and does not need sync.
+            member_output = { k: v for k, v in member_desc.items() if k in ['python_name', 'value', 'values', 'len', 'externsync', 'type'] }
+            code.append('        %r: %r,' % (member_name, member_output))
+        code.append('    }')
+        code.append('}')
+        code.append('')
         return linesep.join(code)
     
     def _generate_command_source(self, context: Context):

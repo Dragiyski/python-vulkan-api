@@ -150,7 +150,7 @@ class CComplexType(CType):
         }
 
     def __repr__(self):
-        return "<CType %s(%s)>" % (self._constructor, self._name)
+        return "<CType %s(%s)>" % (self.constructor, self.name)
 
 
 class CFunctionType(CType):

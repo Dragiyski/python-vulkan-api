@@ -17,3 +17,32 @@ CType._fields_ = [
     ('image', ctypes.c_void_p),
     ('subresourceRange', VkImageSubresourceRange),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': {
+        'VkExternalMemoryAcquireUnmodifiedEXT',
+        'VkSampleLocationsInfoEXT',
+    },
+    'includes': {
+        'VkImageSubresourceRange',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkCmdPipelineBarrier',
+        'vkCmdWaitEvents',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'srcAccessMask': {'python_name': ['src', 'access', 'mask'], 'type': 'VkAccessFlags'},
+        'dstAccessMask': {'python_name': ['dst', 'access', 'mask'], 'type': 'VkAccessFlags'},
+        'oldLayout': {'python_name': ['old', 'layout'], 'type': 'VkImageLayout'},
+        'newLayout': {'python_name': ['new', 'layout'], 'type': 'VkImageLayout'},
+        'srcQueueFamilyIndex': {'python_name': ['src', 'queue', 'family', 'index']},
+        'dstQueueFamilyIndex': {'python_name': ['dst', 'queue', 'family', 'index']},
+        'image': {'python_name': ['image']},
+        'subresourceRange': {'python_name': ['subresource', 'range'], 'type': 'VkImageSubresourceRange'},
+    }
+}

@@ -12,3 +12,25 @@ class CType(ctypes.Structure):
         ('initialLayout', ctypes.c_int),
         ('finalLayout', ctypes.c_int),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': {
+        'VkRenderPassCreateInfo',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'flags': {'python_name': ['flags'], 'type': 'VkAttachmentDescriptionFlags'},
+        'format': {'python_name': ['format'], 'type': 'VkFormat'},
+        'samples': {'python_name': ['samples'], 'type': 'VkSampleCountFlagBits'},
+        'loadOp': {'python_name': ['load', 'op'], 'type': 'VkAttachmentLoadOp'},
+        'storeOp': {'python_name': ['store', 'op'], 'type': 'VkAttachmentStoreOp'},
+        'stencilLoadOp': {'python_name': ['stencil', 'load', 'op'], 'type': 'VkAttachmentLoadOp'},
+        'stencilStoreOp': {'python_name': ['stencil', 'store', 'op'], 'type': 'VkAttachmentStoreOp'},
+        'initialLayout': {'python_name': ['initial', 'layout'], 'type': 'VkImageLayout'},
+        'finalLayout': {'python_name': ['final', 'layout'], 'type': 'VkImageLayout'},
+    }
+}

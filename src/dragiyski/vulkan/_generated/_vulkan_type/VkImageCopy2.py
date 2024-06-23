@@ -16,3 +16,28 @@ CType._fields_ = [
     ('dstOffset', VkOffset3D),
     ('extent', VkExtent3D),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkExtent3D',
+        'VkImageSubresourceLayers',
+        'VkOffset3D',
+    },
+    'included_in': {
+        'VkCopyImageInfo2',
+        'VkCopyImageToImageInfoEXT',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_IMAGE_COPY_2', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'srcSubresource': {'python_name': ['src', 'subresource'], 'type': 'VkImageSubresourceLayers'},
+        'srcOffset': {'python_name': ['src', 'offset'], 'type': 'VkOffset3D'},
+        'dstSubresource': {'python_name': ['dst', 'subresource'], 'type': 'VkImageSubresourceLayers'},
+        'dstOffset': {'python_name': ['dst', 'offset'], 'type': 'VkOffset3D'},
+        'extent': {'python_name': ['extent'], 'type': 'VkExtent3D'},
+    }
+}

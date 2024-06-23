@@ -16,3 +16,29 @@ class CType(ctypes.Structure):
         ('transformData', ctypes.c_void_p),
         ('transformOffset', ctypes.c_uint64),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': {
+        'VkGeometryDataNV',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_GEOMETRY_TRIANGLES_NV', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'vertexData': {'python_name': ['vertex', 'data']},
+        'vertexOffset': {'python_name': ['vertex', 'offset']},
+        'vertexCount': {'python_name': ['vertex', 'count']},
+        'vertexStride': {'python_name': ['vertex', 'stride']},
+        'vertexFormat': {'python_name': ['vertex', 'format'], 'type': 'VkFormat'},
+        'indexData': {'python_name': ['index', 'data']},
+        'indexOffset': {'python_name': ['index', 'offset']},
+        'indexCount': {'python_name': ['index', 'count']},
+        'indexType': {'python_name': ['index', 'type'], 'type': 'VkIndexType'},
+        'transformData': {'python_name': ['transform', 'data']},
+        'transformOffset': {'python_name': ['transform', 'offset']},
+    }
+}

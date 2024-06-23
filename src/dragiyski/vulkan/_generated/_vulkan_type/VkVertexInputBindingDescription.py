@@ -6,3 +6,19 @@ class CType(ctypes.Structure):
         ('stride', ctypes.c_uint32),
         ('inputRate', ctypes.c_int),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': {
+        'VkPipelineVertexInputStateCreateInfo',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'binding': {'python_name': ['binding']},
+        'stride': {'python_name': ['stride']},
+        'inputRate': {'python_name': ['input', 'rate'], 'type': 'VkVertexInputRate'},
+    }
+}

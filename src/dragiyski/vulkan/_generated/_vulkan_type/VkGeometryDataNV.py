@@ -10,3 +10,21 @@ CType._fields_ = [
     ('triangles', VkGeometryTrianglesNV),
     ('aabbs', VkGeometryAABBNV),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkGeometryAABBNV',
+        'VkGeometryTrianglesNV',
+    },
+    'included_in': {
+        'VkGeometryNV',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'triangles': {'python_name': ['triangles'], 'type': 'VkGeometryTrianglesNV'},
+        'aabbs': {'python_name': ['aabbs'], 'type': 'VkGeometryAABBNV'},
+    }
+}

@@ -8,3 +8,21 @@ class CType(ctypes.Structure):
         ('range', ctypes.c_uint64),
         ('format', ctypes.c_int),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': {
+        'VkDescriptorDataEXT',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'address': {'python_name': ['address']},
+        'range': {'python_name': ['range']},
+        'format': {'python_name': ['format'], 'type': 'VkFormat'},
+    }
+}

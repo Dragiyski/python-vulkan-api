@@ -6,3 +6,17 @@ class CType(ctypes.Structure):
         ('pNext', ctypes.c_void_p),
         ('pipelineIdentifier', ctypes.ARRAY(ctypes.c_uint8, 16)),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PIPELINE_PROPERTIES_IDENTIFIER_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'pipelineIdentifier': {'python_name': ['pipeline', 'identifier']},
+    }
+}

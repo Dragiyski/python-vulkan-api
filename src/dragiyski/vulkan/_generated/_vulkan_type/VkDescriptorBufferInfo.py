@@ -6,3 +6,19 @@ class CType(ctypes.Structure):
         ('offset', ctypes.c_uint64),
         ('range', ctypes.c_uint64),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': {
+        'VkWriteDescriptorSet',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'buffer': {'python_name': ['buffer']},
+        'offset': {'python_name': ['offset']},
+        'range': {'python_name': ['range']},
+    }
+}

@@ -17,3 +17,28 @@ CType._fields_ = [
     ('qm_u', ctypes.c_uint8),
     ('qm_v', ctypes.c_uint8),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'StdVideoAV1QuantizationFlags',
+    },
+    'included_in': {
+        'StdVideoDecodeAV1PictureInfo',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'flags': {'python_name': ['flags'], 'type': 'StdVideoAV1QuantizationFlags'},
+        'base_q_idx': {'python_name': ['base', 'q', 'idx']},
+        'DeltaQYDc': {'python_name': ['delta', 'qydc']},
+        'DeltaQUDc': {'python_name': ['delta', 'qudc']},
+        'DeltaQUAc': {'python_name': ['delta', 'quac']},
+        'DeltaQVDc': {'python_name': ['delta', 'qvdc']},
+        'DeltaQVAc': {'python_name': ['delta', 'qvac']},
+        'qm_y': {'python_name': ['qm', 'y']},
+        'qm_u': {'python_name': ['qm', 'u']},
+        'qm_v': {'python_name': ['qm', 'v']},
+    }
+}

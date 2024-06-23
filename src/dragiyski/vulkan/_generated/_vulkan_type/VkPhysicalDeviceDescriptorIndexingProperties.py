@@ -28,3 +28,41 @@ class CType(ctypes.Structure):
         ('maxDescriptorSetUpdateAfterBindStorageImages', ctypes.c_uint32),
         ('maxDescriptorSetUpdateAfterBindInputAttachments', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': {
+        'VkPhysicalDeviceProperties2',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'maxUpdateAfterBindDescriptorsInAllPools': {'python_name': ['max', 'update', 'after', 'bind', 'descriptors', 'in', 'all', 'pools']},
+        'shaderUniformBufferArrayNonUniformIndexingNative': {'python_name': ['shader', 'uniform', 'buffer', 'array', 'non', 'uniform', 'indexing', 'native']},
+        'shaderSampledImageArrayNonUniformIndexingNative': {'python_name': ['shader', 'sampled', 'image', 'array', 'non', 'uniform', 'indexing', 'native']},
+        'shaderStorageBufferArrayNonUniformIndexingNative': {'python_name': ['shader', 'storage', 'buffer', 'array', 'non', 'uniform', 'indexing', 'native']},
+        'shaderStorageImageArrayNonUniformIndexingNative': {'python_name': ['shader', 'storage', 'image', 'array', 'non', 'uniform', 'indexing', 'native']},
+        'shaderInputAttachmentArrayNonUniformIndexingNative': {'python_name': ['shader', 'input', 'attachment', 'array', 'non', 'uniform', 'indexing', 'native']},
+        'robustBufferAccessUpdateAfterBind': {'python_name': ['robust', 'buffer', 'access', 'update', 'after', 'bind']},
+        'quadDivergentImplicitLod': {'python_name': ['quad', 'divergent', 'implicit', 'lod']},
+        'maxPerStageDescriptorUpdateAfterBindSamplers': {'python_name': ['max', 'per', 'stage', 'descriptor', 'update', 'after', 'bind', 'samplers']},
+        'maxPerStageDescriptorUpdateAfterBindUniformBuffers': {'python_name': ['max', 'per', 'stage', 'descriptor', 'update', 'after', 'bind', 'uniform', 'buffers']},
+        'maxPerStageDescriptorUpdateAfterBindStorageBuffers': {'python_name': ['max', 'per', 'stage', 'descriptor', 'update', 'after', 'bind', 'storage', 'buffers']},
+        'maxPerStageDescriptorUpdateAfterBindSampledImages': {'python_name': ['max', 'per', 'stage', 'descriptor', 'update', 'after', 'bind', 'sampled', 'images']},
+        'maxPerStageDescriptorUpdateAfterBindStorageImages': {'python_name': ['max', 'per', 'stage', 'descriptor', 'update', 'after', 'bind', 'storage', 'images']},
+        'maxPerStageDescriptorUpdateAfterBindInputAttachments': {'python_name': ['max', 'per', 'stage', 'descriptor', 'update', 'after', 'bind', 'input', 'attachments']},
+        'maxPerStageUpdateAfterBindResources': {'python_name': ['max', 'per', 'stage', 'update', 'after', 'bind', 'resources']},
+        'maxDescriptorSetUpdateAfterBindSamplers': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'samplers']},
+        'maxDescriptorSetUpdateAfterBindUniformBuffers': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'uniform', 'buffers']},
+        'maxDescriptorSetUpdateAfterBindUniformBuffersDynamic': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'uniform', 'buffers', 'dynamic']},
+        'maxDescriptorSetUpdateAfterBindStorageBuffers': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'storage', 'buffers']},
+        'maxDescriptorSetUpdateAfterBindStorageBuffersDynamic': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'storage', 'buffers', 'dynamic']},
+        'maxDescriptorSetUpdateAfterBindSampledImages': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'sampled', 'images']},
+        'maxDescriptorSetUpdateAfterBindStorageImages': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'storage', 'images']},
+        'maxDescriptorSetUpdateAfterBindInputAttachments': {'python_name': ['max', 'descriptor', 'set', 'update', 'after', 'bind', 'input', 'attachments']},
+    }
+}

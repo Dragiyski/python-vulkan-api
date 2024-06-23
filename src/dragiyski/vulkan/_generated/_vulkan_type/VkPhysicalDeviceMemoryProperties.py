@@ -12,3 +12,25 @@ CType._fields_ = [
     ('memoryHeapCount', ctypes.c_uint32),
     ('memoryHeaps', ctypes.ARRAY(VkMemoryHeap, 16)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkMemoryHeap',
+        'VkMemoryType',
+    },
+    'included_in': {
+        'VkPhysicalDeviceMemoryProperties2',
+    },
+    'input_of': set(),
+    'output_of': {
+        'vkGetPhysicalDeviceMemoryProperties',
+    },
+    'member_map': {
+        'memoryTypeCount': {'python_name': ['memory', 'type', 'count']},
+        'memoryTypes': {'python_name': ['memory', 'types'], 'len': [['memoryTypeCount']], 'type': 'VkMemoryType'},
+        'memoryHeapCount': {'python_name': ['memory', 'heap', 'count']},
+        'memoryHeaps': {'python_name': ['memory', 'heaps'], 'len': [['memoryHeapCount']], 'type': 'VkMemoryHeap'},
+    }
+}

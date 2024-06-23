@@ -7,3 +7,20 @@ class CType(ctypes.Structure):
         ('presentID', ctypes.c_uint64),
         ('marker', ctypes.c_int),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': {
+        'vkSetLatencyMarkerNV',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'presentID': {'python_name': ['present', 'id']},
+        'marker': {'python_name': ['marker'], 'type': 'VkLatencyMarkerNV'},
+    }
+}

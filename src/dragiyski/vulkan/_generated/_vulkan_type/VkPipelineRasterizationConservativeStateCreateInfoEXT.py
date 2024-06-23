@@ -8,3 +8,21 @@ class CType(ctypes.Structure):
         ('conservativeRasterizationMode', ctypes.c_int),
         ('extraPrimitiveOverestimationSize', ctypes.c_float),
     ]
+
+descriptor = {
+    'extends': {
+        'VkPipelineRasterizationStateCreateInfo',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkPipelineRasterizationConservativeStateCreateFlagsEXT'},
+        'conservativeRasterizationMode': {'python_name': ['conservative', 'rasterization', 'mode'], 'type': 'VkConservativeRasterizationModeEXT'},
+        'extraPrimitiveOverestimationSize': {'python_name': ['extra', 'primitive', 'overestimation', 'size']},
+    }
+}

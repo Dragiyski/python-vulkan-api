@@ -18,3 +18,31 @@ CType._fields_ = [
     ('imageMemoryBarrierCount', ctypes.c_uint32),
     ('pImageMemoryBarriers', ctypes.POINTER(VkImageMemoryBarrier2)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkBufferMemoryBarrier2',
+        'VkImageMemoryBarrier2',
+        'VkMemoryBarrier2',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkCmdPipelineBarrier2',
+        'vkCmdSetEvent2',
+        'vkCmdWaitEvents2',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DEPENDENCY_INFO', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'dependencyFlags': {'python_name': ['dependency', 'flags'], 'type': 'VkDependencyFlags'},
+        'memoryBarrierCount': {'python_name': ['memory', 'barrier', 'count']},
+        'pMemoryBarriers': {'python_name': ['p', 'memory', 'barriers'], 'len': [['memoryBarrierCount']], 'type': 'VkMemoryBarrier2'},
+        'bufferMemoryBarrierCount': {'python_name': ['buffer', 'memory', 'barrier', 'count']},
+        'pBufferMemoryBarriers': {'python_name': ['p', 'buffer', 'memory', 'barriers'], 'len': [['bufferMemoryBarrierCount']], 'type': 'VkBufferMemoryBarrier2'},
+        'imageMemoryBarrierCount': {'python_name': ['image', 'memory', 'barrier', 'count']},
+        'pImageMemoryBarriers': {'python_name': ['p', 'image', 'memory', 'barriers'], 'len': [['imageMemoryBarrierCount']], 'type': 'VkImageMemoryBarrier2'},
+    }
+}

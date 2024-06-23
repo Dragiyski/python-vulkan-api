@@ -15,3 +15,26 @@ CType._fields_ = [
     ('idr_pic_id', ctypes.c_uint16),
     ('PicOrderCnt', ctypes.ARRAY(ctypes.c_int32, 2)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'StdVideoDecodeH264PictureInfoFlags',
+    },
+    'included_in': {
+        'VkVideoDecodeH264PictureInfoKHR',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'flags': {'python_name': ['flags'], 'type': 'StdVideoDecodeH264PictureInfoFlags'},
+        'seq_parameter_set_id': {'python_name': ['seq', 'parameter', 'set', 'id']},
+        'pic_parameter_set_id': {'python_name': ['pic', 'parameter', 'set', 'id']},
+        'reserved1': {'python_name': ['reserved1']},
+        'reserved2': {'python_name': ['reserved2']},
+        'frame_num': {'python_name': ['frame', 'num']},
+        'idr_pic_id': {'python_name': ['idr', 'pic', 'id']},
+        'PicOrderCnt': {'python_name': ['pic', 'order', 'cnt']},
+    }
+}

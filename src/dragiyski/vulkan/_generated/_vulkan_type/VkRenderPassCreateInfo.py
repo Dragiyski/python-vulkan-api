@@ -18,3 +18,33 @@ CType._fields_ = [
     ('dependencyCount', ctypes.c_uint32),
     ('pDependencies', ctypes.POINTER(VkSubpassDependency)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': {
+        'VkRenderPassFragmentDensityMapCreateInfoEXT',
+        'VkRenderPassInputAttachmentAspectCreateInfo',
+        'VkRenderPassMultiviewCreateInfo',
+    },
+    'includes': {
+        'VkAttachmentDescription',
+        'VkSubpassDependency',
+        'VkSubpassDescription',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkCreateRenderPass',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkRenderPassCreateFlags'},
+        'attachmentCount': {'python_name': ['attachment', 'count']},
+        'pAttachments': {'python_name': ['p', 'attachments'], 'len': [['attachmentCount']], 'type': 'VkAttachmentDescription'},
+        'subpassCount': {'python_name': ['subpass', 'count']},
+        'pSubpasses': {'python_name': ['p', 'subpasses'], 'len': [['subpassCount']], 'type': 'VkSubpassDescription'},
+        'dependencyCount': {'python_name': ['dependency', 'count']},
+        'pDependencies': {'python_name': ['p', 'dependencies'], 'len': [['dependencyCount']], 'type': 'VkSubpassDependency'},
+    }
+}

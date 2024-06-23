@@ -14,3 +14,25 @@ CType._fields_ = [
     ('regionCount', ctypes.c_uint32),
     ('pRegions', ctypes.POINTER(VkMemoryToImageCopyEXT)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkMemoryToImageCopyEXT',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkCopyMemoryToImageEXT',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkHostImageCopyFlagsEXT'},
+        'dstImage': {'python_name': ['dst', 'image']},
+        'dstImageLayout': {'python_name': ['dst', 'image', 'layout'], 'type': 'VkImageLayout'},
+        'regionCount': {'python_name': ['region', 'count']},
+        'pRegions': {'python_name': ['p', 'regions'], 'len': [['regionCount']], 'type': 'VkMemoryToImageCopyEXT'},
+    }
+}

@@ -6,3 +6,19 @@ class CType(ctypes.Structure):
         ('pNext', ctypes.c_void_p),
         ('flags', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': {
+        'vkCreatePrivateDataSlot',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkPrivateDataSlotCreateFlags'},
+    }
+}

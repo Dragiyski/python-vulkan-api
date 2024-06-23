@@ -9,3 +9,22 @@ class CType(ctypes.Structure):
         ('size', ctypes.c_uint64),
         ('bindingType', ctypes.c_int),
     ]
+
+descriptor = {
+    'extends': {
+        'VkDebugUtilsMessengerCallbackDataEXT',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DEVICE_ADDRESS_BINDING_CALLBACK_DATA_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkDeviceAddressBindingFlagsEXT'},
+        'baseAddress': {'python_name': ['base', 'address']},
+        'size': {'python_name': ['size']},
+        'bindingType': {'python_name': ['binding', 'type'], 'type': 'VkDeviceAddressBindingTypeEXT'},
+    }
+}

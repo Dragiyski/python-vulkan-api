@@ -11,3 +11,22 @@ CType._fields_ = [
     ('extent', VkExtent2D),
     ('layer', ctypes.c_uint32),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkExtent2D',
+        'VkOffset2D',
+    },
+    'included_in': {
+        'VkPresentRegionKHR',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'offset': {'python_name': ['offset'], 'type': 'VkOffset2D'},
+        'extent': {'python_name': ['extent'], 'type': 'VkExtent2D'},
+        'layer': {'python_name': ['layer']},
+    }
+}

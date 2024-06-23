@@ -18,3 +18,34 @@ CType._fields_ = [
     ('referenceSlotCount', ctypes.c_uint32),
     ('pReferenceSlots', ctypes.POINTER(VkVideoReferenceSlotInfoKHR)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': {
+        'VkVideoDecodeAV1PictureInfoKHR',
+        'VkVideoDecodeH264PictureInfoKHR',
+        'VkVideoDecodeH265PictureInfoKHR',
+        'VkVideoInlineQueryInfoKHR',
+    },
+    'includes': {
+        'VkVideoPictureResourceInfoKHR',
+        'VkVideoReferenceSlotInfoKHR',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkCmdDecodeVideoKHR',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_VIDEO_DECODE_INFO_KHR', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkVideoDecodeFlagsKHR'},
+        'srcBuffer': {'python_name': ['src', 'buffer']},
+        'srcBufferOffset': {'python_name': ['src', 'buffer', 'offset']},
+        'srcBufferRange': {'python_name': ['src', 'buffer', 'range']},
+        'dstPictureResource': {'python_name': ['dst', 'picture', 'resource'], 'type': 'VkVideoPictureResourceInfoKHR'},
+        'pSetupReferenceSlot': {'python_name': ['p', 'setup', 'reference', 'slot'], 'type': 'VkVideoReferenceSlotInfoKHR'},
+        'referenceSlotCount': {'python_name': ['reference', 'slot', 'count']},
+        'pReferenceSlots': {'python_name': ['p', 'reference', 'slots'], 'len': [['referenceSlotCount']], 'type': 'VkVideoReferenceSlotInfoKHR'},
+    }
+}

@@ -8,3 +8,21 @@ class CType(ctypes.Structure):
         ('pDeviceMasks', ctypes.POINTER(ctypes.c_uint32)),
         ('mode', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': {
+        'VkPresentInfoKHR',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'swapchainCount': {'python_name': ['swapchain', 'count']},
+        'pDeviceMasks': {'python_name': ['p', 'device', 'masks'], 'len': [['swapchainCount']]},
+        'mode': {'python_name': ['mode'], 'type': 'VkDeviceGroupPresentModeFlagBitsKHR'},
+    }
+}

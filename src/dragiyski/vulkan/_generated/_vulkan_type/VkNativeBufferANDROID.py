@@ -14,3 +14,23 @@ CType._fields_ = [
     ('usage', ctypes.c_int),
     ('usage2', VkNativeBufferUsage2ANDROID),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkNativeBufferUsage2ANDROID',
+    },
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'handle': {'python_name': ['handle']},
+        'stride': {'python_name': ['stride']},
+        'format': {'python_name': ['format']},
+        'usage': {'python_name': ['usage']},
+        'usage2': {'python_name': ['usage2'], 'type': 'VkNativeBufferUsage2ANDROID'},
+    }
+}

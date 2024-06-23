@@ -7,3 +7,20 @@ class CType(ctypes.Structure):
         ('image', ctypes.c_void_p),
         ('ioSurface', ctypes.c_void_p),
     ]
+
+descriptor = {
+    'extends': {
+        'VkExportMetalObjectsInfoEXT',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_EXPORT_METAL_IO_SURFACE_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'image': {'python_name': ['image']},
+        'ioSurface': {'python_name': ['io', 'surface']},
+    }
+}

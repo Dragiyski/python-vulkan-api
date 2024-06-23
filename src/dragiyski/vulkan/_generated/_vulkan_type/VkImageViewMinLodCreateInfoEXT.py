@@ -6,3 +6,19 @@ class CType(ctypes.Structure):
         ('pNext', ctypes.c_void_p),
         ('minLod', ctypes.c_float),
     ]
+
+descriptor = {
+    'extends': {
+        'VkImageViewCreateInfo',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_IMAGE_VIEW_MIN_LOD_CREATE_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'minLod': {'python_name': ['min', 'lod']},
+    }
+}

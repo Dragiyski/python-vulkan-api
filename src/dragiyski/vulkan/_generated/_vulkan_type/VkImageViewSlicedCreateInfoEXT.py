@@ -7,3 +7,20 @@ class CType(ctypes.Structure):
         ('sliceOffset', ctypes.c_uint32),
         ('sliceCount', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': {
+        'VkImageViewCreateInfo',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_IMAGE_VIEW_SLICED_CREATE_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'sliceOffset': {'python_name': ['slice', 'offset']},
+        'sliceCount': {'python_name': ['slice', 'count']},
+    }
+}

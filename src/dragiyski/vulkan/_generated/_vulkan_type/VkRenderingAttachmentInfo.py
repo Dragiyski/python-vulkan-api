@@ -17,3 +17,28 @@ CType._fields_ = [
     ('storeOp', ctypes.c_int),
     ('clearValue', VkClearValue),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkClearValue',
+    },
+    'included_in': {
+        'VkRenderingInfo',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'imageView': {'python_name': ['image', 'view']},
+        'imageLayout': {'python_name': ['image', 'layout'], 'type': 'VkImageLayout'},
+        'resolveMode': {'python_name': ['resolve', 'mode'], 'type': 'VkResolveModeFlagBits'},
+        'resolveImageView': {'python_name': ['resolve', 'image', 'view']},
+        'resolveImageLayout': {'python_name': ['resolve', 'image', 'layout'], 'type': 'VkImageLayout'},
+        'loadOp': {'python_name': ['load', 'op'], 'type': 'VkAttachmentLoadOp'},
+        'storeOp': {'python_name': ['store', 'op'], 'type': 'VkAttachmentStoreOp'},
+        'clearValue': {'python_name': ['clear', 'value'], 'type': 'VkClearValue'},
+    }
+}

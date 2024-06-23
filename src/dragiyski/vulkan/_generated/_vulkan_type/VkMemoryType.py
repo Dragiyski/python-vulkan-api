@@ -5,3 +5,18 @@ class CType(ctypes.Structure):
         ('propertyFlags', ctypes.c_uint32),
         ('heapIndex', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': {
+        'VkPhysicalDeviceMemoryProperties',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'propertyFlags': {'python_name': ['property', 'flags'], 'type': 'VkMemoryPropertyFlags'},
+        'heapIndex': {'python_name': ['heap', 'index']},
+    }
+}

@@ -7,3 +7,21 @@ class CType(ctypes.Structure):
         ('depthBiasRepresentation', ctypes.c_int),
         ('depthBiasExact', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': {
+        'VkDepthBiasInfoEXT',
+        'VkPipelineRasterizationStateCreateInfo',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'depthBiasRepresentation': {'python_name': ['depth', 'bias', 'representation'], 'type': 'VkDepthBiasRepresentationEXT'},
+        'depthBiasExact': {'python_name': ['depth', 'bias', 'exact']},
+    }
+}

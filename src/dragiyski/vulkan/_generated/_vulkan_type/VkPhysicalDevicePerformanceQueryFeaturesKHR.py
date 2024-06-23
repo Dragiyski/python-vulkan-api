@@ -7,3 +7,21 @@ class CType(ctypes.Structure):
         ('performanceCounterQueryPools', ctypes.c_uint32),
         ('performanceCounterMultipleQueryPools', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': {
+        'VkDeviceCreateInfo',
+        'VkPhysicalDeviceFeatures2',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'performanceCounterQueryPools': {'python_name': ['performance', 'counter', 'query', 'pools']},
+        'performanceCounterMultipleQueryPools': {'python_name': ['performance', 'counter', 'multiple', 'query', 'pools']},
+    }
+}

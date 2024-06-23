@@ -1,4 +1,5 @@
 import ast
+import re
 import pycparser
 import pycparser.c_ast
 from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, CType, CArrayType, CPlainType
@@ -314,3 +315,9 @@ class Context:
         while name in self.alias_map:
             name = self.alias_map[name]
         return name
+
+    def make_python_name(self, name):
+        words = name.split('_')
+        words = [re.findall(r'(?:[A-Z][A-Z0-9]*|^)[a-z0-9]*', word) for word in words]
+        words = [word.lower() for x in words for word in x]
+        return words

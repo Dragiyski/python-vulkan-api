@@ -13,3 +13,24 @@ CType._fields_ = [
     ('filterSize', VkExtent2D),
     ('numPhases', ctypes.c_uint32),
 ]
+
+descriptor = {
+    'extends': {
+        'VkImageViewCreateInfo',
+    },
+    'extended_by': set(),
+    'includes': {
+        'VkExtent2D',
+        'VkOffset2D',
+    },
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_IMAGE_VIEW_SAMPLE_WEIGHT_CREATE_INFO_QCOM', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'filterCenter': {'python_name': ['filter', 'center'], 'type': 'VkOffset2D'},
+        'filterSize': {'python_name': ['filter', 'size'], 'type': 'VkExtent2D'},
+        'numPhases': {'python_name': ['num', 'phases']},
+    }
+}

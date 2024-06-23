@@ -15,3 +15,26 @@ CType._fields_ = [
     ('memoryOffset', ctypes.c_uint64),
     ('flags', ctypes.c_uint32),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkExtent3D',
+        'VkImageSubresource',
+        'VkOffset3D',
+    },
+    'included_in': {
+        'VkSparseImageMemoryBindInfo',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'subresource': {'python_name': ['subresource'], 'type': 'VkImageSubresource'},
+        'offset': {'python_name': ['offset'], 'type': 'VkOffset3D'},
+        'extent': {'python_name': ['extent'], 'type': 'VkExtent3D'},
+        'memory': {'python_name': ['memory']},
+        'memoryOffset': {'python_name': ['memory', 'offset']},
+        'flags': {'python_name': ['flags'], 'type': 'VkSparseMemoryBindFlags'},
+    }
+}

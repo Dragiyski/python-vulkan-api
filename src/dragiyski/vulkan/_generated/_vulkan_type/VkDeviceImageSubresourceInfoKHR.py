@@ -12,3 +12,23 @@ CType._fields_ = [
     ('pCreateInfo', ctypes.POINTER(VkImageCreateInfo)),
     ('pSubresource', ctypes.POINTER(VkImageSubresource2KHR)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkImageCreateInfo',
+        'VkImageSubresource2KHR',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkGetDeviceImageSubresourceLayoutKHR',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DEVICE_IMAGE_SUBRESOURCE_INFO_KHR', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'pCreateInfo': {'python_name': ['p', 'create', 'info'], 'type': 'VkImageCreateInfo'},
+        'pSubresource': {'python_name': ['p', 'subresource'], 'type': 'VkImageSubresource2KHR'},
+    }
+}

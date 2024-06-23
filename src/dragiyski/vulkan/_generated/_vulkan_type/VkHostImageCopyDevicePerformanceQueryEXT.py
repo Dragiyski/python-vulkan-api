@@ -7,3 +7,20 @@ class CType(ctypes.Structure):
         ('optimalDeviceAccess', ctypes.c_uint32),
         ('identicalMemoryLayout', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': {
+        'VkImageFormatProperties2',
+    },
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_HOST_IMAGE_COPY_DEVICE_PERFORMANCE_QUERY_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'optimalDeviceAccess': {'python_name': ['optimal', 'device', 'access']},
+        'identicalMemoryLayout': {'python_name': ['identical', 'memory', 'layout']},
+    }
+}

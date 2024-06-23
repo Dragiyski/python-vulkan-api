@@ -20,3 +20,33 @@ CType._fields_ = [
     ('objectCount', ctypes.c_uint32),
     ('pObjects', ctypes.POINTER(VkDebugUtilsObjectNameInfoEXT)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': {
+        'VkDeviceAddressBindingCallbackDataEXT',
+    },
+    'includes': {
+        'VkDebugUtilsLabelEXT',
+        'VkDebugUtilsObjectNameInfoEXT',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkSubmitDebugUtilsMessageEXT',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkDebugUtilsMessengerCallbackDataFlagsEXT'},
+        'pMessageIdName': {'python_name': ['p', 'message', 'id', 'name'], 'len': [['null-terminated']]},
+        'messageIdNumber': {'python_name': ['message', 'id', 'number']},
+        'pMessage': {'python_name': ['p', 'message'], 'len': [['null-terminated']]},
+        'queueLabelCount': {'python_name': ['queue', 'label', 'count']},
+        'pQueueLabels': {'python_name': ['p', 'queue', 'labels'], 'len': [['queueLabelCount']], 'type': 'VkDebugUtilsLabelEXT'},
+        'cmdBufLabelCount': {'python_name': ['cmd', 'buf', 'label', 'count']},
+        'pCmdBufLabels': {'python_name': ['p', 'cmd', 'buf', 'labels'], 'len': [['cmdBufLabelCount']], 'type': 'VkDebugUtilsLabelEXT'},
+        'objectCount': {'python_name': ['object', 'count']},
+        'pObjects': {'python_name': ['p', 'objects'], 'len': [['objectCount']], 'type': 'VkDebugUtilsObjectNameInfoEXT'},
+    }
+}

@@ -13,3 +13,27 @@ CType._fields_ = [
     ('poolSizeCount', ctypes.c_uint32),
     ('pPoolSizes', ctypes.POINTER(VkDescriptorPoolSize)),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': {
+        'VkDescriptorPoolInlineUniformBlockCreateInfo',
+        'VkMutableDescriptorTypeCreateInfoEXT',
+    },
+    'includes': {
+        'VkDescriptorPoolSize',
+    },
+    'included_in': set(),
+    'input_of': {
+        'vkCreateDescriptorPool',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkDescriptorPoolCreateFlags'},
+        'maxSets': {'python_name': ['max', 'sets']},
+        'poolSizeCount': {'python_name': ['pool', 'size', 'count']},
+        'pPoolSizes': {'python_name': ['p', 'pool', 'sizes'], 'len': [['poolSizeCount']], 'type': 'VkDescriptorPoolSize'},
+    }
+}

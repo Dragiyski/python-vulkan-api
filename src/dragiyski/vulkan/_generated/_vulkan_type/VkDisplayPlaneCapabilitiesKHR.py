@@ -17,3 +17,30 @@ CType._fields_ = [
     ('minDstExtent', VkExtent2D),
     ('maxDstExtent', VkExtent2D),
 ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': {
+        'VkExtent2D',
+        'VkOffset2D',
+    },
+    'included_in': {
+        'VkDisplayPlaneCapabilities2KHR',
+    },
+    'input_of': set(),
+    'output_of': {
+        'vkGetDisplayPlaneCapabilitiesKHR',
+    },
+    'member_map': {
+        'supportedAlpha': {'python_name': ['supported', 'alpha'], 'type': 'VkDisplayPlaneAlphaFlagsKHR'},
+        'minSrcPosition': {'python_name': ['min', 'src', 'position'], 'type': 'VkOffset2D'},
+        'maxSrcPosition': {'python_name': ['max', 'src', 'position'], 'type': 'VkOffset2D'},
+        'minSrcExtent': {'python_name': ['min', 'src', 'extent'], 'type': 'VkExtent2D'},
+        'maxSrcExtent': {'python_name': ['max', 'src', 'extent'], 'type': 'VkExtent2D'},
+        'minDstPosition': {'python_name': ['min', 'dst', 'position'], 'type': 'VkOffset2D'},
+        'maxDstPosition': {'python_name': ['max', 'dst', 'position'], 'type': 'VkOffset2D'},
+        'minDstExtent': {'python_name': ['min', 'dst', 'extent'], 'type': 'VkExtent2D'},
+        'maxDstExtent': {'python_name': ['max', 'dst', 'extent'], 'type': 'VkExtent2D'},
+    }
+}

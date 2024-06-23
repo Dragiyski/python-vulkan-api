@@ -685,11 +685,30 @@ class Compiler:
             ctype['delay_fields'] = False
             ctype['dependencies'] = []
             ctype['node'] = node
+            include_struct = set()
             for member_node in node.get_all('member'):
                 if not context.is_target_api(member_node):
                     continue
                 member_name = self.get_node_name_from_children(member_node)
-                ctype.member_map[member_name] = {'node': member_node}
+                ctype.member_map[member_name] = {'node': member_node, 'python_name': context.make_python_name(member_name)}
+                if member_node.has_attribute('values'):
+                    values = [value.strip() for value in member_node.get_attribute('values').split(',')]
+                    if member_name == 'sType' and (len(values) != 1 or not values[0].startswith('VK_STRUCTURE_TYPE_')):
+                        raise CompileNodeError('Invalid @values attribute for structure type "sType" in "%s", expected a single value starting with "VK_STRUCTURE_TYPE_"' % name, node=member_node)
+                    if len(values) == 1:
+                        ctype.member_map[member_name]['value'] = values[0]
+                    else:
+                        ctype.member_map[member_name]['values'] = values
+                if member_node.has_attribute('len'):
+                    member_len = [s.strip() for s in member_node.get_attribute('len').split(',')]
+                    member_len = [s.split('->') for s in member_len]
+                    if len(member_len) > 0:
+                        ctype.member_map[member_name]['len'] = member_len
+                if member_node.has_attribute('externsync'):
+                    member_externsync = [s.strip() for s in member_node.get_attribute('externsync').split(',')]
+                    member_externsync = [s.split('->') for s in member_externsync ]
+                    if len(member_externsync) > 0:
+                        ctype.member_map[member_name]['externsync'] = member_externsync
                 ctype.member_list.append(member_name)
                 if 'type' not in member_node.children:
                     raise CompileNodeError('Member "%s.%s": Missing attribute @type' % (name, member_name), node=member_node)
@@ -698,6 +717,9 @@ class Compiler:
                 member_type = context.resolve_alias(member_node.get('type').get_text())
                 if member_type in context.type_node_map['set'] or member_type in context.type_node_map['complex']:
                     ctype['dependencies'].append(member_type)
+                    ctype.member_map[member_name]['type'] = member_type
+                if member_type in context.type_node_map['complex']:
+                    include_struct.add(member_type)
                 if member_type in context.resolving_complex_type:
                     assert member_type in context.ctypes_map, 'member_type in context.ctypes_map'
                     assert member_type in context.type_node_map['complex'], """member_type in context.type_node_map['complex']"""
@@ -711,7 +733,7 @@ class Compiler:
                         # Foreign types must have been resolved at this time (see category="basetype")
                         raise CompileNodeError('Member "%s.%s": Reference to unknow type "%s"' % (name, member_name, member_type))
             self._resolve_complex_type(context, name, node)
-            descriptor = { 'type': name, 'ctype': ctype, 'extends': set(), 'extended_by': set(), 'node': node }
+            descriptor = { 'type': name, 'ctype': ctype, 'extends': set(), 'extended_by': set(), 'included_in': set(), 'includes': include_struct, 'input_of': set(), 'output_of': set(), 'node': node }
             context.struct_map.set(name, descriptor)
         finally:
             context.resolving_complex_type.remove(name)
@@ -750,7 +772,9 @@ class Compiler:
         name: str
         node: Node
         for name, node in context.command_node_map.items():
-            code = '%s(%s);' % (self._get_member_code(context, node.get('proto')), ', '. join([self._get_member_code(context, x) for x in node.get_all('param')]))
+            if not context.is_target_api(node):
+                continue
+            code = '%s(%s);' % (self._get_member_code(context, node.get('proto')), ', '. join([self._get_member_code(context, x) for x in node.get_all('param') if context.is_target_api(x)]))
             code = context.preprocess_c_code(code)
             ast = context.cparser.parse(code)
             assert type(ast.ext[0]) == pycparser.c_ast.Decl, 'type(ast.ext[0]) == pycparser.c_ast.Decl'
@@ -822,8 +846,11 @@ class Compiler:
                 else:
                     command_descriptor['error_code_list'] = []
             param_node: Node
-            for param_index, param_node in enumerate(command_node.get_all('param')):
-                param_name = param_node.get('name')
+            param_index = 0
+            for param_node in command_node.get_all('param'):
+                if not context.is_target_api(param_node):
+                    continue
+                param_name = param_node.get('name').get_text()
                 command_descriptor['argument_list'].append(param_name)
                 type_name = context.resolve_alias(param_node.get('type').get_text())
                 param_descriptor = { 'type': type_name, 'ctype': command_descriptor['ctype'].argument_types[param_index] }
@@ -837,6 +864,13 @@ class Compiler:
                 if param_node.has_attribute('externsync'):
                     param_descriptor['externsync'] = param_node.get_attribute('externsync')
                 command_descriptor['argument_map'].set(param_name, param_descriptor)
+                if type_name in context.type_node_map['complex']:
+                    # Structures given by value or structures given by constant pointer are inputs
+                    is_input = (not isinstance(param_descriptor['ctype'], CPointerType)) or 'const' in re.split(r'\b', ''.join([node.get_text() for node in param_node.get_text_nodes_before(param_node.get('name'))]))
+                    struct_descriptor = context.struct_map[type_name]
+                    struct_key = 'input_of' if is_input else 'output_of'
+                    struct_descriptor[struct_key].add(command_name)
+                param_index += 1
             pass
             for param_index, param_name in enumerate(command_descriptor['argument_list']):
                 param_descriptor = command_descriptor['argument_map'][param_name]
@@ -860,6 +894,11 @@ class Compiler:
             words = re.findall(r'[A-Z][a-z0-9]*', name) + words
             context.command_name_map.set(command_name, words)
 
+    def _resolve_inverse_include_struct(self, context: Context):
+        for name, descriptor in context.struct_map.items():
+            for include_name in descriptor['includes']:
+                context.struct_map[include_name]['included_in'].add(name)
+
     def compile(self, context = Context()):
         for root_node in self.xml_map.values():
             self._enumerate_tags(context, root_node)
@@ -882,6 +921,7 @@ class Compiler:
         self._compile_commands(context)
         self._compile_plain_ctypes(context)
         self._compile_struct_extensions(context)
+        self._resolve_inverse_include_struct(context)
         self._compile_command_names(context)
         self._compile_command_nodes(context)
         pass

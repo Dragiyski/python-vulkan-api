@@ -12,3 +12,25 @@ class CType(ctypes.Structure):
         ('viewFormatCount', ctypes.c_uint32),
         ('pViewFormats', ctypes.POINTER(ctypes.c_int)),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': {
+        'VkFramebufferAttachmentsCreateInfo',
+    },
+    'input_of': set(),
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkImageCreateFlags'},
+        'usage': {'python_name': ['usage'], 'type': 'VkImageUsageFlags'},
+        'width': {'python_name': ['width']},
+        'height': {'python_name': ['height']},
+        'layerCount': {'python_name': ['layer', 'count']},
+        'viewFormatCount': {'python_name': ['view', 'format', 'count']},
+        'pViewFormats': {'python_name': ['p', 'view', 'formats'], 'len': [['viewFormatCount']], 'type': 'VkFormat'},
+    }
+}

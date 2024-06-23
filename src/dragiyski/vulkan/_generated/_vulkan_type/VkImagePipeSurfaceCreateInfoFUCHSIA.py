@@ -7,3 +7,20 @@ class CType(ctypes.Structure):
         ('flags', ctypes.c_uint32),
         ('imagePipeHandle', ctypes.c_uint32),
     ]
+
+descriptor = {
+    'extends': set(),
+    'extended_by': set(),
+    'includes': set(),
+    'included_in': set(),
+    'input_of': {
+        'vkCreateImagePipeSurfaceFUCHSIA',
+    },
+    'output_of': set(),
+    'member_map': {
+        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_IMAGEPIPE_SURFACE_CREATE_INFO_FUCHSIA', 'type': 'VkStructureType'},
+        'pNext': {'python_name': ['p', 'next']},
+        'flags': {'python_name': ['flags'], 'type': 'VkImagePipeSurfaceCreateFlagsFUCHSIA'},
+        'imagePipeHandle': {'python_name': ['image', 'pipe', 'handle']},
+    }
+}
