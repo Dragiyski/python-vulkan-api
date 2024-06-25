@@ -1,30 +1,7 @@
 import ctypes
 
 class VkGraphicsPipelineCreateInfo(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'flags': ctypes.c_uint32,
-            'stageCount': ctypes.c_uint32,
-            'pStages': ctypes.POINTER(VkPipelineShaderStageCreateInfo),
-            'pVertexInputState': ctypes.POINTER(VkPipelineVertexInputStateCreateInfo),
-            'pInputAssemblyState': ctypes.POINTER(VkPipelineInputAssemblyStateCreateInfo),
-            'pTessellationState': ctypes.POINTER(VkPipelineTessellationStateCreateInfo),
-            'pViewportState': ctypes.POINTER(VkPipelineViewportStateCreateInfo),
-            'pRasterizationState': ctypes.POINTER(VkPipelineRasterizationStateCreateInfo),
-            'pMultisampleState': ctypes.POINTER(VkPipelineMultisampleStateCreateInfo),
-            'pDepthStencilState': ctypes.POINTER(VkPipelineDepthStencilStateCreateInfo),
-            'pColorBlendState': ctypes.POINTER(VkPipelineColorBlendStateCreateInfo),
-            'pDynamicState': ctypes.POINTER(VkPipelineDynamicStateCreateInfo),
-            'layout': ctypes.c_void_p,
-            'renderPass': ctypes.c_void_p,
-            'subpass': ctypes.c_uint32,
-            'basePipelineHandle': ctypes.c_void_p,
-            'basePipelineIndex': ctypes.c_int32,
-        }
-
+    pass
 
 from .VkPipelineColorBlendStateCreateInfo import VkPipelineColorBlendStateCreateInfo
 from .VkPipelineDepthStencilStateCreateInfo import VkPipelineDepthStencilStateCreateInfo
@@ -58,3 +35,25 @@ VkGraphicsPipelineCreateInfo._fields_ = [
     ('basePipelineHandle', ctypes.c_void_p),
     ('basePipelineIndex', ctypes.c_int32),
 ]
+
+VkGraphicsPipelineCreateInfo._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'flags': ctypes.c_uint32,
+    'stageCount': ctypes.c_uint32,
+    'pStages': ctypes.POINTER(VkPipelineShaderStageCreateInfo),
+    'pVertexInputState': ctypes.POINTER(VkPipelineVertexInputStateCreateInfo),
+    'pInputAssemblyState': ctypes.POINTER(VkPipelineInputAssemblyStateCreateInfo),
+    'pTessellationState': ctypes.POINTER(VkPipelineTessellationStateCreateInfo),
+    'pViewportState': ctypes.POINTER(VkPipelineViewportStateCreateInfo),
+    'pRasterizationState': ctypes.POINTER(VkPipelineRasterizationStateCreateInfo),
+    'pMultisampleState': ctypes.POINTER(VkPipelineMultisampleStateCreateInfo),
+    'pDepthStencilState': ctypes.POINTER(VkPipelineDepthStencilStateCreateInfo),
+    'pColorBlendState': ctypes.POINTER(VkPipelineColorBlendStateCreateInfo),
+    'pDynamicState': ctypes.POINTER(VkPipelineDynamicStateCreateInfo),
+    'layout': ctypes.c_void_p,
+    'renderPass': ctypes.c_void_p,
+    'subpass': ctypes.c_uint32,
+    'basePipelineHandle': ctypes.c_void_p,
+    'basePipelineIndex': ctypes.c_int32,
+}

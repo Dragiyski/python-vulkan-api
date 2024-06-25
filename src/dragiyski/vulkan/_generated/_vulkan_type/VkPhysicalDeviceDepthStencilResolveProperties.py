@@ -1,17 +1,6 @@
 import ctypes
 
 class VkPhysicalDeviceDepthStencilResolveProperties(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'supportedDepthResolveModes': ctypes.c_uint32,
-            'supportedStencilResolveModes': ctypes.c_uint32,
-            'independentResolveNone': ctypes.c_uint32,
-            'independentResolve': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -20,3 +9,12 @@ class VkPhysicalDeviceDepthStencilResolveProperties(ctypes.Structure):
         ('independentResolveNone', ctypes.c_uint32),
         ('independentResolve', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceDepthStencilResolveProperties._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'supportedDepthResolveModes': ctypes.c_uint32,
+    'supportedStencilResolveModes': ctypes.c_uint32,
+    'independentResolveNone': ctypes.c_uint32,
+    'independentResolve': ctypes.c_uint32,
+}

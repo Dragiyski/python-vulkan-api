@@ -1,16 +1,14 @@
 import ctypes
 
 class VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'shaderZeroInitializeWorkgroupMemory': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
         ('shaderZeroInitializeWorkgroupMemory', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'shaderZeroInitializeWorkgroupMemory': ctypes.c_uint32,
+}

@@ -1,15 +1,7 @@
 import ctypes
 
 class VkLayerSettingsCreateInfoEXT(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'settingCount': ctypes.c_uint32,
-            'pSettings': ctypes.POINTER(VkLayerSettingEXT),
-        }
-
+    pass
 
 from .VkLayerSettingEXT import VkLayerSettingEXT
 
@@ -19,3 +11,10 @@ VkLayerSettingsCreateInfoEXT._fields_ = [
     ('settingCount', ctypes.c_uint32),
     ('pSettings', ctypes.POINTER(VkLayerSettingEXT)),
 ]
+
+VkLayerSettingsCreateInfoEXT._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'settingCount': ctypes.c_uint32,
+    'pSettings': ctypes.POINTER(VkLayerSettingEXT),
+}

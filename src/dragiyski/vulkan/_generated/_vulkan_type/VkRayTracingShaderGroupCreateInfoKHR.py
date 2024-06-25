@@ -1,19 +1,6 @@
 import ctypes
 
 class VkRayTracingShaderGroupCreateInfoKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'type': ctypes.c_int,
-            'generalShader': ctypes.c_uint32,
-            'closestHitShader': ctypes.c_uint32,
-            'anyHitShader': ctypes.c_uint32,
-            'intersectionShader': ctypes.c_uint32,
-            'pShaderGroupCaptureReplayHandle': ctypes.c_void_p,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -24,3 +11,14 @@ class VkRayTracingShaderGroupCreateInfoKHR(ctypes.Structure):
         ('intersectionShader', ctypes.c_uint32),
         ('pShaderGroupCaptureReplayHandle', ctypes.c_void_p),
     ]
+
+VkRayTracingShaderGroupCreateInfoKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'type': ctypes.c_int,
+    'generalShader': ctypes.c_uint32,
+    'closestHitShader': ctypes.c_uint32,
+    'anyHitShader': ctypes.c_uint32,
+    'intersectionShader': ctypes.c_uint32,
+    'pShaderGroupCaptureReplayHandle': ctypes.c_void_p,
+}

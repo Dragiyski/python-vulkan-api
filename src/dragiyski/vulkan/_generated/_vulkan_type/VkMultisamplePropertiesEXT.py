@@ -1,14 +1,7 @@
 import ctypes
 
 class VkMultisamplePropertiesEXT(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'maxSampleLocationGridSize': VkExtent2D,
-        }
-
+    pass
 
 from .VkExtent2D import VkExtent2D
 
@@ -17,3 +10,9 @@ VkMultisamplePropertiesEXT._fields_ = [
     ('pNext', ctypes.c_void_p),
     ('maxSampleLocationGridSize', VkExtent2D),
 ]
+
+VkMultisamplePropertiesEXT._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'maxSampleLocationGridSize': VkExtent2D,
+}

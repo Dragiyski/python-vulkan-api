@@ -1,25 +1,7 @@
 import ctypes
 
 class VkRayTracingPipelineCreateInfoKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'flags': ctypes.c_uint32,
-            'stageCount': ctypes.c_uint32,
-            'pStages': ctypes.POINTER(VkPipelineShaderStageCreateInfo),
-            'groupCount': ctypes.c_uint32,
-            'pGroups': ctypes.POINTER(VkRayTracingShaderGroupCreateInfoKHR),
-            'maxPipelineRayRecursionDepth': ctypes.c_uint32,
-            'pLibraryInfo': ctypes.POINTER(VkPipelineLibraryCreateInfoKHR),
-            'pLibraryInterface': ctypes.POINTER(VkRayTracingPipelineInterfaceCreateInfoKHR),
-            'pDynamicState': ctypes.POINTER(VkPipelineDynamicStateCreateInfo),
-            'layout': ctypes.c_void_p,
-            'basePipelineHandle': ctypes.c_void_p,
-            'basePipelineIndex': ctypes.c_int32,
-        }
-
+    pass
 
 from .VkPipelineDynamicStateCreateInfo import VkPipelineDynamicStateCreateInfo
 from .VkPipelineLibraryCreateInfoKHR import VkPipelineLibraryCreateInfoKHR
@@ -43,3 +25,20 @@ VkRayTracingPipelineCreateInfoKHR._fields_ = [
     ('basePipelineHandle', ctypes.c_void_p),
     ('basePipelineIndex', ctypes.c_int32),
 ]
+
+VkRayTracingPipelineCreateInfoKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'flags': ctypes.c_uint32,
+    'stageCount': ctypes.c_uint32,
+    'pStages': ctypes.POINTER(VkPipelineShaderStageCreateInfo),
+    'groupCount': ctypes.c_uint32,
+    'pGroups': ctypes.POINTER(VkRayTracingShaderGroupCreateInfoKHR),
+    'maxPipelineRayRecursionDepth': ctypes.c_uint32,
+    'pLibraryInfo': ctypes.POINTER(VkPipelineLibraryCreateInfoKHR),
+    'pLibraryInterface': ctypes.POINTER(VkRayTracingPipelineInterfaceCreateInfoKHR),
+    'pDynamicState': ctypes.POINTER(VkPipelineDynamicStateCreateInfo),
+    'layout': ctypes.c_void_p,
+    'basePipelineHandle': ctypes.c_void_p,
+    'basePipelineIndex': ctypes.c_int32,
+}

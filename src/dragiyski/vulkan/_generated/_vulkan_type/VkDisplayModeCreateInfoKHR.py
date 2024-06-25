@@ -1,15 +1,7 @@
 import ctypes
 
 class VkDisplayModeCreateInfoKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'flags': ctypes.c_uint32,
-            'parameters': VkDisplayModeParametersKHR,
-        }
-
+    pass
 
 from .VkDisplayModeParametersKHR import VkDisplayModeParametersKHR
 
@@ -19,3 +11,10 @@ VkDisplayModeCreateInfoKHR._fields_ = [
     ('flags', ctypes.c_uint32),
     ('parameters', VkDisplayModeParametersKHR),
 ]
+
+VkDisplayModeCreateInfoKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'flags': ctypes.c_uint32,
+    'parameters': VkDisplayModeParametersKHR,
+}

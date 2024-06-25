@@ -1,16 +1,7 @@
 import ctypes
 
 class VkImageCopy(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'srcSubresource': VkImageSubresourceLayers,
-            'srcOffset': VkOffset3D,
-            'dstSubresource': VkImageSubresourceLayers,
-            'dstOffset': VkOffset3D,
-            'extent': VkExtent3D,
-        }
-
+    pass
 
 from .VkExtent3D import VkExtent3D
 from .VkImageSubresourceLayers import VkImageSubresourceLayers
@@ -23,3 +14,11 @@ VkImageCopy._fields_ = [
     ('dstOffset', VkOffset3D),
     ('extent', VkExtent3D),
 ]
+
+VkImageCopy._type_ = {
+    'srcSubresource': VkImageSubresourceLayers,
+    'srcOffset': VkOffset3D,
+    'dstSubresource': VkImageSubresourceLayers,
+    'dstOffset': VkOffset3D,
+    'extent': VkExtent3D,
+}

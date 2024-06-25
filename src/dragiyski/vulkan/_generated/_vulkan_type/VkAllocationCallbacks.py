@@ -1,17 +1,7 @@
 import ctypes
 
 class VkAllocationCallbacks(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'pUserData': ctypes.c_void_p,
-            'pfnAllocation': vkAllocationFunction,
-            'pfnReallocation': vkReallocationFunction,
-            'pfnFree': vkFreeFunction,
-            'pfnInternalAllocation': vkInternalAllocationNotification,
-            'pfnInternalFree': vkInternalFreeNotification,
-        }
-
+    pass
 
 from .._vulkan_callback.vkAllocationFunction import vkAllocationFunction
 from .._vulkan_callback.vkFreeFunction import vkFreeFunction
@@ -27,3 +17,12 @@ VkAllocationCallbacks._fields_ = [
     ('pfnInternalAllocation', vkInternalAllocationNotification),
     ('pfnInternalFree', vkInternalFreeNotification),
 ]
+
+VkAllocationCallbacks._type_ = {
+    'pUserData': ctypes.c_void_p,
+    'pfnAllocation': vkAllocationFunction,
+    'pfnReallocation': vkReallocationFunction,
+    'pfnFree': vkFreeFunction,
+    'pfnInternalAllocation': vkInternalAllocationNotification,
+    'pfnInternalFree': vkInternalFreeNotification,
+}

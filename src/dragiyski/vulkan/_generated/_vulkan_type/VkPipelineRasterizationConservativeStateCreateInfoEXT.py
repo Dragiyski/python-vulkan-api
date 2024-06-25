@@ -1,16 +1,6 @@
 import ctypes
 
 class VkPipelineRasterizationConservativeStateCreateInfoEXT(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'flags': ctypes.c_uint32,
-            'conservativeRasterizationMode': ctypes.c_int,
-            'extraPrimitiveOverestimationSize': ctypes.c_float,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkPipelineRasterizationConservativeStateCreateInfoEXT(ctypes.Structure):
         ('conservativeRasterizationMode', ctypes.c_int),
         ('extraPrimitiveOverestimationSize', ctypes.c_float),
     ]
+
+VkPipelineRasterizationConservativeStateCreateInfoEXT._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'flags': ctypes.c_uint32,
+    'conservativeRasterizationMode': ctypes.c_int,
+    'extraPrimitiveOverestimationSize': ctypes.c_float,
+}

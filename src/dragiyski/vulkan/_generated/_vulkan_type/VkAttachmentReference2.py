@@ -1,16 +1,6 @@
 import ctypes
 
 class VkAttachmentReference2(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'attachment': ctypes.c_uint32,
-            'layout': ctypes.c_int,
-            'aspectMask': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkAttachmentReference2(ctypes.Structure):
         ('layout', ctypes.c_int),
         ('aspectMask', ctypes.c_uint32),
     ]
+
+VkAttachmentReference2._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'attachment': ctypes.c_uint32,
+    'layout': ctypes.c_int,
+    'aspectMask': ctypes.c_uint32,
+}

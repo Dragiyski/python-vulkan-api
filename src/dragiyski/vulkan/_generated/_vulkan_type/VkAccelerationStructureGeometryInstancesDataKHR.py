@@ -1,15 +1,7 @@
 import ctypes
 
 class VkAccelerationStructureGeometryInstancesDataKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'arrayOfPointers': ctypes.c_uint32,
-            'data': VkDeviceOrHostAddressConstKHR,
-        }
-
+    pass
 
 from .VkDeviceOrHostAddressConstKHR import VkDeviceOrHostAddressConstKHR
 
@@ -19,3 +11,10 @@ VkAccelerationStructureGeometryInstancesDataKHR._fields_ = [
     ('arrayOfPointers', ctypes.c_uint32),
     ('data', VkDeviceOrHostAddressConstKHR),
 ]
+
+VkAccelerationStructureGeometryInstancesDataKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'arrayOfPointers': ctypes.c_uint32,
+    'data': VkDeviceOrHostAddressConstKHR,
+}

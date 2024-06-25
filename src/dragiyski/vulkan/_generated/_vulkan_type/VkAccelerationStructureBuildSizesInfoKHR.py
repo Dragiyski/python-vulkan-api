@@ -1,16 +1,6 @@
 import ctypes
 
 class VkAccelerationStructureBuildSizesInfoKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'accelerationStructureSize': ctypes.c_uint64,
-            'updateScratchSize': ctypes.c_uint64,
-            'buildScratchSize': ctypes.c_uint64,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkAccelerationStructureBuildSizesInfoKHR(ctypes.Structure):
         ('updateScratchSize', ctypes.c_uint64),
         ('buildScratchSize', ctypes.c_uint64),
     ]
+
+VkAccelerationStructureBuildSizesInfoKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'accelerationStructureSize': ctypes.c_uint64,
+    'updateScratchSize': ctypes.c_uint64,
+    'buildScratchSize': ctypes.c_uint64,
+}

@@ -1,14 +1,7 @@
 import ctypes
 
 class VkAccelerationStructureGeometryDataKHR(ctypes.Union):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'triangles': VkAccelerationStructureGeometryTrianglesDataKHR,
-            'aabbs': VkAccelerationStructureGeometryAabbsDataKHR,
-            'instances': VkAccelerationStructureGeometryInstancesDataKHR,
-        }
-
+    pass
 
 from .VkAccelerationStructureGeometryAabbsDataKHR import VkAccelerationStructureGeometryAabbsDataKHR
 from .VkAccelerationStructureGeometryInstancesDataKHR import VkAccelerationStructureGeometryInstancesDataKHR
@@ -19,3 +12,9 @@ VkAccelerationStructureGeometryDataKHR._fields_ = [
     ('aabbs', VkAccelerationStructureGeometryAabbsDataKHR),
     ('instances', VkAccelerationStructureGeometryInstancesDataKHR),
 ]
+
+VkAccelerationStructureGeometryDataKHR._type_ = {
+    'triangles': VkAccelerationStructureGeometryTrianglesDataKHR,
+    'aabbs': VkAccelerationStructureGeometryAabbsDataKHR,
+    'instances': VkAccelerationStructureGeometryInstancesDataKHR,
+}

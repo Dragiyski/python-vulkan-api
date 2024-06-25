@@ -1,16 +1,6 @@
 import ctypes
 
 class VkPhysicalDeviceGroupProperties(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'physicalDeviceCount': ctypes.c_uint32,
-            'physicalDevices': ctypes.ARRAY(ctypes.c_void_p, 32),
-            'subsetAllocation': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkPhysicalDeviceGroupProperties(ctypes.Structure):
         ('physicalDevices', ctypes.ARRAY(ctypes.c_void_p, 32)),
         ('subsetAllocation', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceGroupProperties._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'physicalDeviceCount': ctypes.c_uint32,
+    'physicalDevices': ctypes.ARRAY(ctypes.c_void_p, 32),
+    'subsetAllocation': ctypes.c_uint32,
+}

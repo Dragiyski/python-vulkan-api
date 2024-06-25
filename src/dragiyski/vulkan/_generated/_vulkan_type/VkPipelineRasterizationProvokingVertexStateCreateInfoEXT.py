@@ -1,16 +1,14 @@
 import ctypes
 
 class VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'provokingVertexMode': ctypes.c_int,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
         ('provokingVertexMode', ctypes.c_int),
     ]
+
+VkPipelineRasterizationProvokingVertexStateCreateInfoEXT._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'provokingVertexMode': ctypes.c_int,
+}

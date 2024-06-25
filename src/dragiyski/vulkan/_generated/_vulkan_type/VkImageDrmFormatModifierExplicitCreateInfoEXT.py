@@ -1,16 +1,7 @@
 import ctypes
 
 class VkImageDrmFormatModifierExplicitCreateInfoEXT(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'drmFormatModifier': ctypes.c_uint64,
-            'drmFormatModifierPlaneCount': ctypes.c_uint32,
-            'pPlaneLayouts': ctypes.POINTER(VkSubresourceLayout),
-        }
-
+    pass
 
 from .VkSubresourceLayout import VkSubresourceLayout
 
@@ -21,3 +12,11 @@ VkImageDrmFormatModifierExplicitCreateInfoEXT._fields_ = [
     ('drmFormatModifierPlaneCount', ctypes.c_uint32),
     ('pPlaneLayouts', ctypes.POINTER(VkSubresourceLayout)),
 ]
+
+VkImageDrmFormatModifierExplicitCreateInfoEXT._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'drmFormatModifier': ctypes.c_uint64,
+    'drmFormatModifierPlaneCount': ctypes.c_uint32,
+    'pPlaneLayouts': ctypes.POINTER(VkSubresourceLayout),
+}

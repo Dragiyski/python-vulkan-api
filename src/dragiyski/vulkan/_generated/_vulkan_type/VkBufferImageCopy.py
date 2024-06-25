@@ -1,17 +1,7 @@
 import ctypes
 
 class VkBufferImageCopy(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'bufferOffset': ctypes.c_uint64,
-            'bufferRowLength': ctypes.c_uint32,
-            'bufferImageHeight': ctypes.c_uint32,
-            'imageSubresource': VkImageSubresourceLayers,
-            'imageOffset': VkOffset3D,
-            'imageExtent': VkExtent3D,
-        }
-
+    pass
 
 from .VkExtent3D import VkExtent3D
 from .VkImageSubresourceLayers import VkImageSubresourceLayers
@@ -25,3 +15,12 @@ VkBufferImageCopy._fields_ = [
     ('imageOffset', VkOffset3D),
     ('imageExtent', VkExtent3D),
 ]
+
+VkBufferImageCopy._type_ = {
+    'bufferOffset': ctypes.c_uint64,
+    'bufferRowLength': ctypes.c_uint32,
+    'bufferImageHeight': ctypes.c_uint32,
+    'imageSubresource': VkImageSubresourceLayers,
+    'imageOffset': VkOffset3D,
+    'imageExtent': VkExtent3D,
+}

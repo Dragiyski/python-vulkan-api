@@ -1,16 +1,6 @@
 import ctypes
 
 class VkShaderModuleCreateInfo(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'flags': ctypes.c_uint32,
-            'codeSize': ctypes.c_size_t,
-            'pCode': ctypes.POINTER(ctypes.c_uint32),
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkShaderModuleCreateInfo(ctypes.Structure):
         ('codeSize', ctypes.c_size_t),
         ('pCode', ctypes.POINTER(ctypes.c_uint32)),
     ]
+
+VkShaderModuleCreateInfo._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'flags': ctypes.c_uint32,
+    'codeSize': ctypes.c_size_t,
+    'pCode': ctypes.POINTER(ctypes.c_uint32),
+}

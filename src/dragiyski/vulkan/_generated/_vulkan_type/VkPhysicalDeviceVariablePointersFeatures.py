@@ -1,18 +1,16 @@
 import ctypes
 
 class VkPhysicalDeviceVariablePointersFeatures(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'variablePointersStorageBuffer': ctypes.c_uint32,
-            'variablePointers': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
         ('variablePointersStorageBuffer', ctypes.c_uint32),
         ('variablePointers', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceVariablePointersFeatures._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'variablePointersStorageBuffer': ctypes.c_uint32,
+    'variablePointers': ctypes.c_uint32,
+}

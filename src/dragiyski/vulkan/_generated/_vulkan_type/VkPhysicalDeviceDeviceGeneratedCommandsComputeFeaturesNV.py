@@ -1,16 +1,6 @@
 import ctypes
 
 class VkPhysicalDeviceDeviceGeneratedCommandsComputeFeaturesNV(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'deviceGeneratedCompute': ctypes.c_uint32,
-            'deviceGeneratedComputePipelines': ctypes.c_uint32,
-            'deviceGeneratedComputeCaptureReplay': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkPhysicalDeviceDeviceGeneratedCommandsComputeFeaturesNV(ctypes.Structure)
         ('deviceGeneratedComputePipelines', ctypes.c_uint32),
         ('deviceGeneratedComputeCaptureReplay', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceDeviceGeneratedCommandsComputeFeaturesNV._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'deviceGeneratedCompute': ctypes.c_uint32,
+    'deviceGeneratedComputePipelines': ctypes.c_uint32,
+    'deviceGeneratedComputeCaptureReplay': ctypes.c_uint32,
+}

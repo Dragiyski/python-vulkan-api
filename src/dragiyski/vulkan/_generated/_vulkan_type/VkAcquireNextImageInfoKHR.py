@@ -1,18 +1,6 @@
 import ctypes
 
 class VkAcquireNextImageInfoKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'swapchain': ctypes.c_void_p,
-            'timeout': ctypes.c_uint64,
-            'semaphore': ctypes.c_void_p,
-            'fence': ctypes.c_void_p,
-            'deviceMask': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -22,3 +10,13 @@ class VkAcquireNextImageInfoKHR(ctypes.Structure):
         ('fence', ctypes.c_void_p),
         ('deviceMask', ctypes.c_uint32),
     ]
+
+VkAcquireNextImageInfoKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'swapchain': ctypes.c_void_p,
+    'timeout': ctypes.c_uint64,
+    'semaphore': ctypes.c_void_p,
+    'fence': ctypes.c_void_p,
+    'deviceMask': ctypes.c_uint32,
+}

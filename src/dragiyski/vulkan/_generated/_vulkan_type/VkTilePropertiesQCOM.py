@@ -1,16 +1,7 @@
 import ctypes
 
 class VkTilePropertiesQCOM(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'tileSize': VkExtent3D,
-            'apronSize': VkExtent2D,
-            'origin': VkOffset2D,
-        }
-
+    pass
 
 from .VkExtent2D import VkExtent2D
 from .VkExtent3D import VkExtent3D
@@ -23,3 +14,11 @@ VkTilePropertiesQCOM._fields_ = [
     ('apronSize', VkExtent2D),
     ('origin', VkOffset2D),
 ]
+
+VkTilePropertiesQCOM._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'tileSize': VkExtent3D,
+    'apronSize': VkExtent2D,
+    'origin': VkOffset2D,
+}

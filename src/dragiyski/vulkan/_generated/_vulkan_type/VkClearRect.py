@@ -1,14 +1,7 @@
 import ctypes
 
 class VkClearRect(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'rect': VkRect2D,
-            'baseArrayLayer': ctypes.c_uint32,
-            'layerCount': ctypes.c_uint32,
-        }
-
+    pass
 
 from .VkRect2D import VkRect2D
 
@@ -17,3 +10,9 @@ VkClearRect._fields_ = [
     ('baseArrayLayer', ctypes.c_uint32),
     ('layerCount', ctypes.c_uint32),
 ]
+
+VkClearRect._type_ = {
+    'rect': VkRect2D,
+    'baseArrayLayer': ctypes.c_uint32,
+    'layerCount': ctypes.c_uint32,
+}

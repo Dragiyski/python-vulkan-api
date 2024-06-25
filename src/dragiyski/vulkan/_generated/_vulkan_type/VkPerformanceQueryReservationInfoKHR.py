@@ -1,16 +1,14 @@
 import ctypes
 
 class VkPerformanceQueryReservationInfoKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'maxPerformanceQueriesPerPool': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
         ('maxPerformanceQueriesPerPool', ctypes.c_uint32),
     ]
+
+VkPerformanceQueryReservationInfoKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'maxPerformanceQueriesPerPool': ctypes.c_uint32,
+}

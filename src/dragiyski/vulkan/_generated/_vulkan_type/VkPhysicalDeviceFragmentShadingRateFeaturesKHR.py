@@ -1,16 +1,6 @@
 import ctypes
 
 class VkPhysicalDeviceFragmentShadingRateFeaturesKHR(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'pipelineFragmentShadingRate': ctypes.c_uint32,
-            'primitiveFragmentShadingRate': ctypes.c_uint32,
-            'attachmentFragmentShadingRate': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkPhysicalDeviceFragmentShadingRateFeaturesKHR(ctypes.Structure):
         ('primitiveFragmentShadingRate', ctypes.c_uint32),
         ('attachmentFragmentShadingRate', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceFragmentShadingRateFeaturesKHR._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'pipelineFragmentShadingRate': ctypes.c_uint32,
+    'primitiveFragmentShadingRate': ctypes.c_uint32,
+    'attachmentFragmentShadingRate': ctypes.c_uint32,
+}

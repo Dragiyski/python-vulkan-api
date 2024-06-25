@@ -1,16 +1,6 @@
 import ctypes
 
 class VkPhysicalDeviceExternalBufferInfo(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'flags': ctypes.c_uint32,
-            'usage': ctypes.c_uint32,
-            'handleType': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -18,3 +8,11 @@ class VkPhysicalDeviceExternalBufferInfo(ctypes.Structure):
         ('usage', ctypes.c_uint32),
         ('handleType', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceExternalBufferInfo._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'flags': ctypes.c_uint32,
+    'usage': ctypes.c_uint32,
+    'handleType': ctypes.c_uint32,
+}

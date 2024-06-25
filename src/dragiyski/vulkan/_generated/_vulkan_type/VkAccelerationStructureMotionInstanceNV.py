@@ -1,14 +1,7 @@
 import ctypes
 
 class VkAccelerationStructureMotionInstanceNV(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'type': ctypes.c_int,
-            'flags': ctypes.c_uint32,
-            'data': VkAccelerationStructureMotionInstanceDataNV,
-        }
-
+    pass
 
 from .VkAccelerationStructureMotionInstanceDataNV import VkAccelerationStructureMotionInstanceDataNV
 
@@ -17,3 +10,9 @@ VkAccelerationStructureMotionInstanceNV._fields_ = [
     ('flags', ctypes.c_uint32),
     ('data', VkAccelerationStructureMotionInstanceDataNV),
 ]
+
+VkAccelerationStructureMotionInstanceNV._type_ = {
+    'type': ctypes.c_int,
+    'flags': ctypes.c_uint32,
+    'data': VkAccelerationStructureMotionInstanceDataNV,
+}

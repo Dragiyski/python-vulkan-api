@@ -1,16 +1,14 @@
 import ctypes
 
 class VkExportMetalObjectCreateInfoEXT(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'exportObjectType': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
         ('exportObjectType', ctypes.c_uint32),
     ]
+
+VkExportMetalObjectCreateInfoEXT._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'exportObjectType': ctypes.c_uint32,
+}

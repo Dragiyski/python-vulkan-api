@@ -2,8 +2,10 @@ import ctypes.util
 from collections.abc import Callable
 from . import binding
 
+
 def locate_library():
     return ctypes.util.find_library('vulkan')
+
 
 def load_library(loader_class = None):
     library = locate_library()
@@ -16,21 +18,23 @@ def load_library(loader_class = None):
             loader_class = ctypes.CDLL
     return loader_class(library)
 
+
 def get_vk_instance_get_proc_address(loader = load_library, *args, **kwargs):
     library = load_library(*args, **kwargs)
     return binding.vkGetInstanceProcAddr(ctypes.cast(library.vkGetInstanceProcAddr, ctypes.c_void_p).value)
+
 
 class LibraryLoader:
     def __init__(self, vkGetInstanceProcAddr: Callable = get_vk_instance_get_proc_address()):
         if not callable(vkGetInstanceProcAddr):
             raise TypeError('Expected vkGetInstanceProcAddr to be a callable.')
         self.vkGetInstanceProcAddr = vkGetInstanceProcAddr
-    
+
     def __getattr__(self, name):
         value = self.__getattr(name)
         object.__setattr__(self, name, value)
         return value
-    
+
     def __getattr(self, name):
         c_name = name.encode()
         if hasattr(binding, name):
@@ -41,21 +45,18 @@ class LibraryLoader:
                     return signature(ptr)
             else:
                 return getattr(binding, name)
-        raise AttributeError(name, name=name, obj=self)
+        raise AttributeError(name, name = name, obj = self)
+
 
 class InstanceLoader:
-    def __init__(self, loader: LibraryLoader, instance: binding.VkInstance | int):
+    def __init__(self, loader: LibraryLoader, instance):
         self.loader = loader
-        if isinstance(instance, binding.VkInstance):
-            instance = instance.value
-        if not isinstance(instance, int):
-            raise TypeError('Argument "instance" must be `int` or `VkInstance`.')
         self.instance = instance
-    
+
     def __getattr__(self, name):
-            value = self.__getattr(name)
-            object.__setattr__(self, name, value)
-            return value
+        value = self.__getattr(name)
+        object.__setattr__(self, name, value)
+        return value
 
     def __getattr(self, name):
         c_name = name.encode()
@@ -65,7 +66,8 @@ class InstanceLoader:
                 ptr = ctypes.cast(self.loader.vkGetInstanceProcAddr(self.instance, c_name), ctypes.c_void_p).value
                 if ptr is not None:
                     return signature(ptr)
-        raise AttributeError(name, name=name, obj=self)
+        raise AttributeError(name, name = name, obj = self)
+
 
 class DeviceLoader:
     def __init__(self, loader: InstanceLoader, device: binding.VkDevice | int):
@@ -77,9 +79,9 @@ class DeviceLoader:
         self.device = device
 
     def __getattr__(self, name):
-            value = self.__getattr(name)
-            object.__setattr__(self, name, value)
-            return value
+        value = self.__getattr(name)
+        object.__setattr__(self, name, value)
+        return value
 
     def __getattr(self, name):
         c_name = name.encode()
@@ -89,4 +91,4 @@ class DeviceLoader:
                 ptr = ctypes.cast(self.loader.vkGetDeviceProcAddr(self.device, c_name), ctypes.c_void_p).value
                 if ptr is not None:
                     return signature(ptr)
-        raise AttributeError(name, name=name, obj=self)
+        raise AttributeError(name, name = name, obj = self)

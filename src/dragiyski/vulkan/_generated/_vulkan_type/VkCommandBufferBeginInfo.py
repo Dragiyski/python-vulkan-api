@@ -1,15 +1,7 @@
 import ctypes
 
 class VkCommandBufferBeginInfo(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'flags': ctypes.c_uint32,
-            'pInheritanceInfo': ctypes.POINTER(VkCommandBufferInheritanceInfo),
-        }
-
+    pass
 
 from .VkCommandBufferInheritanceInfo import VkCommandBufferInheritanceInfo
 
@@ -19,3 +11,10 @@ VkCommandBufferBeginInfo._fields_ = [
     ('flags', ctypes.c_uint32),
     ('pInheritanceInfo', ctypes.POINTER(VkCommandBufferInheritanceInfo)),
 ]
+
+VkCommandBufferBeginInfo._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'flags': ctypes.c_uint32,
+    'pInheritanceInfo': ctypes.POINTER(VkCommandBufferInheritanceInfo),
+}

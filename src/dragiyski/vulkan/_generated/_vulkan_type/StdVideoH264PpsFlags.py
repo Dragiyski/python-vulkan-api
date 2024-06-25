@@ -1,19 +1,6 @@
 import ctypes
 
 class StdVideoH264PpsFlags(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'transform_8x8_mode_flag': ctypes.c_uint32,
-            'redundant_pic_cnt_present_flag': ctypes.c_uint32,
-            'constrained_intra_pred_flag': ctypes.c_uint32,
-            'deblocking_filter_control_present_flag': ctypes.c_uint32,
-            'weighted_pred_flag': ctypes.c_uint32,
-            'bottom_field_pic_order_in_frame_present_flag': ctypes.c_uint32,
-            'entropy_coding_mode_flag': ctypes.c_uint32,
-            'pic_scaling_matrix_present_flag': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('transform_8x8_mode_flag', ctypes.c_uint32, 1),
         ('redundant_pic_cnt_present_flag', ctypes.c_uint32, 1),
@@ -24,3 +11,14 @@ class StdVideoH264PpsFlags(ctypes.Structure):
         ('entropy_coding_mode_flag', ctypes.c_uint32, 1),
         ('pic_scaling_matrix_present_flag', ctypes.c_uint32, 1),
     ]
+
+StdVideoH264PpsFlags._type_ = {
+    'transform_8x8_mode_flag': ctypes.c_uint32,
+    'redundant_pic_cnt_present_flag': ctypes.c_uint32,
+    'constrained_intra_pred_flag': ctypes.c_uint32,
+    'deblocking_filter_control_present_flag': ctypes.c_uint32,
+    'weighted_pred_flag': ctypes.c_uint32,
+    'bottom_field_pic_order_in_frame_present_flag': ctypes.c_uint32,
+    'entropy_coding_mode_flag': ctypes.c_uint32,
+    'pic_scaling_matrix_present_flag': ctypes.c_uint32,
+}

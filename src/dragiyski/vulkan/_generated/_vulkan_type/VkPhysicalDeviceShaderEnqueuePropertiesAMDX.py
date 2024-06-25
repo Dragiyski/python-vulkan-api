@@ -1,18 +1,6 @@
 import ctypes
 
 class VkPhysicalDeviceShaderEnqueuePropertiesAMDX(ctypes.Structure):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._type_ = {
-            'sType': ctypes.c_int,
-            'pNext': ctypes.c_void_p,
-            'maxExecutionGraphDepth': ctypes.c_uint32,
-            'maxExecutionGraphShaderOutputNodes': ctypes.c_uint32,
-            'maxExecutionGraphShaderPayloadSize': ctypes.c_uint32,
-            'maxExecutionGraphShaderPayloadCount': ctypes.c_uint32,
-            'executionGraphDispatchAddressAlignment': ctypes.c_uint32,
-        }
-
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -22,3 +10,13 @@ class VkPhysicalDeviceShaderEnqueuePropertiesAMDX(ctypes.Structure):
         ('maxExecutionGraphShaderPayloadCount', ctypes.c_uint32),
         ('executionGraphDispatchAddressAlignment', ctypes.c_uint32),
     ]
+
+VkPhysicalDeviceShaderEnqueuePropertiesAMDX._type_ = {
+    'sType': ctypes.c_int,
+    'pNext': ctypes.c_void_p,
+    'maxExecutionGraphDepth': ctypes.c_uint32,
+    'maxExecutionGraphShaderOutputNodes': ctypes.c_uint32,
+    'maxExecutionGraphShaderPayloadSize': ctypes.c_uint32,
+    'maxExecutionGraphShaderPayloadCount': ctypes.c_uint32,
+    'executionGraphDispatchAddressAlignment': ctypes.c_uint32,
+}
