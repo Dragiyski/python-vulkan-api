@@ -1,24 +1,14 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkViewportWScalingNV(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'xcoeff': ctypes.c_float,
+            'ycoeff': ctypes.c_float,
+        }
+
     _fields_ = [
         ('xcoeff', ctypes.c_float),
         ('ycoeff', ctypes.c_float),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkPipelineViewportWScalingStateCreateInfoNV',
-    },
-    'input_of': {
-        'vkCmdSetViewportWScalingNV',
-    },
-    'output_of': set(),
-    'member_map': {
-        'xcoeff': {'python_name': ['xcoeff']},
-        'ycoeff': {'python_name': ['ycoeff']},
-    }
-}

@@ -1,22 +1,14 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkPipelineCreationFeedback(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'flags': ctypes.c_uint32,
+            'duration': ctypes.c_uint64,
+        }
+
     _fields_ = [
         ('flags', ctypes.c_uint32),
         ('duration', ctypes.c_uint64),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkPipelineCreationFeedbackCreateInfo',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'flags': {'python_name': ['flags'], 'type': 'VkPipelineCreationFeedbackFlags'},
-        'duration': {'python_name': ['duration']},
-    }
-}

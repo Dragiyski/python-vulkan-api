@@ -1,7 +1,0 @@
-from enum import IntEnum
-
-class Value(IntEnum):
-    STD_VIDEO_H264_POC_TYPE_0 = 0
-    STD_VIDEO_H264_POC_TYPE_1 = 1
-    STD_VIDEO_H264_POC_TYPE_2 = 2
-    STD_VIDEO_H264_POC_TYPE_INVALID = 2147483647

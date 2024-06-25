@@ -1,6 +1,16 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkDescriptorSetLayoutBinding(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'binding': ctypes.c_uint32,
+            'descriptorType': ctypes.c_int,
+            'descriptorCount': ctypes.c_uint32,
+            'stageFlags': ctypes.c_uint32,
+            'pImmutableSamplers': ctypes.POINTER(ctypes.c_void_p),
+        }
+
     _fields_ = [
         ('binding', ctypes.c_uint32),
         ('descriptorType', ctypes.c_int),
@@ -8,21 +18,3 @@ class CType(ctypes.Structure):
         ('stageFlags', ctypes.c_uint32),
         ('pImmutableSamplers', ctypes.POINTER(ctypes.c_void_p)),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkDescriptorSetLayoutCreateInfo',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'binding': {'python_name': ['binding']},
-        'descriptorType': {'python_name': ['descriptor', 'type'], 'type': 'VkDescriptorType'},
-        'descriptorCount': {'python_name': ['descriptor', 'count']},
-        'stageFlags': {'python_name': ['stage', 'flags'], 'type': 'VkShaderStageFlags'},
-        'pImmutableSamplers': {'python_name': ['p', 'immutable', 'samplers'], 'len': [['descriptorCount']]},
-    }
-}

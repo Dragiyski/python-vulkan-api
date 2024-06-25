@@ -1,0 +1,5 @@
+from enum import IntFlag
+
+class VkSurfaceCounterFlagsEXT(IntFlag):
+    VK_SURFACE_COUNTER_VBLANK_BIT_EXT = 1
+    VK_SURFACE_COUNTER_VBLANK_EXT = VK_SURFACE_COUNTER_VBLANK_BIT_EXT

@@ -1,6 +1,33 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkPhysicalDeviceDescriptorIndexingFeatures(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'shaderInputAttachmentArrayDynamicIndexing': ctypes.c_uint32,
+            'shaderUniformTexelBufferArrayDynamicIndexing': ctypes.c_uint32,
+            'shaderStorageTexelBufferArrayDynamicIndexing': ctypes.c_uint32,
+            'shaderUniformBufferArrayNonUniformIndexing': ctypes.c_uint32,
+            'shaderSampledImageArrayNonUniformIndexing': ctypes.c_uint32,
+            'shaderStorageBufferArrayNonUniformIndexing': ctypes.c_uint32,
+            'shaderStorageImageArrayNonUniformIndexing': ctypes.c_uint32,
+            'shaderInputAttachmentArrayNonUniformIndexing': ctypes.c_uint32,
+            'shaderUniformTexelBufferArrayNonUniformIndexing': ctypes.c_uint32,
+            'shaderStorageTexelBufferArrayNonUniformIndexing': ctypes.c_uint32,
+            'descriptorBindingUniformBufferUpdateAfterBind': ctypes.c_uint32,
+            'descriptorBindingSampledImageUpdateAfterBind': ctypes.c_uint32,
+            'descriptorBindingStorageImageUpdateAfterBind': ctypes.c_uint32,
+            'descriptorBindingStorageBufferUpdateAfterBind': ctypes.c_uint32,
+            'descriptorBindingUniformTexelBufferUpdateAfterBind': ctypes.c_uint32,
+            'descriptorBindingStorageTexelBufferUpdateAfterBind': ctypes.c_uint32,
+            'descriptorBindingUpdateUnusedWhilePending': ctypes.c_uint32,
+            'descriptorBindingPartiallyBound': ctypes.c_uint32,
+            'descriptorBindingVariableDescriptorCount': ctypes.c_uint32,
+            'runtimeDescriptorArray': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -25,39 +52,3 @@ class CType(ctypes.Structure):
         ('descriptorBindingVariableDescriptorCount', ctypes.c_uint32),
         ('runtimeDescriptorArray', ctypes.c_uint32),
     ]
-
-descriptor = {
-    'extends': {
-        'VkDeviceCreateInfo',
-        'VkPhysicalDeviceFeatures2',
-    },
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'shaderInputAttachmentArrayDynamicIndexing': {'python_name': ['shader', 'input', 'attachment', 'array', 'dynamic', 'indexing']},
-        'shaderUniformTexelBufferArrayDynamicIndexing': {'python_name': ['shader', 'uniform', 'texel', 'buffer', 'array', 'dynamic', 'indexing']},
-        'shaderStorageTexelBufferArrayDynamicIndexing': {'python_name': ['shader', 'storage', 'texel', 'buffer', 'array', 'dynamic', 'indexing']},
-        'shaderUniformBufferArrayNonUniformIndexing': {'python_name': ['shader', 'uniform', 'buffer', 'array', 'non', 'uniform', 'indexing']},
-        'shaderSampledImageArrayNonUniformIndexing': {'python_name': ['shader', 'sampled', 'image', 'array', 'non', 'uniform', 'indexing']},
-        'shaderStorageBufferArrayNonUniformIndexing': {'python_name': ['shader', 'storage', 'buffer', 'array', 'non', 'uniform', 'indexing']},
-        'shaderStorageImageArrayNonUniformIndexing': {'python_name': ['shader', 'storage', 'image', 'array', 'non', 'uniform', 'indexing']},
-        'shaderInputAttachmentArrayNonUniformIndexing': {'python_name': ['shader', 'input', 'attachment', 'array', 'non', 'uniform', 'indexing']},
-        'shaderUniformTexelBufferArrayNonUniformIndexing': {'python_name': ['shader', 'uniform', 'texel', 'buffer', 'array', 'non', 'uniform', 'indexing']},
-        'shaderStorageTexelBufferArrayNonUniformIndexing': {'python_name': ['shader', 'storage', 'texel', 'buffer', 'array', 'non', 'uniform', 'indexing']},
-        'descriptorBindingUniformBufferUpdateAfterBind': {'python_name': ['descriptor', 'binding', 'uniform', 'buffer', 'update', 'after', 'bind']},
-        'descriptorBindingSampledImageUpdateAfterBind': {'python_name': ['descriptor', 'binding', 'sampled', 'image', 'update', 'after', 'bind']},
-        'descriptorBindingStorageImageUpdateAfterBind': {'python_name': ['descriptor', 'binding', 'storage', 'image', 'update', 'after', 'bind']},
-        'descriptorBindingStorageBufferUpdateAfterBind': {'python_name': ['descriptor', 'binding', 'storage', 'buffer', 'update', 'after', 'bind']},
-        'descriptorBindingUniformTexelBufferUpdateAfterBind': {'python_name': ['descriptor', 'binding', 'uniform', 'texel', 'buffer', 'update', 'after', 'bind']},
-        'descriptorBindingStorageTexelBufferUpdateAfterBind': {'python_name': ['descriptor', 'binding', 'storage', 'texel', 'buffer', 'update', 'after', 'bind']},
-        'descriptorBindingUpdateUnusedWhilePending': {'python_name': ['descriptor', 'binding', 'update', 'unused', 'while', 'pending']},
-        'descriptorBindingPartiallyBound': {'python_name': ['descriptor', 'binding', 'partially', 'bound']},
-        'descriptorBindingVariableDescriptorCount': {'python_name': ['descriptor', 'binding', 'variable', 'descriptor', 'count']},
-        'runtimeDescriptorArray': {'python_name': ['runtime', 'descriptor', 'array']},
-    }
-}

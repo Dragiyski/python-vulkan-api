@@ -1,24 +1,14 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkDisplayPlanePropertiesKHR(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'currentDisplay': ctypes.c_void_p,
+            'currentStackIndex': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('currentDisplay', ctypes.c_void_p),
         ('currentStackIndex', ctypes.c_uint32),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkDisplayPlaneProperties2KHR',
-    },
-    'input_of': set(),
-    'output_of': {
-        'vkGetPhysicalDeviceDisplayPlanePropertiesKHR',
-    },
-    'member_map': {
-        'currentDisplay': {'python_name': ['current', 'display']},
-        'currentStackIndex': {'python_name': ['current', 'stack', 'index']},
-    }
-}

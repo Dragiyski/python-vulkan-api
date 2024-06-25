@@ -1,20 +1,12 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkRefreshCycleDurationGOOGLE(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'refreshDuration': ctypes.c_uint64,
+        }
+
     _fields_ = [
         ('refreshDuration', ctypes.c_uint64),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': {
-        'vkGetRefreshCycleDurationGOOGLE',
-    },
-    'member_map': {
-        'refreshDuration': {'python_name': ['refresh', 'duration']},
-    }
-}

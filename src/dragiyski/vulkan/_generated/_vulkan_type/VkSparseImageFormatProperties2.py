@@ -1,30 +1,19 @@
 import ctypes
 
-class CType(ctypes.Structure):
-    pass
+class VkSparseImageFormatProperties2(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'properties': VkSparseImageFormatProperties,
+        }
 
-from .VkSparseImageFormatProperties import CType as VkSparseImageFormatProperties
 
-CType._fields_ = [
+from .VkSparseImageFormatProperties import VkSparseImageFormatProperties
+
+VkSparseImageFormatProperties2._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('properties', VkSparseImageFormatProperties),
 ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': {
-        'VkSparseImageFormatProperties',
-    },
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': {
-        'vkGetPhysicalDeviceSparseImageFormatProperties2',
-    },
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_SPARSE_IMAGE_FORMAT_PROPERTIES_2', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'properties': {'python_name': ['properties'], 'type': 'VkSparseImageFormatProperties'},
-    }
-}

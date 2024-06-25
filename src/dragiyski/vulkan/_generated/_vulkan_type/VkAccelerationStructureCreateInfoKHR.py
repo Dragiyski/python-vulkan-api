@@ -1,6 +1,19 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkAccelerationStructureCreateInfoKHR(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'createFlags': ctypes.c_uint32,
+            'buffer': ctypes.c_void_p,
+            'offset': ctypes.c_uint64,
+            'size': ctypes.c_uint64,
+            'type': ctypes.c_int,
+            'deviceAddress': ctypes.c_uint64,
+        }
+
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -11,27 +24,3 @@ class CType(ctypes.Structure):
         ('type', ctypes.c_int),
         ('deviceAddress', ctypes.c_uint64),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': {
-        'VkAccelerationStructureMotionInfoNV',
-        'VkOpaqueCaptureDescriptorDataCreateInfoEXT',
-    },
-    'includes': set(),
-    'included_in': set(),
-    'input_of': {
-        'vkCreateAccelerationStructureKHR',
-    },
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'createFlags': {'python_name': ['create', 'flags'], 'type': 'VkAccelerationStructureCreateFlagsKHR'},
-        'buffer': {'python_name': ['buffer']},
-        'offset': {'python_name': ['offset']},
-        'size': {'python_name': ['size']},
-        'type': {'python_name': ['type'], 'type': 'VkAccelerationStructureTypeKHR'},
-        'deviceAddress': {'python_name': ['device', 'address']},
-    }
-}

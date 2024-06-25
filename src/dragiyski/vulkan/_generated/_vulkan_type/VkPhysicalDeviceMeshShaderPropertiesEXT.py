@@ -1,6 +1,41 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkPhysicalDeviceMeshShaderPropertiesEXT(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'maxTaskWorkGroupTotalCount': ctypes.c_uint32,
+            'maxTaskWorkGroupCount': ctypes.ARRAY(ctypes.c_uint32, 3),
+            'maxTaskWorkGroupInvocations': ctypes.c_uint32,
+            'maxTaskWorkGroupSize': ctypes.ARRAY(ctypes.c_uint32, 3),
+            'maxTaskPayloadSize': ctypes.c_uint32,
+            'maxTaskSharedMemorySize': ctypes.c_uint32,
+            'maxTaskPayloadAndSharedMemorySize': ctypes.c_uint32,
+            'maxMeshWorkGroupTotalCount': ctypes.c_uint32,
+            'maxMeshWorkGroupCount': ctypes.ARRAY(ctypes.c_uint32, 3),
+            'maxMeshWorkGroupInvocations': ctypes.c_uint32,
+            'maxMeshWorkGroupSize': ctypes.ARRAY(ctypes.c_uint32, 3),
+            'maxMeshSharedMemorySize': ctypes.c_uint32,
+            'maxMeshPayloadAndSharedMemorySize': ctypes.c_uint32,
+            'maxMeshOutputMemorySize': ctypes.c_uint32,
+            'maxMeshPayloadAndOutputMemorySize': ctypes.c_uint32,
+            'maxMeshOutputComponents': ctypes.c_uint32,
+            'maxMeshOutputVertices': ctypes.c_uint32,
+            'maxMeshOutputPrimitives': ctypes.c_uint32,
+            'maxMeshOutputLayers': ctypes.c_uint32,
+            'maxMeshMultiviewViewCount': ctypes.c_uint32,
+            'meshOutputPerVertexGranularity': ctypes.c_uint32,
+            'meshOutputPerPrimitiveGranularity': ctypes.c_uint32,
+            'maxPreferredTaskWorkGroupInvocations': ctypes.c_uint32,
+            'maxPreferredMeshWorkGroupInvocations': ctypes.c_uint32,
+            'prefersLocalInvocationVertexOutput': ctypes.c_uint32,
+            'prefersLocalInvocationPrimitiveOutput': ctypes.c_uint32,
+            'prefersCompactVertexOutput': ctypes.c_uint32,
+            'prefersCompactPrimitiveOutput': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -33,46 +68,3 @@ class CType(ctypes.Structure):
         ('prefersCompactVertexOutput', ctypes.c_uint32),
         ('prefersCompactPrimitiveOutput', ctypes.c_uint32),
     ]
-
-descriptor = {
-    'extends': {
-        'VkPhysicalDeviceProperties2',
-    },
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_EXT', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'maxTaskWorkGroupTotalCount': {'python_name': ['max', 'task', 'work', 'group', 'total', 'count']},
-        'maxTaskWorkGroupCount': {'python_name': ['max', 'task', 'work', 'group', 'count']},
-        'maxTaskWorkGroupInvocations': {'python_name': ['max', 'task', 'work', 'group', 'invocations']},
-        'maxTaskWorkGroupSize': {'python_name': ['max', 'task', 'work', 'group', 'size']},
-        'maxTaskPayloadSize': {'python_name': ['max', 'task', 'payload', 'size']},
-        'maxTaskSharedMemorySize': {'python_name': ['max', 'task', 'shared', 'memory', 'size']},
-        'maxTaskPayloadAndSharedMemorySize': {'python_name': ['max', 'task', 'payload', 'and', 'shared', 'memory', 'size']},
-        'maxMeshWorkGroupTotalCount': {'python_name': ['max', 'mesh', 'work', 'group', 'total', 'count']},
-        'maxMeshWorkGroupCount': {'python_name': ['max', 'mesh', 'work', 'group', 'count']},
-        'maxMeshWorkGroupInvocations': {'python_name': ['max', 'mesh', 'work', 'group', 'invocations']},
-        'maxMeshWorkGroupSize': {'python_name': ['max', 'mesh', 'work', 'group', 'size']},
-        'maxMeshSharedMemorySize': {'python_name': ['max', 'mesh', 'shared', 'memory', 'size']},
-        'maxMeshPayloadAndSharedMemorySize': {'python_name': ['max', 'mesh', 'payload', 'and', 'shared', 'memory', 'size']},
-        'maxMeshOutputMemorySize': {'python_name': ['max', 'mesh', 'output', 'memory', 'size']},
-        'maxMeshPayloadAndOutputMemorySize': {'python_name': ['max', 'mesh', 'payload', 'and', 'output', 'memory', 'size']},
-        'maxMeshOutputComponents': {'python_name': ['max', 'mesh', 'output', 'components']},
-        'maxMeshOutputVertices': {'python_name': ['max', 'mesh', 'output', 'vertices']},
-        'maxMeshOutputPrimitives': {'python_name': ['max', 'mesh', 'output', 'primitives']},
-        'maxMeshOutputLayers': {'python_name': ['max', 'mesh', 'output', 'layers']},
-        'maxMeshMultiviewViewCount': {'python_name': ['max', 'mesh', 'multiview', 'view', 'count']},
-        'meshOutputPerVertexGranularity': {'python_name': ['mesh', 'output', 'per', 'vertex', 'granularity']},
-        'meshOutputPerPrimitiveGranularity': {'python_name': ['mesh', 'output', 'per', 'primitive', 'granularity']},
-        'maxPreferredTaskWorkGroupInvocations': {'python_name': ['max', 'preferred', 'task', 'work', 'group', 'invocations']},
-        'maxPreferredMeshWorkGroupInvocations': {'python_name': ['max', 'preferred', 'mesh', 'work', 'group', 'invocations']},
-        'prefersLocalInvocationVertexOutput': {'python_name': ['prefers', 'local', 'invocation', 'vertex', 'output']},
-        'prefersLocalInvocationPrimitiveOutput': {'python_name': ['prefers', 'local', 'invocation', 'primitive', 'output']},
-        'prefersCompactVertexOutput': {'python_name': ['prefers', 'compact', 'vertex', 'output']},
-        'prefersCompactPrimitiveOutput': {'python_name': ['prefers', 'compact', 'primitive', 'output']},
-    }
-}

@@ -1,22 +1,14 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class StdVideoDecodeH265ReferenceInfoFlags(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'used_for_long_term_reference': ctypes.c_uint32,
+            'unused_for_reference': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('used_for_long_term_reference', ctypes.c_uint32, 1),
         ('unused_for_reference', ctypes.c_uint32, 1),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'StdVideoDecodeH265ReferenceInfo',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'used_for_long_term_reference': {'python_name': ['used', 'for', 'long', 'term', 'reference']},
-        'unused_for_reference': {'python_name': ['unused', 'for', 'reference']},
-    }
-}

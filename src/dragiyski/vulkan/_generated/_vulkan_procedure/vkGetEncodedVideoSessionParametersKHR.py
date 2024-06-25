@@ -1,0 +1,7 @@
+import ctypes
+from ..vulkan_base import VKAPI_CALL
+
+from .._vulkan_type.VkVideoEncodeSessionParametersGetInfoKHR import VkVideoEncodeSessionParametersGetInfoKHR
+from .._vulkan_type.VkVideoEncodeSessionParametersFeedbackInfoKHR import VkVideoEncodeSessionParametersFeedbackInfoKHR
+
+vkGetEncodedVideoSessionParametersKHR = VKAPI_CALL(ctypes.c_int, ctypes.c_void_p, ctypes.POINTER(VkVideoEncodeSessionParametersGetInfoKHR), ctypes.POINTER(VkVideoEncodeSessionParametersFeedbackInfoKHR), ctypes.POINTER(ctypes.c_size_t), ctypes.c_void_p)

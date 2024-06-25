@@ -1,22 +1,14 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class StdVideoAV1TileInfoFlags(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'uniform_tile_spacing_flag': ctypes.c_uint32,
+            'reserved': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('uniform_tile_spacing_flag', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 31),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'StdVideoAV1TileInfo',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'uniform_tile_spacing_flag': {'python_name': ['uniform', 'tile', 'spacing', 'flag']},
-        'reserved': {'python_name': ['reserved']},
-    }
-}

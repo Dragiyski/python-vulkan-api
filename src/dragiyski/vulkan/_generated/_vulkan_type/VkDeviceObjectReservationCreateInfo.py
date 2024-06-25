@@ -1,12 +1,59 @@
 import ctypes
 
-class CType(ctypes.Structure):
-    pass
+class VkDeviceObjectReservationCreateInfo(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'pipelineCacheCreateInfoCount': ctypes.c_uint32,
+            'pPipelineCacheCreateInfos': ctypes.POINTER(VkPipelineCacheCreateInfo),
+            'pipelinePoolSizeCount': ctypes.c_uint32,
+            'pPipelinePoolSizes': ctypes.POINTER(VkPipelinePoolSize),
+            'semaphoreRequestCount': ctypes.c_uint32,
+            'commandBufferRequestCount': ctypes.c_uint32,
+            'fenceRequestCount': ctypes.c_uint32,
+            'deviceMemoryRequestCount': ctypes.c_uint32,
+            'bufferRequestCount': ctypes.c_uint32,
+            'imageRequestCount': ctypes.c_uint32,
+            'eventRequestCount': ctypes.c_uint32,
+            'queryPoolRequestCount': ctypes.c_uint32,
+            'bufferViewRequestCount': ctypes.c_uint32,
+            'imageViewRequestCount': ctypes.c_uint32,
+            'layeredImageViewRequestCount': ctypes.c_uint32,
+            'pipelineCacheRequestCount': ctypes.c_uint32,
+            'pipelineLayoutRequestCount': ctypes.c_uint32,
+            'renderPassRequestCount': ctypes.c_uint32,
+            'graphicsPipelineRequestCount': ctypes.c_uint32,
+            'computePipelineRequestCount': ctypes.c_uint32,
+            'descriptorSetLayoutRequestCount': ctypes.c_uint32,
+            'samplerRequestCount': ctypes.c_uint32,
+            'descriptorPoolRequestCount': ctypes.c_uint32,
+            'descriptorSetRequestCount': ctypes.c_uint32,
+            'framebufferRequestCount': ctypes.c_uint32,
+            'commandPoolRequestCount': ctypes.c_uint32,
+            'samplerYcbcrConversionRequestCount': ctypes.c_uint32,
+            'surfaceRequestCount': ctypes.c_uint32,
+            'swapchainRequestCount': ctypes.c_uint32,
+            'displayModeRequestCount': ctypes.c_uint32,
+            'subpassDescriptionRequestCount': ctypes.c_uint32,
+            'attachmentDescriptionRequestCount': ctypes.c_uint32,
+            'descriptorSetLayoutBindingRequestCount': ctypes.c_uint32,
+            'descriptorSetLayoutBindingLimit': ctypes.c_uint32,
+            'maxImageViewMipLevels': ctypes.c_uint32,
+            'maxImageViewArrayLayers': ctypes.c_uint32,
+            'maxLayeredImageViewMipLevels': ctypes.c_uint32,
+            'maxOcclusionQueriesPerPool': ctypes.c_uint32,
+            'maxPipelineStatisticsQueriesPerPool': ctypes.c_uint32,
+            'maxTimestampQueriesPerPool': ctypes.c_uint32,
+            'maxImmutableSamplersPerDescriptorSetLayout': ctypes.c_uint32,
+        }
 
-from .VkPipelineCacheCreateInfo import CType as VkPipelineCacheCreateInfo
-from .VkPipelinePoolSize import CType as VkPipelinePoolSize
 
-CType._fields_ = [
+from .VkPipelineCacheCreateInfo import VkPipelineCacheCreateInfo
+from .VkPipelinePoolSize import VkPipelinePoolSize
+
+VkDeviceObjectReservationCreateInfo._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.c_void_p),
     ('pipelineCacheCreateInfoCount', ctypes.c_uint32),
@@ -51,62 +98,3 @@ CType._fields_ = [
     ('maxTimestampQueriesPerPool', ctypes.c_uint32),
     ('maxImmutableSamplersPerDescriptorSetLayout', ctypes.c_uint32),
 ]
-
-descriptor = {
-    'extends': {
-        'VkDeviceCreateInfo',
-    },
-    'extended_by': set(),
-    'includes': {
-        'VkPipelineCacheCreateInfo',
-        'VkPipelinePoolSize',
-    },
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_DEVICE_OBJECT_RESERVATION_CREATE_INFO', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'pipelineCacheCreateInfoCount': {'python_name': ['pipeline', 'cache', 'create', 'info', 'count']},
-        'pPipelineCacheCreateInfos': {'python_name': ['p', 'pipeline', 'cache', 'create', 'infos'], 'len': [['pipelineCacheCreateInfoCount']], 'type': 'VkPipelineCacheCreateInfo'},
-        'pipelinePoolSizeCount': {'python_name': ['pipeline', 'pool', 'size', 'count']},
-        'pPipelinePoolSizes': {'python_name': ['p', 'pipeline', 'pool', 'sizes'], 'len': [['pipelinePoolSizeCount']], 'type': 'VkPipelinePoolSize'},
-        'semaphoreRequestCount': {'python_name': ['semaphore', 'request', 'count']},
-        'commandBufferRequestCount': {'python_name': ['command', 'buffer', 'request', 'count']},
-        'fenceRequestCount': {'python_name': ['fence', 'request', 'count']},
-        'deviceMemoryRequestCount': {'python_name': ['device', 'memory', 'request', 'count']},
-        'bufferRequestCount': {'python_name': ['buffer', 'request', 'count']},
-        'imageRequestCount': {'python_name': ['image', 'request', 'count']},
-        'eventRequestCount': {'python_name': ['event', 'request', 'count']},
-        'queryPoolRequestCount': {'python_name': ['query', 'pool', 'request', 'count']},
-        'bufferViewRequestCount': {'python_name': ['buffer', 'view', 'request', 'count']},
-        'imageViewRequestCount': {'python_name': ['image', 'view', 'request', 'count']},
-        'layeredImageViewRequestCount': {'python_name': ['layered', 'image', 'view', 'request', 'count']},
-        'pipelineCacheRequestCount': {'python_name': ['pipeline', 'cache', 'request', 'count']},
-        'pipelineLayoutRequestCount': {'python_name': ['pipeline', 'layout', 'request', 'count']},
-        'renderPassRequestCount': {'python_name': ['render', 'pass', 'request', 'count']},
-        'graphicsPipelineRequestCount': {'python_name': ['graphics', 'pipeline', 'request', 'count']},
-        'computePipelineRequestCount': {'python_name': ['compute', 'pipeline', 'request', 'count']},
-        'descriptorSetLayoutRequestCount': {'python_name': ['descriptor', 'set', 'layout', 'request', 'count']},
-        'samplerRequestCount': {'python_name': ['sampler', 'request', 'count']},
-        'descriptorPoolRequestCount': {'python_name': ['descriptor', 'pool', 'request', 'count']},
-        'descriptorSetRequestCount': {'python_name': ['descriptor', 'set', 'request', 'count']},
-        'framebufferRequestCount': {'python_name': ['framebuffer', 'request', 'count']},
-        'commandPoolRequestCount': {'python_name': ['command', 'pool', 'request', 'count']},
-        'samplerYcbcrConversionRequestCount': {'python_name': ['sampler', 'ycbcr', 'conversion', 'request', 'count']},
-        'surfaceRequestCount': {'python_name': ['surface', 'request', 'count']},
-        'swapchainRequestCount': {'python_name': ['swapchain', 'request', 'count']},
-        'displayModeRequestCount': {'python_name': ['display', 'mode', 'request', 'count']},
-        'subpassDescriptionRequestCount': {'python_name': ['subpass', 'description', 'request', 'count']},
-        'attachmentDescriptionRequestCount': {'python_name': ['attachment', 'description', 'request', 'count']},
-        'descriptorSetLayoutBindingRequestCount': {'python_name': ['descriptor', 'set', 'layout', 'binding', 'request', 'count']},
-        'descriptorSetLayoutBindingLimit': {'python_name': ['descriptor', 'set', 'layout', 'binding', 'limit']},
-        'maxImageViewMipLevels': {'python_name': ['max', 'image', 'view', 'mip', 'levels']},
-        'maxImageViewArrayLayers': {'python_name': ['max', 'image', 'view', 'array', 'layers']},
-        'maxLayeredImageViewMipLevels': {'python_name': ['max', 'layered', 'image', 'view', 'mip', 'levels']},
-        'maxOcclusionQueriesPerPool': {'python_name': ['max', 'occlusion', 'queries', 'per', 'pool']},
-        'maxPipelineStatisticsQueriesPerPool': {'python_name': ['max', 'pipeline', 'statistics', 'queries', 'per', 'pool']},
-        'maxTimestampQueriesPerPool': {'python_name': ['max', 'timestamp', 'queries', 'per', 'pool']},
-        'maxImmutableSamplersPerDescriptorSetLayout': {'python_name': ['max', 'immutable', 'samplers', 'per', 'descriptor', 'set', 'layout']},
-    }
-}

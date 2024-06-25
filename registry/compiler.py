@@ -669,6 +669,36 @@ class Compiler:
                 if not isinstance(bitsize, int):
                     raise CompileNodeError('In struct %s, member %s: bitsize is not an integer constant' % (name, decl.name), node=member_node)
                 ctype.member_map[decl.name]['bitsize'] = bitsize
+        for member_name in ctype.member_list:
+            member_desc = ctype.member_map[member_name]
+            member_node = member_desc['node']
+            member_node: Node
+            member_ctype = member_desc['ctype']
+            if member_node.has_attribute('values'):
+                values = [value.strip() for value in member_node.get_attribute('values').split(',')]
+                if member_name == 'sType' and (len(values) != 1 or not values[0].startswith('VK_STRUCTURE_TYPE_')):
+                    raise CompileNodeError('Invalid @values attribute for structure type "sType" in "%s", expected a single value starting with "VK_STRUCTURE_TYPE_"' % name, node=member_node)
+                if len(values) == 1:
+                    member_desc['value'] = values[0]
+                else:
+                    member_desc['values'] = values
+            if member_node.has_attribute('len'):
+                member_len = member_node.get_attribute('len')
+                # If the len value is computed, it must be handled manually
+                if not ('latexmath' in member_len and member_node.has_attribute('altlen')):
+                    member_len = [s.strip() for s in member_len.split(',')]
+                    if member_len[-1] == 'null-terminated':
+                        member_desc['is_string'] = True
+                        member_len = member_len[:-1]
+                    if len(member_len) == 1:
+                        member_len = member_len[0].split('->')
+                        if member_len[0] in ctype.member_map and isinstance(member_ctype, CPointerType):
+                            member_desc['length'] = member_len
+            if member_node.has_attribute('externsync'):
+                member_externsync = [s.strip() for s in member_node.get_attribute('externsync').split(',')]
+                member_externsync = [s.split('->') for s in member_externsync]
+                if len(member_externsync) > 0:
+                    member_desc['externsync'] = member_externsync
 
     def _compile_complex_type(self, context: Context, name: str, node: Node):
         if name in context.ctypes_map:
@@ -690,25 +720,7 @@ class Compiler:
                 if not context.is_target_api(member_node):
                     continue
                 member_name = self.get_node_name_from_children(member_node)
-                ctype.member_map[member_name] = {'node': member_node, 'python_name': context.make_python_name(member_name)}
-                if member_node.has_attribute('values'):
-                    values = [value.strip() for value in member_node.get_attribute('values').split(',')]
-                    if member_name == 'sType' and (len(values) != 1 or not values[0].startswith('VK_STRUCTURE_TYPE_')):
-                        raise CompileNodeError('Invalid @values attribute for structure type "sType" in "%s", expected a single value starting with "VK_STRUCTURE_TYPE_"' % name, node=member_node)
-                    if len(values) == 1:
-                        ctype.member_map[member_name]['value'] = values[0]
-                    else:
-                        ctype.member_map[member_name]['values'] = values
-                if member_node.has_attribute('len'):
-                    member_len = [s.strip() for s in member_node.get_attribute('len').split(',')]
-                    member_len = [s.split('->') for s in member_len]
-                    if len(member_len) > 0:
-                        ctype.member_map[member_name]['len'] = member_len
-                if member_node.has_attribute('externsync'):
-                    member_externsync = [s.strip() for s in member_node.get_attribute('externsync').split(',')]
-                    member_externsync = [s.split('->') for s in member_externsync ]
-                    if len(member_externsync) > 0:
-                        ctype.member_map[member_name]['externsync'] = member_externsync
+                ctype.member_map[member_name] = {'node': member_node, 'python_name': context.make_python_name(member_name), 'is_string': False}
                 ctype.member_list.append(member_name)
                 if 'type' not in member_node.children:
                     raise CompileNodeError('Member "%s.%s": Missing attribute @type' % (name, member_name), node=member_node)

@@ -1,24 +1,16 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class StdVideoEncodeH264ReferenceListsInfoFlags(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'ref_pic_list_modification_flag_l0': ctypes.c_uint32,
+            'ref_pic_list_modification_flag_l1': ctypes.c_uint32,
+            'reserved': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('ref_pic_list_modification_flag_l0', ctypes.c_uint32, 1),
         ('ref_pic_list_modification_flag_l1', ctypes.c_uint32, 1),
         ('reserved', ctypes.c_uint32, 30),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'StdVideoEncodeH264ReferenceListsInfo',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'ref_pic_list_modification_flag_l0': {'python_name': ['ref', 'pic', 'list', 'modification', 'flag', 'l0']},
-        'ref_pic_list_modification_flag_l1': {'python_name': ['ref', 'pic', 'list', 'modification', 'flag', 'l1']},
-        'reserved': {'python_name': ['reserved']},
-    }
-}

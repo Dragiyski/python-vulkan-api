@@ -1,21 +1,12 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class StdVideoH265PredictorPaletteEntries(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'PredictorPaletteEntries': ctypes.ARRAY(ctypes.ARRAY(ctypes.c_uint16, 128), 3),
+        }
+
     _fields_ = [
         ('PredictorPaletteEntries', ctypes.ARRAY(ctypes.ARRAY(ctypes.c_uint16, 128), 3)),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'StdVideoH265PictureParameterSet',
-        'StdVideoH265SequenceParameterSet',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'PredictorPaletteEntries': {'python_name': ['predictor', 'palette', 'entries']},
-    }
-}

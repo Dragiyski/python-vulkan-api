@@ -1,29 +1,16 @@
 import ctypes
 
-class CType(ctypes.Structure):
-    pass
+class VkBaseInStructure(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.POINTER(VkBaseInStructure),
+        }
 
 
-VkBaseInStructure = CType
-CType._fields_ = [
+
+VkBaseInStructure._fields_ = [
     ('sType', ctypes.c_int),
     ('pNext', ctypes.POINTER(VkBaseInStructure)),
 ]
-del VkBaseInStructure
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': {
-        'VkBaseInStructure',
-    },
-    'included_in': {
-        'VkBaseInStructure',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next'], 'type': 'VkBaseInStructure'},
-    }
-}

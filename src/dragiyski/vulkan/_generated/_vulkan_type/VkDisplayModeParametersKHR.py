@@ -1,29 +1,17 @@
 import ctypes
 
-class CType(ctypes.Structure):
-    pass
+class VkDisplayModeParametersKHR(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'visibleRegion': VkExtent2D,
+            'refreshRate': ctypes.c_uint32,
+        }
 
-from .VkExtent2D import CType as VkExtent2D
 
-CType._fields_ = [
+from .VkExtent2D import VkExtent2D
+
+VkDisplayModeParametersKHR._fields_ = [
     ('visibleRegion', VkExtent2D),
     ('refreshRate', ctypes.c_uint32),
 ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': {
-        'VkExtent2D',
-    },
-    'included_in': {
-        'VkDisplayModeCreateInfoKHR',
-        'VkDisplayModePropertiesKHR',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'visibleRegion': {'python_name': ['visible', 'region'], 'type': 'VkExtent2D'},
-        'refreshRate': {'python_name': ['refresh', 'rate']},
-    }
-}

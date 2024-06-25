@@ -1,20 +1,12 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkRenderPassCreationFeedbackInfoEXT(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'postMergeSubpassCount': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('postMergeSubpassCount', ctypes.c_uint32),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkRenderPassCreationFeedbackCreateInfoEXT',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'postMergeSubpassCount': {'python_name': ['post', 'merge', 'subpass', 'count']},
-    }
-}

@@ -1,6 +1,16 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkPhysicalDeviceVulkanMemoryModelFeatures(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'vulkanMemoryModel': ctypes.c_uint32,
+            'vulkanMemoryModelDeviceScope': ctypes.c_uint32,
+            'vulkanMemoryModelAvailabilityVisibilityChains': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -8,22 +18,3 @@ class CType(ctypes.Structure):
         ('vulkanMemoryModelDeviceScope', ctypes.c_uint32),
         ('vulkanMemoryModelAvailabilityVisibilityChains', ctypes.c_uint32),
     ]
-
-descriptor = {
-    'extends': {
-        'VkDeviceCreateInfo',
-        'VkPhysicalDeviceFeatures2',
-    },
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'vulkanMemoryModel': {'python_name': ['vulkan', 'memory', 'model']},
-        'vulkanMemoryModelDeviceScope': {'python_name': ['vulkan', 'memory', 'model', 'device', 'scope']},
-        'vulkanMemoryModelAvailabilityVisibilityChains': {'python_name': ['vulkan', 'memory', 'model', 'availability', 'visibility', 'chains']},
-    }
-}

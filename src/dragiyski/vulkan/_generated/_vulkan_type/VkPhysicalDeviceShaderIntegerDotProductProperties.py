@@ -1,6 +1,43 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkPhysicalDeviceShaderIntegerDotProductProperties(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'integerDotProduct8BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct8BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct8BitMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProduct4x8BitPackedUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct4x8BitPackedSignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct4x8BitPackedMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProduct16BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct16BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct16BitMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProduct32BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct32BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct32BitMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProduct64BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct64BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProduct64BitMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating8BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating8BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating16BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating16BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating32BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating32BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating64BitUnsignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating64BitSignedAccelerated': ctypes.c_uint32,
+            'integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -35,48 +72,3 @@ class CType(ctypes.Structure):
         ('integerDotProductAccumulatingSaturating64BitSignedAccelerated', ctypes.c_uint32),
         ('integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated', ctypes.c_uint32),
     ]
-
-descriptor = {
-    'extends': {
-        'VkPhysicalDeviceProperties2',
-    },
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'integerDotProduct8BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product8', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProduct8BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product8', 'bit', 'signed', 'accelerated']},
-        'integerDotProduct8BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product8', 'bit', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProduct4x8BitPackedUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product4x8', 'bit', 'packed', 'unsigned', 'accelerated']},
-        'integerDotProduct4x8BitPackedSignedAccelerated': {'python_name': ['integer', 'dot', 'product4x8', 'bit', 'packed', 'signed', 'accelerated']},
-        'integerDotProduct4x8BitPackedMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product4x8', 'bit', 'packed', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProduct16BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product16', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProduct16BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product16', 'bit', 'signed', 'accelerated']},
-        'integerDotProduct16BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product16', 'bit', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProduct32BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product32', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProduct32BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product32', 'bit', 'signed', 'accelerated']},
-        'integerDotProduct32BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product32', 'bit', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProduct64BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product64', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProduct64BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product64', 'bit', 'signed', 'accelerated']},
-        'integerDotProduct64BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product64', 'bit', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProductAccumulatingSaturating8BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating8', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProductAccumulatingSaturating8BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating8', 'bit', 'signed', 'accelerated']},
-        'integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating8', 'bit', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating4x8', 'bit', 'packed', 'unsigned', 'accelerated']},
-        'integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating4x8', 'bit', 'packed', 'signed', 'accelerated']},
-        'integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating4x8', 'bit', 'packed', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProductAccumulatingSaturating16BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating16', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProductAccumulatingSaturating16BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating16', 'bit', 'signed', 'accelerated']},
-        'integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating16', 'bit', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProductAccumulatingSaturating32BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating32', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProductAccumulatingSaturating32BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating32', 'bit', 'signed', 'accelerated']},
-        'integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating32', 'bit', 'mixed', 'signedness', 'accelerated']},
-        'integerDotProductAccumulatingSaturating64BitUnsignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating64', 'bit', 'unsigned', 'accelerated']},
-        'integerDotProductAccumulatingSaturating64BitSignedAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating64', 'bit', 'signed', 'accelerated']},
-        'integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated': {'python_name': ['integer', 'dot', 'product', 'accumulating', 'saturating64', 'bit', 'mixed', 'signedness', 'accelerated']},
-    }
-}

@@ -1,22 +1,14 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkNativeBufferUsage2ANDROID(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'consumer': ctypes.c_uint64,
+            'producer': ctypes.c_uint64,
+        }
+
     _fields_ = [
         ('consumer', ctypes.c_uint64),
         ('producer', ctypes.c_uint64),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkNativeBufferANDROID',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'consumer': {'python_name': ['consumer']},
-        'producer': {'python_name': ['producer']},
-    }
-}

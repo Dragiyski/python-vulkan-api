@@ -40,7 +40,6 @@ class Loader:
                 ptr = ctypes.cast(self.vkGetInstanceProcAddr(None, c_name), ctypes.c_void_p).value
                 if ptr is not None:
                     return signature(ptr)
-        binding.VkLayerProperties
         return object.__getattribute__(self, name)
 
 class VkLayer(str):

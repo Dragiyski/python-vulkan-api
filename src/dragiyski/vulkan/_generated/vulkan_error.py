@@ -1,4 +1,4 @@
-from ._vulkan_value.VkResult import Value as VkResult
+from ._vulkan_enum.VkResult import VkResult
 
 class VkException(Exception):
     from_code = {}

@@ -1,32 +1,12 @@
-import ctypes
-from .vulkan_base import VKAPI_PTR, VKAPI_CALL
-from ._vulkan_type.VkDebugUtilsMessengerCallbackDataEXT import CType as VkDebugUtilsMessengerCallbackDataEXT
-from ._vulkan_type.VkDeviceMemoryReportCallbackDataEXT import CType as VkDeviceMemoryReportCallbackDataEXT
-from ._vulkan_type.VkFaultData import CType as VkFaultData
+from ._vulkan_callback.vkAllocationFunction import vkAllocationFunction
+from ._vulkan_callback.vkDebugReportCallbackEXT import vkDebugReportCallbackEXT
+from ._vulkan_callback.vkDebugUtilsMessengerCallbackEXT import vkDebugUtilsMessengerCallbackEXT
+from ._vulkan_callback.vkDeviceMemoryReportCallbackEXT import vkDeviceMemoryReportCallbackEXT
+from ._vulkan_callback.vkFaultCallbackFunction import vkFaultCallbackFunction
+from ._vulkan_callback.vkFreeFunction import vkFreeFunction
+from ._vulkan_callback.vkGetInstanceProcAddrLUNARG import vkGetInstanceProcAddrLUNARG
+from ._vulkan_callback.vkInternalAllocationNotification import vkInternalAllocationNotification
+from ._vulkan_callback.vkInternalFreeNotification import vkInternalFreeNotification
+from ._vulkan_callback.vkReallocationFunction import vkReallocationFunction
+from ._vulkan_callback.vkVoidFunction import vkVoidFunction
 
-vkAllocationFunction = VKAPI_PTR(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.c_int)
-vkDebugReportCallbackEXT = VKAPI_PTR(ctypes.c_uint32, ctypes.c_uint32, ctypes.c_int, ctypes.c_uint64, ctypes.c_size_t, ctypes.c_int32, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_void_p)
-vkDebugUtilsMessengerCallbackEXT = VKAPI_PTR(ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(VkDebugUtilsMessengerCallbackDataEXT), ctypes.c_void_p)
-vkDeviceMemoryReportCallbackEXT = VKAPI_PTR(None, ctypes.POINTER(VkDeviceMemoryReportCallbackDataEXT), ctypes.c_void_p)
-vkFaultCallbackFunction = VKAPI_PTR(None, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(VkFaultData))
-vkFreeFunction = VKAPI_PTR(None, ctypes.c_void_p, ctypes.c_void_p)
-vkVoidFunction = VKAPI_PTR(None)
-vkGetInstanceProcAddrLUNARG = VKAPI_PTR(vkVoidFunction, ctypes.c_void_p, ctypes.c_char_p)
-vkInternalAllocationNotification = VKAPI_PTR(None, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
-vkInternalFreeNotification = VKAPI_PTR(None, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int, ctypes.c_int)
-vkReallocationFunction = VKAPI_PTR(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.c_int)
-
-
-__all__ = [
-    'vkAllocationFunction',
-    'vkDebugReportCallbackEXT',
-    'vkDebugUtilsMessengerCallbackEXT',
-    'vkDeviceMemoryReportCallbackEXT',
-    'vkFaultCallbackFunction',
-    'vkFreeFunction',
-    'vkGetInstanceProcAddrLUNARG',
-    'vkInternalAllocationNotification',
-    'vkInternalFreeNotification',
-    'vkReallocationFunction',
-    'vkVoidFunction',
-]

@@ -1,22 +1,14 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkSampleLocationEXT(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'x': ctypes.c_float,
+            'y': ctypes.c_float,
+        }
+
     _fields_ = [
         ('x', ctypes.c_float),
         ('y', ctypes.c_float),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkSampleLocationsInfoEXT',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'x': {'python_name': ['x']},
-        'y': {'python_name': ['y']},
-    }
-}

@@ -1,6 +1,42 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class StdVideoH265PpsFlags(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'dependent_slice_segments_enabled_flag': ctypes.c_uint32,
+            'output_flag_present_flag': ctypes.c_uint32,
+            'sign_data_hiding_enabled_flag': ctypes.c_uint32,
+            'cabac_init_present_flag': ctypes.c_uint32,
+            'constrained_intra_pred_flag': ctypes.c_uint32,
+            'transform_skip_enabled_flag': ctypes.c_uint32,
+            'cu_qp_delta_enabled_flag': ctypes.c_uint32,
+            'pps_slice_chroma_qp_offsets_present_flag': ctypes.c_uint32,
+            'weighted_pred_flag': ctypes.c_uint32,
+            'weighted_bipred_flag': ctypes.c_uint32,
+            'transquant_bypass_enabled_flag': ctypes.c_uint32,
+            'tiles_enabled_flag': ctypes.c_uint32,
+            'entropy_coding_sync_enabled_flag': ctypes.c_uint32,
+            'uniform_spacing_flag': ctypes.c_uint32,
+            'loop_filter_across_tiles_enabled_flag': ctypes.c_uint32,
+            'pps_loop_filter_across_slices_enabled_flag': ctypes.c_uint32,
+            'deblocking_filter_control_present_flag': ctypes.c_uint32,
+            'deblocking_filter_override_enabled_flag': ctypes.c_uint32,
+            'pps_deblocking_filter_disabled_flag': ctypes.c_uint32,
+            'pps_scaling_list_data_present_flag': ctypes.c_uint32,
+            'lists_modification_present_flag': ctypes.c_uint32,
+            'slice_segment_header_extension_present_flag': ctypes.c_uint32,
+            'pps_extension_present_flag': ctypes.c_uint32,
+            'cross_component_prediction_enabled_flag': ctypes.c_uint32,
+            'chroma_qp_offset_list_enabled_flag': ctypes.c_uint32,
+            'pps_curr_pic_ref_enabled_flag': ctypes.c_uint32,
+            'residual_adaptive_colour_transform_enabled_flag': ctypes.c_uint32,
+            'pps_slice_act_qp_offsets_present_flag': ctypes.c_uint32,
+            'pps_palette_predictor_initializers_present_flag': ctypes.c_uint32,
+            'monochrome_palette_flag': ctypes.c_uint32,
+            'pps_range_extension_flag': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('dependent_slice_segments_enabled_flag', ctypes.c_uint32, 1),
         ('output_flag_present_flag', ctypes.c_uint32, 1),
@@ -34,47 +70,3 @@ class CType(ctypes.Structure):
         ('monochrome_palette_flag', ctypes.c_uint32, 1),
         ('pps_range_extension_flag', ctypes.c_uint32, 1),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'StdVideoH265PictureParameterSet',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'dependent_slice_segments_enabled_flag': {'python_name': ['dependent', 'slice', 'segments', 'enabled', 'flag']},
-        'output_flag_present_flag': {'python_name': ['output', 'flag', 'present', 'flag']},
-        'sign_data_hiding_enabled_flag': {'python_name': ['sign', 'data', 'hiding', 'enabled', 'flag']},
-        'cabac_init_present_flag': {'python_name': ['cabac', 'init', 'present', 'flag']},
-        'constrained_intra_pred_flag': {'python_name': ['constrained', 'intra', 'pred', 'flag']},
-        'transform_skip_enabled_flag': {'python_name': ['transform', 'skip', 'enabled', 'flag']},
-        'cu_qp_delta_enabled_flag': {'python_name': ['cu', 'qp', 'delta', 'enabled', 'flag']},
-        'pps_slice_chroma_qp_offsets_present_flag': {'python_name': ['pps', 'slice', 'chroma', 'qp', 'offsets', 'present', 'flag']},
-        'weighted_pred_flag': {'python_name': ['weighted', 'pred', 'flag']},
-        'weighted_bipred_flag': {'python_name': ['weighted', 'bipred', 'flag']},
-        'transquant_bypass_enabled_flag': {'python_name': ['transquant', 'bypass', 'enabled', 'flag']},
-        'tiles_enabled_flag': {'python_name': ['tiles', 'enabled', 'flag']},
-        'entropy_coding_sync_enabled_flag': {'python_name': ['entropy', 'coding', 'sync', 'enabled', 'flag']},
-        'uniform_spacing_flag': {'python_name': ['uniform', 'spacing', 'flag']},
-        'loop_filter_across_tiles_enabled_flag': {'python_name': ['loop', 'filter', 'across', 'tiles', 'enabled', 'flag']},
-        'pps_loop_filter_across_slices_enabled_flag': {'python_name': ['pps', 'loop', 'filter', 'across', 'slices', 'enabled', 'flag']},
-        'deblocking_filter_control_present_flag': {'python_name': ['deblocking', 'filter', 'control', 'present', 'flag']},
-        'deblocking_filter_override_enabled_flag': {'python_name': ['deblocking', 'filter', 'override', 'enabled', 'flag']},
-        'pps_deblocking_filter_disabled_flag': {'python_name': ['pps', 'deblocking', 'filter', 'disabled', 'flag']},
-        'pps_scaling_list_data_present_flag': {'python_name': ['pps', 'scaling', 'list', 'data', 'present', 'flag']},
-        'lists_modification_present_flag': {'python_name': ['lists', 'modification', 'present', 'flag']},
-        'slice_segment_header_extension_present_flag': {'python_name': ['slice', 'segment', 'header', 'extension', 'present', 'flag']},
-        'pps_extension_present_flag': {'python_name': ['pps', 'extension', 'present', 'flag']},
-        'cross_component_prediction_enabled_flag': {'python_name': ['cross', 'component', 'prediction', 'enabled', 'flag']},
-        'chroma_qp_offset_list_enabled_flag': {'python_name': ['chroma', 'qp', 'offset', 'list', 'enabled', 'flag']},
-        'pps_curr_pic_ref_enabled_flag': {'python_name': ['pps', 'curr', 'pic', 'ref', 'enabled', 'flag']},
-        'residual_adaptive_colour_transform_enabled_flag': {'python_name': ['residual', 'adaptive', 'colour', 'transform', 'enabled', 'flag']},
-        'pps_slice_act_qp_offsets_present_flag': {'python_name': ['pps', 'slice', 'act', 'qp', 'offsets', 'present', 'flag']},
-        'pps_palette_predictor_initializers_present_flag': {'python_name': ['pps', 'palette', 'predictor', 'initializers', 'present', 'flag']},
-        'monochrome_palette_flag': {'python_name': ['monochrome', 'palette', 'flag']},
-        'pps_range_extension_flag': {'python_name': ['pps', 'range', 'extension', 'flag']},
-    }
-}

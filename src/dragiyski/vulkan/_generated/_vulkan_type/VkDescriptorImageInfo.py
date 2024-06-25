@@ -1,25 +1,16 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkDescriptorImageInfo(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sampler': ctypes.c_void_p,
+            'imageView': ctypes.c_void_p,
+            'imageLayout': ctypes.c_int,
+        }
+
     _fields_ = [
         ('sampler', ctypes.c_void_p),
         ('imageView', ctypes.c_void_p),
         ('imageLayout', ctypes.c_int),
     ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': {
-        'VkDescriptorDataEXT',
-        'VkWriteDescriptorSet',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sampler': {'python_name': ['sampler']},
-        'imageView': {'python_name': ['image', 'view']},
-        'imageLayout': {'python_name': ['image', 'layout'], 'type': 'VkImageLayout'},
-    }
-}

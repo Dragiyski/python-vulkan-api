@@ -252,7 +252,7 @@ ctypes_map = {
 
 # Representation of C types to specific object
 basic_ctypes = {
-    'void': ctypes_map['void'],
+    **ctypes_map,
     'char': ctypes_map['c_char'],
     'float': ctypes_map['c_float'],
     'double': ctypes_map['c_double'],

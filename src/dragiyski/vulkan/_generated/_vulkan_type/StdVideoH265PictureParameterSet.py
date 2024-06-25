@@ -1,13 +1,53 @@
 import ctypes
 
-class CType(ctypes.Structure):
-    pass
+class StdVideoH265PictureParameterSet(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'flags': StdVideoH265PpsFlags,
+            'pps_pic_parameter_set_id': ctypes.c_uint8,
+            'pps_seq_parameter_set_id': ctypes.c_uint8,
+            'sps_video_parameter_set_id': ctypes.c_uint8,
+            'num_extra_slice_header_bits': ctypes.c_uint8,
+            'num_ref_idx_l0_default_active_minus1': ctypes.c_uint8,
+            'num_ref_idx_l1_default_active_minus1': ctypes.c_uint8,
+            'init_qp_minus26': ctypes.c_int8,
+            'diff_cu_qp_delta_depth': ctypes.c_uint8,
+            'pps_cb_qp_offset': ctypes.c_int8,
+            'pps_cr_qp_offset': ctypes.c_int8,
+            'pps_beta_offset_div2': ctypes.c_int8,
+            'pps_tc_offset_div2': ctypes.c_int8,
+            'log2_parallel_merge_level_minus2': ctypes.c_uint8,
+            'log2_max_transform_skip_block_size_minus2': ctypes.c_uint8,
+            'diff_cu_chroma_qp_offset_depth': ctypes.c_uint8,
+            'chroma_qp_offset_list_len_minus1': ctypes.c_uint8,
+            'cb_qp_offset_list': ctypes.ARRAY(ctypes.c_int8, 6),
+            'cr_qp_offset_list': ctypes.ARRAY(ctypes.c_int8, 6),
+            'log2_sao_offset_scale_luma': ctypes.c_uint8,
+            'log2_sao_offset_scale_chroma': ctypes.c_uint8,
+            'pps_act_y_qp_offset_plus5': ctypes.c_int8,
+            'pps_act_cb_qp_offset_plus5': ctypes.c_int8,
+            'pps_act_cr_qp_offset_plus3': ctypes.c_int8,
+            'pps_num_palette_predictor_initializers': ctypes.c_uint8,
+            'luma_bit_depth_entry_minus8': ctypes.c_uint8,
+            'chroma_bit_depth_entry_minus8': ctypes.c_uint8,
+            'num_tile_columns_minus1': ctypes.c_uint8,
+            'num_tile_rows_minus1': ctypes.c_uint8,
+            'reserved1': ctypes.c_uint8,
+            'reserved2': ctypes.c_uint8,
+            'column_width_minus1': ctypes.ARRAY(ctypes.c_uint16, 19),
+            'row_height_minus1': ctypes.ARRAY(ctypes.c_uint16, 21),
+            'reserved3': ctypes.c_uint32,
+            'pScalingLists': ctypes.POINTER(StdVideoH265ScalingLists),
+            'pPredictorPaletteEntries': ctypes.POINTER(StdVideoH265PredictorPaletteEntries),
+        }
 
-from .StdVideoH265PpsFlags import CType as StdVideoH265PpsFlags
-from .StdVideoH265PredictorPaletteEntries import CType as StdVideoH265PredictorPaletteEntries
-from .StdVideoH265ScalingLists import CType as StdVideoH265ScalingLists
 
-CType._fields_ = [
+from .StdVideoH265PpsFlags import StdVideoH265PpsFlags
+from .StdVideoH265PredictorPaletteEntries import StdVideoH265PredictorPaletteEntries
+from .StdVideoH265ScalingLists import StdVideoH265ScalingLists
+
+StdVideoH265PictureParameterSet._fields_ = [
     ('flags', StdVideoH265PpsFlags),
     ('pps_pic_parameter_set_id', ctypes.c_uint8),
     ('pps_seq_parameter_set_id', ctypes.c_uint8),
@@ -45,57 +85,3 @@ CType._fields_ = [
     ('pScalingLists', ctypes.POINTER(StdVideoH265ScalingLists)),
     ('pPredictorPaletteEntries', ctypes.POINTER(StdVideoH265PredictorPaletteEntries)),
 ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': {
-        'StdVideoH265PpsFlags',
-        'StdVideoH265PredictorPaletteEntries',
-        'StdVideoH265ScalingLists',
-    },
-    'included_in': {
-        'VkVideoDecodeH265SessionParametersAddInfoKHR',
-        'VkVideoEncodeH265SessionParametersAddInfoKHR',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'flags': {'python_name': ['flags'], 'type': 'StdVideoH265PpsFlags'},
-        'pps_pic_parameter_set_id': {'python_name': ['pps', 'pic', 'parameter', 'set', 'id']},
-        'pps_seq_parameter_set_id': {'python_name': ['pps', 'seq', 'parameter', 'set', 'id']},
-        'sps_video_parameter_set_id': {'python_name': ['sps', 'video', 'parameter', 'set', 'id']},
-        'num_extra_slice_header_bits': {'python_name': ['num', 'extra', 'slice', 'header', 'bits']},
-        'num_ref_idx_l0_default_active_minus1': {'python_name': ['num', 'ref', 'idx', 'l0', 'default', 'active', 'minus1']},
-        'num_ref_idx_l1_default_active_minus1': {'python_name': ['num', 'ref', 'idx', 'l1', 'default', 'active', 'minus1']},
-        'init_qp_minus26': {'python_name': ['init', 'qp', 'minus26']},
-        'diff_cu_qp_delta_depth': {'python_name': ['diff', 'cu', 'qp', 'delta', 'depth']},
-        'pps_cb_qp_offset': {'python_name': ['pps', 'cb', 'qp', 'offset']},
-        'pps_cr_qp_offset': {'python_name': ['pps', 'cr', 'qp', 'offset']},
-        'pps_beta_offset_div2': {'python_name': ['pps', 'beta', 'offset', 'div2']},
-        'pps_tc_offset_div2': {'python_name': ['pps', 'tc', 'offset', 'div2']},
-        'log2_parallel_merge_level_minus2': {'python_name': ['log2', 'parallel', 'merge', 'level', 'minus2']},
-        'log2_max_transform_skip_block_size_minus2': {'python_name': ['log2', 'max', 'transform', 'skip', 'block', 'size', 'minus2']},
-        'diff_cu_chroma_qp_offset_depth': {'python_name': ['diff', 'cu', 'chroma', 'qp', 'offset', 'depth']},
-        'chroma_qp_offset_list_len_minus1': {'python_name': ['chroma', 'qp', 'offset', 'list', 'len', 'minus1']},
-        'cb_qp_offset_list': {'python_name': ['cb', 'qp', 'offset', 'list']},
-        'cr_qp_offset_list': {'python_name': ['cr', 'qp', 'offset', 'list']},
-        'log2_sao_offset_scale_luma': {'python_name': ['log2', 'sao', 'offset', 'scale', 'luma']},
-        'log2_sao_offset_scale_chroma': {'python_name': ['log2', 'sao', 'offset', 'scale', 'chroma']},
-        'pps_act_y_qp_offset_plus5': {'python_name': ['pps', 'act', 'y', 'qp', 'offset', 'plus5']},
-        'pps_act_cb_qp_offset_plus5': {'python_name': ['pps', 'act', 'cb', 'qp', 'offset', 'plus5']},
-        'pps_act_cr_qp_offset_plus3': {'python_name': ['pps', 'act', 'cr', 'qp', 'offset', 'plus3']},
-        'pps_num_palette_predictor_initializers': {'python_name': ['pps', 'num', 'palette', 'predictor', 'initializers']},
-        'luma_bit_depth_entry_minus8': {'python_name': ['luma', 'bit', 'depth', 'entry', 'minus8']},
-        'chroma_bit_depth_entry_minus8': {'python_name': ['chroma', 'bit', 'depth', 'entry', 'minus8']},
-        'num_tile_columns_minus1': {'python_name': ['num', 'tile', 'columns', 'minus1']},
-        'num_tile_rows_minus1': {'python_name': ['num', 'tile', 'rows', 'minus1']},
-        'reserved1': {'python_name': ['reserved1']},
-        'reserved2': {'python_name': ['reserved2']},
-        'column_width_minus1': {'python_name': ['column', 'width', 'minus1']},
-        'row_height_minus1': {'python_name': ['row', 'height', 'minus1']},
-        'reserved3': {'python_name': ['reserved3']},
-        'pScalingLists': {'python_name': ['p', 'scaling', 'lists'], 'type': 'StdVideoH265ScalingLists'},
-        'pPredictorPaletteEntries': {'python_name': ['p', 'predictor', 'palette', 'entries'], 'type': 'StdVideoH265PredictorPaletteEntries'},
-    }
-}

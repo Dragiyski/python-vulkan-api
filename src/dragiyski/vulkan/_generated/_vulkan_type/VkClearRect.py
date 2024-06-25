@@ -1,30 +1,19 @@
 import ctypes
 
-class CType(ctypes.Structure):
-    pass
+class VkClearRect(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'rect': VkRect2D,
+            'baseArrayLayer': ctypes.c_uint32,
+            'layerCount': ctypes.c_uint32,
+        }
 
-from .VkRect2D import CType as VkRect2D
 
-CType._fields_ = [
+from .VkRect2D import VkRect2D
+
+VkClearRect._fields_ = [
     ('rect', VkRect2D),
     ('baseArrayLayer', ctypes.c_uint32),
     ('layerCount', ctypes.c_uint32),
 ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': {
-        'VkRect2D',
-    },
-    'included_in': set(),
-    'input_of': {
-        'vkCmdClearAttachments',
-    },
-    'output_of': set(),
-    'member_map': {
-        'rect': {'python_name': ['rect'], 'type': 'VkRect2D'},
-        'baseArrayLayer': {'python_name': ['base', 'array', 'layer']},
-        'layerCount': {'python_name': ['layer', 'count']},
-    }
-}

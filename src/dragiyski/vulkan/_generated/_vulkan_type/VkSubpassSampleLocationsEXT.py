@@ -1,28 +1,17 @@
 import ctypes
 
-class CType(ctypes.Structure):
-    pass
+class VkSubpassSampleLocationsEXT(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'subpassIndex': ctypes.c_uint32,
+            'sampleLocationsInfo': VkSampleLocationsInfoEXT,
+        }
 
-from .VkSampleLocationsInfoEXT import CType as VkSampleLocationsInfoEXT
 
-CType._fields_ = [
+from .VkSampleLocationsInfoEXT import VkSampleLocationsInfoEXT
+
+VkSubpassSampleLocationsEXT._fields_ = [
     ('subpassIndex', ctypes.c_uint32),
     ('sampleLocationsInfo', VkSampleLocationsInfoEXT),
 ]
-
-descriptor = {
-    'extends': set(),
-    'extended_by': set(),
-    'includes': {
-        'VkSampleLocationsInfoEXT',
-    },
-    'included_in': {
-        'VkRenderPassSampleLocationsBeginInfoEXT',
-    },
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'subpassIndex': {'python_name': ['subpass', 'index']},
-        'sampleLocationsInfo': {'python_name': ['sample', 'locations', 'info'], 'type': 'VkSampleLocationsInfoEXT'},
-    }
-}

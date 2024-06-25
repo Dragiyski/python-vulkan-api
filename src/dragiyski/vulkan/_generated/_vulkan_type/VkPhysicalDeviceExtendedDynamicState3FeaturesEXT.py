@@ -1,6 +1,44 @@
 import ctypes
 
-class CType(ctypes.Structure):
+class VkPhysicalDeviceExtendedDynamicState3FeaturesEXT(ctypes.Structure):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._type_ = {
+            'sType': ctypes.c_int,
+            'pNext': ctypes.c_void_p,
+            'extendedDynamicState3TessellationDomainOrigin': ctypes.c_uint32,
+            'extendedDynamicState3DepthClampEnable': ctypes.c_uint32,
+            'extendedDynamicState3PolygonMode': ctypes.c_uint32,
+            'extendedDynamicState3RasterizationSamples': ctypes.c_uint32,
+            'extendedDynamicState3SampleMask': ctypes.c_uint32,
+            'extendedDynamicState3AlphaToCoverageEnable': ctypes.c_uint32,
+            'extendedDynamicState3AlphaToOneEnable': ctypes.c_uint32,
+            'extendedDynamicState3LogicOpEnable': ctypes.c_uint32,
+            'extendedDynamicState3ColorBlendEnable': ctypes.c_uint32,
+            'extendedDynamicState3ColorBlendEquation': ctypes.c_uint32,
+            'extendedDynamicState3ColorWriteMask': ctypes.c_uint32,
+            'extendedDynamicState3RasterizationStream': ctypes.c_uint32,
+            'extendedDynamicState3ConservativeRasterizationMode': ctypes.c_uint32,
+            'extendedDynamicState3ExtraPrimitiveOverestimationSize': ctypes.c_uint32,
+            'extendedDynamicState3DepthClipEnable': ctypes.c_uint32,
+            'extendedDynamicState3SampleLocationsEnable': ctypes.c_uint32,
+            'extendedDynamicState3ColorBlendAdvanced': ctypes.c_uint32,
+            'extendedDynamicState3ProvokingVertexMode': ctypes.c_uint32,
+            'extendedDynamicState3LineRasterizationMode': ctypes.c_uint32,
+            'extendedDynamicState3LineStippleEnable': ctypes.c_uint32,
+            'extendedDynamicState3DepthClipNegativeOneToOne': ctypes.c_uint32,
+            'extendedDynamicState3ViewportWScalingEnable': ctypes.c_uint32,
+            'extendedDynamicState3ViewportSwizzle': ctypes.c_uint32,
+            'extendedDynamicState3CoverageToColorEnable': ctypes.c_uint32,
+            'extendedDynamicState3CoverageToColorLocation': ctypes.c_uint32,
+            'extendedDynamicState3CoverageModulationMode': ctypes.c_uint32,
+            'extendedDynamicState3CoverageModulationTableEnable': ctypes.c_uint32,
+            'extendedDynamicState3CoverageModulationTable': ctypes.c_uint32,
+            'extendedDynamicState3CoverageReductionMode': ctypes.c_uint32,
+            'extendedDynamicState3RepresentativeFragmentTestEnable': ctypes.c_uint32,
+            'extendedDynamicState3ShadingRateImageEnable': ctypes.c_uint32,
+        }
+
     _fields_ = [
         ('sType', ctypes.c_int),
         ('pNext', ctypes.c_void_p),
@@ -36,50 +74,3 @@ class CType(ctypes.Structure):
         ('extendedDynamicState3RepresentativeFragmentTestEnable', ctypes.c_uint32),
         ('extendedDynamicState3ShadingRateImageEnable', ctypes.c_uint32),
     ]
-
-descriptor = {
-    'extends': {
-        'VkDeviceCreateInfo',
-        'VkPhysicalDeviceFeatures2',
-    },
-    'extended_by': set(),
-    'includes': set(),
-    'included_in': set(),
-    'input_of': set(),
-    'output_of': set(),
-    'member_map': {
-        'sType': {'python_name': ['s', 'type'], 'value': 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT', 'type': 'VkStructureType'},
-        'pNext': {'python_name': ['p', 'next']},
-        'extendedDynamicState3TessellationDomainOrigin': {'python_name': ['extended', 'dynamic', 'state3', 'tessellation', 'domain', 'origin']},
-        'extendedDynamicState3DepthClampEnable': {'python_name': ['extended', 'dynamic', 'state3', 'depth', 'clamp', 'enable']},
-        'extendedDynamicState3PolygonMode': {'python_name': ['extended', 'dynamic', 'state3', 'polygon', 'mode']},
-        'extendedDynamicState3RasterizationSamples': {'python_name': ['extended', 'dynamic', 'state3', 'rasterization', 'samples']},
-        'extendedDynamicState3SampleMask': {'python_name': ['extended', 'dynamic', 'state3', 'sample', 'mask']},
-        'extendedDynamicState3AlphaToCoverageEnable': {'python_name': ['extended', 'dynamic', 'state3', 'alpha', 'to', 'coverage', 'enable']},
-        'extendedDynamicState3AlphaToOneEnable': {'python_name': ['extended', 'dynamic', 'state3', 'alpha', 'to', 'one', 'enable']},
-        'extendedDynamicState3LogicOpEnable': {'python_name': ['extended', 'dynamic', 'state3', 'logic', 'op', 'enable']},
-        'extendedDynamicState3ColorBlendEnable': {'python_name': ['extended', 'dynamic', 'state3', 'color', 'blend', 'enable']},
-        'extendedDynamicState3ColorBlendEquation': {'python_name': ['extended', 'dynamic', 'state3', 'color', 'blend', 'equation']},
-        'extendedDynamicState3ColorWriteMask': {'python_name': ['extended', 'dynamic', 'state3', 'color', 'write', 'mask']},
-        'extendedDynamicState3RasterizationStream': {'python_name': ['extended', 'dynamic', 'state3', 'rasterization', 'stream']},
-        'extendedDynamicState3ConservativeRasterizationMode': {'python_name': ['extended', 'dynamic', 'state3', 'conservative', 'rasterization', 'mode']},
-        'extendedDynamicState3ExtraPrimitiveOverestimationSize': {'python_name': ['extended', 'dynamic', 'state3', 'extra', 'primitive', 'overestimation', 'size']},
-        'extendedDynamicState3DepthClipEnable': {'python_name': ['extended', 'dynamic', 'state3', 'depth', 'clip', 'enable']},
-        'extendedDynamicState3SampleLocationsEnable': {'python_name': ['extended', 'dynamic', 'state3', 'sample', 'locations', 'enable']},
-        'extendedDynamicState3ColorBlendAdvanced': {'python_name': ['extended', 'dynamic', 'state3', 'color', 'blend', 'advanced']},
-        'extendedDynamicState3ProvokingVertexMode': {'python_name': ['extended', 'dynamic', 'state3', 'provoking', 'vertex', 'mode']},
-        'extendedDynamicState3LineRasterizationMode': {'python_name': ['extended', 'dynamic', 'state3', 'line', 'rasterization', 'mode']},
-        'extendedDynamicState3LineStippleEnable': {'python_name': ['extended', 'dynamic', 'state3', 'line', 'stipple', 'enable']},
-        'extendedDynamicState3DepthClipNegativeOneToOne': {'python_name': ['extended', 'dynamic', 'state3', 'depth', 'clip', 'negative', 'one', 'to', 'one']},
-        'extendedDynamicState3ViewportWScalingEnable': {'python_name': ['extended', 'dynamic', 'state3', 'viewport', 'wscaling', 'enable']},
-        'extendedDynamicState3ViewportSwizzle': {'python_name': ['extended', 'dynamic', 'state3', 'viewport', 'swizzle']},
-        'extendedDynamicState3CoverageToColorEnable': {'python_name': ['extended', 'dynamic', 'state3', 'coverage', 'to', 'color', 'enable']},
-        'extendedDynamicState3CoverageToColorLocation': {'python_name': ['extended', 'dynamic', 'state3', 'coverage', 'to', 'color', 'location']},
-        'extendedDynamicState3CoverageModulationMode': {'python_name': ['extended', 'dynamic', 'state3', 'coverage', 'modulation', 'mode']},
-        'extendedDynamicState3CoverageModulationTableEnable': {'python_name': ['extended', 'dynamic', 'state3', 'coverage', 'modulation', 'table', 'enable']},
-        'extendedDynamicState3CoverageModulationTable': {'python_name': ['extended', 'dynamic', 'state3', 'coverage', 'modulation', 'table']},
-        'extendedDynamicState3CoverageReductionMode': {'python_name': ['extended', 'dynamic', 'state3', 'coverage', 'reduction', 'mode']},
-        'extendedDynamicState3RepresentativeFragmentTestEnable': {'python_name': ['extended', 'dynamic', 'state3', 'representative', 'fragment', 'test', 'enable']},
-        'extendedDynamicState3ShadingRateImageEnable': {'python_name': ['extended', 'dynamic', 'state3', 'shading', 'rate', 'image', 'enable']},
-    }
-}

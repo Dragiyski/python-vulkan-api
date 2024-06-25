@@ -1,0 +1,7 @@
+from enum import IntEnum
+
+class StdVideoH264SliceType(IntEnum):
+    STD_VIDEO_H264_SLICE_TYPE_B = 1
+    STD_VIDEO_H264_SLICE_TYPE_I = 2
+    STD_VIDEO_H264_SLICE_TYPE_INVALID = 2147483647
+    STD_VIDEO_H264_SLICE_TYPE_P = 0
