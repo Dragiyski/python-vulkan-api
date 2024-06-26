@@ -4,29 +4,15 @@ from ..loader import LibraryLoader
 from ..error import *
 from .. import binding
 from ..version import VkVersion, VkApiVersion
-
-
-class VkLayer(str):
-    def __new__(cls, value: binding.VkLayerProperties):
-        self = super().__new__(cls, value.layerName.decode())
-        self.spec_version = VkApiVersion(value.specVersion)
-        self.implementation_version = VkApiVersion(value.implementationVersion)
-        self.description = value.description.decode()
-        return self
-
-
-class VkExtension(str):
-    def __new__(cls, value: binding.VkExtensionProperties):
-        self = super().__new__(cls, value.extensionName.decode())
-        self.spec_version = VkApiVersion(value.specVersion)
-        return self
+from .VkLayer import VkLayer
+from .VkExtension import VkExtension
 
 
 class Application:
     def __init__(self, loader: LibraryLoader = LibraryLoader()):
         self._loader_ = loader
 
-    def enumerate_instance_version(self, *, use_api_version = True) -> VkVersion | VkApiVersion:
+    def enumerate_instance_version(self, *, use_api_version=True) -> VkVersion | VkApiVersion:
         version = self._loader_.vkEnumerateInstanceVersion.argtypes[0]._type_()
         VkException.check(self._loader_.vkEnumerateInstanceVersion(ctypes.byref(version)))
         return (VkApiVersion if use_api_version else VkVersion)(version.value)

@@ -1,5 +1,5 @@
 import ctypes
-from collections.abc import Iterable
+from collections.abc import Iterable, Collection
 from importlib import import_module
 
 from .. import binding
@@ -28,7 +28,7 @@ class VkInstance(metaclass = PointerStorageType):
         required_extensions: Iterable[str | bytes] = (),
         optional_extensions: Iterable[str | bytes] = (),
         flags: binding.VkInstanceCreateFlags | int = 0
-    ):
+    ) -> 'VkInstance':
         required_layers = set(layer.encode() if isinstance(layer, str) else bytes(layer) for layer in required_layers)
         optional_layers = set(layer.encode() if isinstance(layer, str) else bytes(layer) for layer in optional_layers)
         required_extensions = set(extension.encode() if isinstance(extension, str) else bytes(extension) for extension in required_extensions)
@@ -64,7 +64,7 @@ class VkInstance(metaclass = PointerStorageType):
         finalize(handle.value, self, _destroy_handle, self._loader_.vkDestroyInstance, handle.value, None)
         return self
 
-    def enumerate_physical_devices(self):
+    def enumerate_physical_devices(self) -> 'Collection[VkPhysicalDevice]':
         vkEnumeratePhysicalDevices = self._loader_.vkEnumeratePhysicalDevices
         length = vkEnumeratePhysicalDevices.argtypes[1]._type_(0)
         try:
@@ -96,3 +96,4 @@ class VkInstance(metaclass = PointerStorageType):
 
 
 from .Application import Application
+from .VkPhysicalDevice import VkPhysicalDevice

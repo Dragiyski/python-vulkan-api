@@ -20,7 +20,7 @@ class VkVersion(int):
 
     @classmethod
     def create(cls, major = 0, minor = 0, patch = 0):
-        cls(VK_MAKE_VERSION(major, minor, patch))
+        return cls(VK_MAKE_VERSION(major, minor, patch))
 
     @property
     def major(self):
@@ -49,7 +49,7 @@ class VkApiVersion(int):
 
     @classmethod
     def create(cls, variant = 0, major = 0, minor = 0, patch = 0):
-        cls(VK_MAKE_API_VERSION(variant, major, minor, patch))
+        return cls(VK_MAKE_API_VERSION(variant, major, minor, patch))
 
     @property
     def variant(self):
