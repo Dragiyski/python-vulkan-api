@@ -1,5 +1,6 @@
 import ctypes
 import ast
+import re
 from collections import OrderedDict
 from pathlib import Path
 from .context import Context
@@ -161,13 +162,76 @@ class Generator:
         ctype: CComplexType
         struct_desc = context.struct_map[name]
 
+        def generate_class_body():
+            code.append('    _init_ = []')
+            for usage_name in ['extends', 'extended_by', 'includes', 'included_in', 'input_of', 'output_of']:
+                if len(struct_desc[usage_name]) > 0:
+                    code.append('    _%s_ = {' % usage_name)
+                    for reference in sorted(struct_desc[usage_name]):
+                        code.append('        %r,' % reference)
+                    code.append('    }')
+                else:
+                    code.append('    _%s_ = set()' % usage_name)
+            code.append('    _python_name_ = {')
+            for member_name in struct_desc['ctype'].member_list:
+                python_name = struct_desc['ctype'].member_map[member_name]['python_name']
+                if len(python_name) > 1:
+                    python_name = [word for word in python_name if re.fullmatch(r'([ps])\1*', word) is None]
+                python_name = '_'.join(python_name)
+                code.append('        %r: %r,' % (member_name, python_name))
+            code.append('    }')
+            features = []
+            for feature in context.feature_map.values():
+                if name in feature['types'] and 'version' in feature:
+                    features.append(tuple(feature['version']))
+            if len(features) > 0:
+                code.append('    _vk_versions_ = {')
+                for feature in sorted(features):
+                    code.append('        %r,' % (feature,))
+                code.append('    }')
+            else:
+                code.append('    _vk_versions_ = set()')
+            extensions = []
+            for extension_name, extension_desc in context.ext_map.items():
+                if name in extension_desc['types']:
+                    extensions.append(extension_name)
+            if len(extensions) > 0:
+                code.append('    _vk_extensions_ = {')
+                for extension in sorted(extensions):
+                    code.append('        %r,' % (extension,))
+                code.append('    }')
+            else:
+                code.append('    _vk_extensions_ = set()')
+            enum_map = {k: v['type'] for k, v in struct_desc['ctype'].member_map.items() if v['is_enum']}
+            if len(enum_map) > 0:
+                code.append('    _vk_enum_ = {')
+                for k, v in enum_map.items():
+                    code.append('        %r: %r,' % (k, v))
+                code.append('    }')
+            else:
+                code.append('    _vk_enum_ = dict()')
+            if 'sType' in struct_desc['ctype'].member_map and struct_desc['ctype'].member_map['sType'].get('type', None) == 'VkStructureType' and struct_desc['ctype'].member_map['sType'].get('value', '').startswith('VK_STRUCTURE_TYPE_'):
+                code.append('    _vk_structure_type_ = %r' % struct_desc['ctype'].member_map['sType']['value'])
+            code.append('')
+            code.append('    def __init__(self, *args, **kwargs):')
+            code.append('        super().__init__()')
+            if 'sType' in struct_desc['ctype'].member_map and struct_desc['ctype'].member_map['sType'].get('type', None) == 'VkStructureType' and struct_desc['ctype'].member_map['sType'].get('value', '').startswith('VK_STRUCTURE_TYPE_'):
+                code.append('        from .._vulkan_enum.%s import %s' % ('VkStructureType', 'VkStructureType'))
+                code.append('        self.sType = VkStructureType.%s' % struct_desc['ctype'].member_map['sType']['value'])
+            code.append('        for function in self._init_:')
+            code.append('            function(self, *args, **kwargs)')
+            code.append('')
+            pass
+
         code.append('class %s(ctypes.%s):' % (name, ctype.constructor))
         member_types = [ctype.member_map[x]['node'].get('type').get_text() for x in ctype.member_list]
         complex_member_types = set([x for x in member_types if x in context.type_node_map['complex']])
         funcpointer_member_types = set([x for x in member_types if x in context.type_node_map['funcpointer']])
         delay_fields = ctype['delay_fields'] or name in complex_member_types
+        in_class_body = True
         if delay_fields or len(complex_member_types) > 0 or len(funcpointer_member_types) > 0:
-            code.append('    pass')
+            generate_class_body()
+            in_class_body = False
             code.append('')
             for dependency in sorted([context.ctypes_map[t].name for t in funcpointer_member_types]):
                 code.append('from .._vulkan_callback.%s import %s' % (dependency, dependency))
@@ -188,6 +252,8 @@ class Generator:
                 code.append('%s(%r, %s),' % ('    ' * indent, member_name, member_desc['ctype'].to_source()))
         code.append('    ' * (indent - 1) + ']')
         code.append('')
+        if in_class_body:
+            generate_class_body()
         code.append('%s._type_ = {' % name)
         for member_name in ctype.member_list:
             member_desc = ctype.member_map[member_name]

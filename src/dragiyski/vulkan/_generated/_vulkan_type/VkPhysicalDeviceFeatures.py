@@ -59,6 +59,86 @@ class VkPhysicalDeviceFeatures(ctypes.Structure):
         ('inheritedQueries', ctypes.c_uint32),
     ]
 
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = set()
+    _included_in_ = {
+        'VkDeviceCreateInfo',
+        'VkPhysicalDeviceFeatures2',
+    }
+    _input_of_ = set()
+    _output_of_ = {
+        'vkGetPhysicalDeviceFeatures',
+    }
+    _python_name_ = {
+        'robustBufferAccess': 'robust_buffer_access',
+        'fullDrawIndexUint32': 'full_draw_index_uint32',
+        'imageCubeArray': 'image_cube_array',
+        'independentBlend': 'independent_blend',
+        'geometryShader': 'geometry_shader',
+        'tessellationShader': 'tessellation_shader',
+        'sampleRateShading': 'sample_rate_shading',
+        'dualSrcBlend': 'dual_src_blend',
+        'logicOp': 'logic_op',
+        'multiDrawIndirect': 'multi_draw_indirect',
+        'drawIndirectFirstInstance': 'draw_indirect_first_instance',
+        'depthClamp': 'depth_clamp',
+        'depthBiasClamp': 'depth_bias_clamp',
+        'fillModeNonSolid': 'fill_mode_non_solid',
+        'depthBounds': 'depth_bounds',
+        'wideLines': 'wide_lines',
+        'largePoints': 'large_points',
+        'alphaToOne': 'alpha_to_one',
+        'multiViewport': 'multi_viewport',
+        'samplerAnisotropy': 'sampler_anisotropy',
+        'textureCompressionETC2': 'texture_compression_etc2',
+        'textureCompressionASTC_LDR': 'texture_compression_astc_ldr',
+        'textureCompressionBC': 'texture_compression_bc',
+        'occlusionQueryPrecise': 'occlusion_query_precise',
+        'pipelineStatisticsQuery': 'pipeline_statistics_query',
+        'vertexPipelineStoresAndAtomics': 'vertex_pipeline_stores_and_atomics',
+        'fragmentStoresAndAtomics': 'fragment_stores_and_atomics',
+        'shaderTessellationAndGeometryPointSize': 'shader_tessellation_and_geometry_point_size',
+        'shaderImageGatherExtended': 'shader_image_gather_extended',
+        'shaderStorageImageExtendedFormats': 'shader_storage_image_extended_formats',
+        'shaderStorageImageMultisample': 'shader_storage_image_multisample',
+        'shaderStorageImageReadWithoutFormat': 'shader_storage_image_read_without_format',
+        'shaderStorageImageWriteWithoutFormat': 'shader_storage_image_write_without_format',
+        'shaderUniformBufferArrayDynamicIndexing': 'shader_uniform_buffer_array_dynamic_indexing',
+        'shaderSampledImageArrayDynamicIndexing': 'shader_sampled_image_array_dynamic_indexing',
+        'shaderStorageBufferArrayDynamicIndexing': 'shader_storage_buffer_array_dynamic_indexing',
+        'shaderStorageImageArrayDynamicIndexing': 'shader_storage_image_array_dynamic_indexing',
+        'shaderClipDistance': 'shader_clip_distance',
+        'shaderCullDistance': 'shader_cull_distance',
+        'shaderFloat64': 'shader_float64',
+        'shaderInt64': 'shader_int64',
+        'shaderInt16': 'shader_int16',
+        'shaderResourceResidency': 'shader_resource_residency',
+        'shaderResourceMinLod': 'shader_resource_min_lod',
+        'sparseBinding': 'sparse_binding',
+        'sparseResidencyBuffer': 'sparse_residency_buffer',
+        'sparseResidencyImage2D': 'sparse_residency_image2_d',
+        'sparseResidencyImage3D': 'sparse_residency_image3_d',
+        'sparseResidency2Samples': 'sparse_residency2_samples',
+        'sparseResidency4Samples': 'sparse_residency4_samples',
+        'sparseResidency8Samples': 'sparse_residency8_samples',
+        'sparseResidency16Samples': 'sparse_residency16_samples',
+        'sparseResidencyAliased': 'sparse_residency_aliased',
+        'variableMultisampleRate': 'variable_multisample_rate',
+        'inheritedQueries': 'inherited_queries',
+    }
+    _vk_versions_ = {
+        (1, 0),
+    }
+    _vk_extensions_ = set()
+    _vk_enum_ = dict()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 VkPhysicalDeviceFeatures._type_ = {
     'robustBufferAccess': ctypes.c_uint32,
     'fullDrawIndexUint32': ctypes.c_uint32,

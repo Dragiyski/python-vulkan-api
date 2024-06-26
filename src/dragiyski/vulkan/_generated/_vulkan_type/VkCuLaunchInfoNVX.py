@@ -18,6 +18,47 @@ class VkCuLaunchInfoNVX(ctypes.Structure):
         ('pExtras', ctypes.POINTER(ctypes.c_void_p)),
     ]
 
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = set()
+    _included_in_ = set()
+    _input_of_ = {
+        'vkCmdCuLaunchKernelNVX',
+    }
+    _output_of_ = set()
+    _python_name_ = {
+        'sType': 'type',
+        'pNext': 'next',
+        'function': 'function',
+        'gridDimX': 'grid_dim_x',
+        'gridDimY': 'grid_dim_y',
+        'gridDimZ': 'grid_dim_z',
+        'blockDimX': 'block_dim_x',
+        'blockDimY': 'block_dim_y',
+        'blockDimZ': 'block_dim_z',
+        'sharedMemBytes': 'shared_mem_bytes',
+        'paramCount': 'param_count',
+        'pParams': 'params',
+        'extraCount': 'extra_count',
+        'pExtras': 'extras',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'VK_NVX_binary_import',
+    }
+    _vk_enum_ = {
+        'sType': 'VkStructureType',
+    }
+    _vk_structure_type_ = 'VK_STRUCTURE_TYPE_CU_LAUNCH_INFO_NVX'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        from .._vulkan_enum.VkStructureType import VkStructureType
+        self.sType = VkStructureType.VK_STRUCTURE_TYPE_CU_LAUNCH_INFO_NVX
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 VkCuLaunchInfoNVX._type_ = {
     'sType': ctypes.c_int,
     'pNext': ctypes.c_void_p,

@@ -1,7 +1,55 @@
 import ctypes
 
 class StdVideoAV1FilmGrain(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = {
+        'StdVideoAV1FilmGrainFlags',
+    }
+    _included_in_ = {
+        'StdVideoDecodeAV1PictureInfo',
+    }
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'flags': 'flags',
+        'grain_scaling_minus_8': 'grain_scaling_minus_8',
+        'ar_coeff_lag': 'ar_coeff_lag',
+        'ar_coeff_shift_minus_6': 'ar_coeff_shift_minus_6',
+        'grain_scale_shift': 'grain_scale_shift',
+        'grain_seed': 'grain_seed',
+        'film_grain_params_ref_idx': 'film_grain_params_ref_idx',
+        'num_y_points': 'num_y_points',
+        'point_y_value': 'point_y_value',
+        'point_y_scaling': 'point_y_scaling',
+        'num_cb_points': 'num_cb_points',
+        'point_cb_value': 'point_cb_value',
+        'point_cb_scaling': 'point_cb_scaling',
+        'num_cr_points': 'num_cr_points',
+        'point_cr_value': 'point_cr_value',
+        'point_cr_scaling': 'point_cr_scaling',
+        'ar_coeffs_y_plus_128': 'ar_coeffs_y_plus_128',
+        'ar_coeffs_cb_plus_128': 'ar_coeffs_cb_plus_128',
+        'ar_coeffs_cr_plus_128': 'ar_coeffs_cr_plus_128',
+        'cb_mult': 'cb_mult',
+        'cb_luma_mult': 'cb_luma_mult',
+        'cb_offset': 'cb_offset',
+        'cr_mult': 'cr_mult',
+        'cr_luma_mult': 'cr_luma_mult',
+        'cr_offset': 'cr_offset',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'vulkan_video_codec_av1std',
+    }
+    _vk_enum_ = dict()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .StdVideoAV1FilmGrainFlags import StdVideoAV1FilmGrainFlags
 

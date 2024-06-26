@@ -430,6 +430,15 @@ class Compiler:
                     })
                 except NameMap.DuplicateKeyError as ex:
                     raise DuplicateNodeNameError(node=feature_node, name=feature_name, prev_node=context.feature_map[feature_name]['node']) from ex
+                if feature_node.has_attribute('number'):
+                    version = feature_node.get_attribute('number').split('.')
+                    is_version = True
+                    try:
+                        version = [int(n) for n in version]
+                    except ValueError:
+                        is_version = False
+                    if is_version:
+                        context.feature_map[feature_name]['version'] = version
                 # Depends: Introduce dependencies:
                 # This is AND-OR tree in format:
                 # A + B means A AND B
@@ -584,17 +593,17 @@ class Compiler:
                                     raise CompileNodeError('In extension "%s", enum "%s" = (%r) is already defined in value map with different value (%r)' % (ext_name, enum_name, descriptor['value'], context.value_map[enum_name]), node=enum_node)
                             else:
                                 context.value_map.set(enum_name, descriptor)
-                    for type_node in require_node.get_all('type'):
-                        type_name = self.get_node_name_from_attribute(type_node)
-                        if type_name in context.object_macro_map:
-                            if type_name not in context.value_map:
-                                raise CompileNodeError('Feature "%s", requires type "%s" which is defined as object macro, but not found in the value map.' % (ext_name, enum_name), node=type_node)
-                            context.ext_map[ext_name]['values'].add(type_name)
-                            continue
-                        context.ext_map[ext_name]['types'].add(type_name)
-                    for command_node in require_node.get_all('command'):
-                        command_name = self.get_node_name_from_attribute(command_node)
-                        context.ext_map[ext_name]['commands'].add(command_name)
+                        for type_node in require_node.get_all('type'):
+                            type_name = self.get_node_name_from_attribute(type_node)
+                            if type_name in context.object_macro_map:
+                                if type_name not in context.value_map:
+                                    raise CompileNodeError('Feature "%s", requires type "%s" which is defined as object macro, but not found in the value map.' % (ext_name, enum_name), node=type_node)
+                                context.ext_map[ext_name]['values'].add(type_name)
+                                continue
+                            context.ext_map[ext_name]['types'].add(type_name)
+                        for command_node in require_node.get_all('command'):
+                            command_name = self.get_node_name_from_attribute(command_node)
+                            context.ext_map[ext_name]['commands'].add(command_name)
 
     def _compile_callback_node_map(self, context: Context):
         name: str
@@ -699,6 +708,7 @@ class Compiler:
                 member_externsync = [s.split('->') for s in member_externsync]
                 if len(member_externsync) > 0:
                     member_desc['externsync'] = member_externsync
+            member_desc['is_enum'] = 'type' in member_desc and member_desc['type'] in context.enum_map
 
     def _compile_complex_type(self, context: Context, name: str, node: Node):
         if name in context.ctypes_map:
@@ -911,6 +921,59 @@ class Compiler:
             for include_name in descriptor['includes']:
                 context.struct_map[include_name]['included_in'].add(name)
 
+    def _filter_api_bug_struct(self, context: Context):
+        remove_complex = set()
+        remove_funcpointer = set()
+        remove_command = set()
+        for type_name, node in context.type_node_map['complex'].items():
+            for member_node in node.get_all('member'):
+                if not context.is_target_api(member_node):
+                    continue
+                member_name = self.get_node_name_from_children(member_node)
+                if member_name == 'sType' and member_node.has_attribute('values'):
+                    stype_value = member_node.get_attribute('values')
+                    if stype_value not in context.enum_map['VkStructureType']['values']:
+                        remove_complex.add(type_name)
+        remove_complex_len = len(remove_complex)
+        while True:
+            for ptr_name, node in context.type_node_map['funcpointer'].items():
+                for type_node in node.get_all('type'):
+                    fn_type = type_node.get_text()
+                    if fn_type in context.type_node_map['complex']:
+                        if fn_type in remove_complex:
+                            remove_funcpointer.add(ptr_name)
+            for type_name, node in context.type_node_map['complex'].items():
+                for member_node in node.get_all('member'):
+                    if not context.is_target_api(member_node):
+                        continue
+                    member_type = member_node.get('type').get_text()
+                    if member_type in context.type_node_map['complex']:
+                        if member_type in remove_complex:
+                            remove_complex.add(type_name)
+                    if member_type in context.type_node_map['funcpointer']:
+                        if member_type in remove_funcpointer:
+                            remove_complex.add(type_name)
+            if remove_complex_len == len(remove_complex):
+                break
+            remove_complex_len = len(remove_complex)
+        for command_name, command_node in context.command_node_map.items():
+            command_types = set(command_node.get('proto').get('type').get_text())
+            for param_node in command_node.get_all('param'):
+                command_types.add(param_node.get('type').get_text())
+            for command_type in command_types:
+                if command_type in context.type_node_map['complex']:
+                    if command_type in remove_complex:
+                        remove_command.add(command_name)
+                if command_type in context.type_node_map['funcpointer']:
+                    if command_type in remove_funcpointer:
+                        remove_command.add(command_name)
+        for name in remove_complex:
+            del context.type_node_map['complex'][name]
+        for name in remove_funcpointer:
+            del context.type_node_map['funcpointer'][name]
+        for name in remove_command:
+            del context.command_node_map[name]
+
     def compile(self, context = Context()):
         for root_node in self.xml_map.values():
             self._enumerate_tags(context, root_node)
@@ -926,6 +989,7 @@ class Compiler:
         self._compile_enum_values(context)
         self._compile_feature_nodes(context)
         self._compile_ext_nodes(context)
+        self._filter_api_bug_struct(context)
         self._compile_callback_node_map(context)
         self._compile_uncategorized_types(context)
         self._compile_complex_types(context)

@@ -24,6 +24,48 @@ class StdVideoAV1SequenceHeaderFlags(ctypes.Structure):
         ('reserved', ctypes.c_uint32, 13),
     ]
 
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = set()
+    _included_in_ = {
+        'StdVideoAV1SequenceHeader',
+    }
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'still_picture': 'still_picture',
+        'reduced_still_picture_header': 'reduced_still_picture_header',
+        'use_128x128_superblock': 'use_128x128_superblock',
+        'enable_filter_intra': 'enable_filter_intra',
+        'enable_intra_edge_filter': 'enable_intra_edge_filter',
+        'enable_interintra_compound': 'enable_interintra_compound',
+        'enable_masked_compound': 'enable_masked_compound',
+        'enable_warped_motion': 'enable_warped_motion',
+        'enable_dual_filter': 'enable_dual_filter',
+        'enable_order_hint': 'enable_order_hint',
+        'enable_jnt_comp': 'enable_jnt_comp',
+        'enable_ref_frame_mvs': 'enable_ref_frame_mvs',
+        'frame_id_numbers_present_flag': 'frame_id_numbers_present_flag',
+        'enable_superres': 'enable_superres',
+        'enable_cdef': 'enable_cdef',
+        'enable_restoration': 'enable_restoration',
+        'film_grain_params_present': 'film_grain_params_present',
+        'timing_info_present_flag': 'timing_info_present_flag',
+        'initial_display_delay_present_flag': 'initial_display_delay_present_flag',
+        'reserved': 'reserved',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'vulkan_video_codec_av1std',
+    }
+    _vk_enum_ = dict()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 StdVideoAV1SequenceHeaderFlags._type_ = {
     'still_picture': ctypes.c_uint32,
     'reduced_still_picture_header': ctypes.c_uint32,

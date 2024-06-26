@@ -1,7 +1,40 @@
 import ctypes
 
 class VkDisplayModeCreateInfoKHR(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = {
+        'VkDisplayModeParametersKHR',
+    }
+    _included_in_ = set()
+    _input_of_ = {
+        'vkCreateDisplayModeKHR',
+    }
+    _output_of_ = set()
+    _python_name_ = {
+        'sType': 'type',
+        'pNext': 'next',
+        'flags': 'flags',
+        'parameters': 'parameters',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'VK_KHR_display',
+    }
+    _vk_enum_ = {
+        'sType': 'VkStructureType',
+        'flags': 'VkDisplayModeCreateFlagsKHR',
+    }
+    _vk_structure_type_ = 'VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        from .._vulkan_enum.VkStructureType import VkStructureType
+        self.sType = VkStructureType.VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .VkDisplayModeParametersKHR import VkDisplayModeParametersKHR
 

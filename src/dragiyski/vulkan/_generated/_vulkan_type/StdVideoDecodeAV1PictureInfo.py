@@ -1,7 +1,66 @@
 import ctypes
 
 class StdVideoDecodeAV1PictureInfo(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = {
+        'StdVideoAV1CDEF',
+        'StdVideoAV1FilmGrain',
+        'StdVideoAV1GlobalMotion',
+        'StdVideoAV1LoopFilter',
+        'StdVideoAV1LoopRestoration',
+        'StdVideoAV1Quantization',
+        'StdVideoAV1Segmentation',
+        'StdVideoAV1TileInfo',
+        'StdVideoDecodeAV1PictureInfoFlags',
+    }
+    _included_in_ = {
+        'VkVideoDecodeAV1PictureInfoKHR',
+    }
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'flags': 'flags',
+        'frame_type': 'frame_type',
+        'current_frame_id': 'current_frame_id',
+        'OrderHint': 'order_hint',
+        'primary_ref_frame': 'primary_ref_frame',
+        'refresh_frame_flags': 'refresh_frame_flags',
+        'reserved1': 'reserved1',
+        'interpolation_filter': 'interpolation_filter',
+        'TxMode': 'tx_mode',
+        'delta_q_res': 'delta_q_res',
+        'delta_lf_res': 'delta_lf_res',
+        'SkipModeFrame': 'skip_mode_frame',
+        'coded_denom': 'coded_denom',
+        'reserved2': 'reserved2',
+        'OrderHints': 'order_hints',
+        'expectedFrameId': 'expected_frame_id',
+        'pTileInfo': 'tile_info',
+        'pQuantization': 'quantization',
+        'pSegmentation': 'segmentation',
+        'pLoopFilter': 'loop_filter',
+        'pCDEF': 'cdef',
+        'pLoopRestoration': 'loop_restoration',
+        'pGlobalMotion': 'global_motion',
+        'pFilmGrain': 'film_grain',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'vulkan_video_codec_av1std_decode',
+    }
+    _vk_enum_ = {
+        'frame_type': 'StdVideoAV1FrameType',
+        'interpolation_filter': 'StdVideoAV1InterpolationFilter',
+        'TxMode': 'StdVideoAV1TxMode',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .StdVideoAV1CDEF import StdVideoAV1CDEF
 from .StdVideoAV1FilmGrain import StdVideoAV1FilmGrain

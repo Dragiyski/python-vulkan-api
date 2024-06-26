@@ -1,7 +1,59 @@
 import ctypes
 
 class StdVideoH265SequenceParameterSetVui(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = {
+        'StdVideoH265HrdParameters',
+        'StdVideoH265SpsVuiFlags',
+    }
+    _included_in_ = {
+        'StdVideoH265SequenceParameterSet',
+    }
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'flags': 'flags',
+        'aspect_ratio_idc': 'aspect_ratio_idc',
+        'sar_width': 'sar_width',
+        'sar_height': 'sar_height',
+        'video_format': 'video_format',
+        'colour_primaries': 'colour_primaries',
+        'transfer_characteristics': 'transfer_characteristics',
+        'matrix_coeffs': 'matrix_coeffs',
+        'chroma_sample_loc_type_top_field': 'chroma_sample_loc_type_top_field',
+        'chroma_sample_loc_type_bottom_field': 'chroma_sample_loc_type_bottom_field',
+        'reserved1': 'reserved1',
+        'reserved2': 'reserved2',
+        'def_disp_win_left_offset': 'def_disp_win_left_offset',
+        'def_disp_win_right_offset': 'def_disp_win_right_offset',
+        'def_disp_win_top_offset': 'def_disp_win_top_offset',
+        'def_disp_win_bottom_offset': 'def_disp_win_bottom_offset',
+        'vui_num_units_in_tick': 'vui_num_units_in_tick',
+        'vui_time_scale': 'vui_time_scale',
+        'vui_num_ticks_poc_diff_one_minus1': 'vui_num_ticks_poc_diff_one_minus1',
+        'min_spatial_segmentation_idc': 'min_spatial_segmentation_idc',
+        'reserved3': 'reserved3',
+        'max_bytes_per_pic_denom': 'max_bytes_per_pic_denom',
+        'max_bits_per_min_cu_denom': 'max_bits_per_min_cu_denom',
+        'log2_max_mv_length_horizontal': 'log2_max_mv_length_horizontal',
+        'log2_max_mv_length_vertical': 'log2_max_mv_length_vertical',
+        'pHrdParameters': 'hrd_parameters',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'vulkan_video_codec_h265std',
+    }
+    _vk_enum_ = {
+        'aspect_ratio_idc': 'StdVideoH265AspectRatioIdc',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .StdVideoH265HrdParameters import StdVideoH265HrdParameters
 from .StdVideoH265SpsVuiFlags import StdVideoH265SpsVuiFlags

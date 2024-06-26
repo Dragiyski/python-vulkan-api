@@ -1,7 +1,49 @@
 import ctypes
 
 class StdVideoH264SequenceParameterSetVui(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = {
+        'StdVideoH264HrdParameters',
+        'StdVideoH264SpsVuiFlags',
+    }
+    _included_in_ = {
+        'StdVideoH264SequenceParameterSet',
+    }
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'flags': 'flags',
+        'aspect_ratio_idc': 'aspect_ratio_idc',
+        'sar_width': 'sar_width',
+        'sar_height': 'sar_height',
+        'video_format': 'video_format',
+        'colour_primaries': 'colour_primaries',
+        'transfer_characteristics': 'transfer_characteristics',
+        'matrix_coefficients': 'matrix_coefficients',
+        'num_units_in_tick': 'num_units_in_tick',
+        'time_scale': 'time_scale',
+        'max_num_reorder_frames': 'max_num_reorder_frames',
+        'max_dec_frame_buffering': 'max_dec_frame_buffering',
+        'chroma_sample_loc_type_top_field': 'chroma_sample_loc_type_top_field',
+        'chroma_sample_loc_type_bottom_field': 'chroma_sample_loc_type_bottom_field',
+        'reserved1': 'reserved1',
+        'pHrdParameters': 'hrd_parameters',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'vulkan_video_codec_h264std',
+    }
+    _vk_enum_ = {
+        'aspect_ratio_idc': 'StdVideoH264AspectRatioIdc',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .StdVideoH264HrdParameters import StdVideoH264HrdParameters
 from .StdVideoH264SpsVuiFlags import StdVideoH264SpsVuiFlags

@@ -53,6 +53,83 @@ class VkPhysicalDeviceVulkan12Features(ctypes.Structure):
         ('subgroupBroadcastDynamicId', ctypes.c_uint32),
     ]
 
+    _init_ = []
+    _extends_ = {
+        'VkDeviceCreateInfo',
+        'VkPhysicalDeviceFeatures2',
+    }
+    _extended_by_ = set()
+    _includes_ = set()
+    _included_in_ = set()
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'sType': 'type',
+        'pNext': 'next',
+        'samplerMirrorClampToEdge': 'sampler_mirror_clamp_to_edge',
+        'drawIndirectCount': 'draw_indirect_count',
+        'storageBuffer8BitAccess': 'storage_buffer8_bit_access',
+        'uniformAndStorageBuffer8BitAccess': 'uniform_and_storage_buffer8_bit_access',
+        'storagePushConstant8': 'storage_push_constant8',
+        'shaderBufferInt64Atomics': 'shader_buffer_int64_atomics',
+        'shaderSharedInt64Atomics': 'shader_shared_int64_atomics',
+        'shaderFloat16': 'shader_float16',
+        'shaderInt8': 'shader_int8',
+        'descriptorIndexing': 'descriptor_indexing',
+        'shaderInputAttachmentArrayDynamicIndexing': 'shader_input_attachment_array_dynamic_indexing',
+        'shaderUniformTexelBufferArrayDynamicIndexing': 'shader_uniform_texel_buffer_array_dynamic_indexing',
+        'shaderStorageTexelBufferArrayDynamicIndexing': 'shader_storage_texel_buffer_array_dynamic_indexing',
+        'shaderUniformBufferArrayNonUniformIndexing': 'shader_uniform_buffer_array_non_uniform_indexing',
+        'shaderSampledImageArrayNonUniformIndexing': 'shader_sampled_image_array_non_uniform_indexing',
+        'shaderStorageBufferArrayNonUniformIndexing': 'shader_storage_buffer_array_non_uniform_indexing',
+        'shaderStorageImageArrayNonUniformIndexing': 'shader_storage_image_array_non_uniform_indexing',
+        'shaderInputAttachmentArrayNonUniformIndexing': 'shader_input_attachment_array_non_uniform_indexing',
+        'shaderUniformTexelBufferArrayNonUniformIndexing': 'shader_uniform_texel_buffer_array_non_uniform_indexing',
+        'shaderStorageTexelBufferArrayNonUniformIndexing': 'shader_storage_texel_buffer_array_non_uniform_indexing',
+        'descriptorBindingUniformBufferUpdateAfterBind': 'descriptor_binding_uniform_buffer_update_after_bind',
+        'descriptorBindingSampledImageUpdateAfterBind': 'descriptor_binding_sampled_image_update_after_bind',
+        'descriptorBindingStorageImageUpdateAfterBind': 'descriptor_binding_storage_image_update_after_bind',
+        'descriptorBindingStorageBufferUpdateAfterBind': 'descriptor_binding_storage_buffer_update_after_bind',
+        'descriptorBindingUniformTexelBufferUpdateAfterBind': 'descriptor_binding_uniform_texel_buffer_update_after_bind',
+        'descriptorBindingStorageTexelBufferUpdateAfterBind': 'descriptor_binding_storage_texel_buffer_update_after_bind',
+        'descriptorBindingUpdateUnusedWhilePending': 'descriptor_binding_update_unused_while_pending',
+        'descriptorBindingPartiallyBound': 'descriptor_binding_partially_bound',
+        'descriptorBindingVariableDescriptorCount': 'descriptor_binding_variable_descriptor_count',
+        'runtimeDescriptorArray': 'runtime_descriptor_array',
+        'samplerFilterMinmax': 'sampler_filter_minmax',
+        'scalarBlockLayout': 'scalar_block_layout',
+        'imagelessFramebuffer': 'imageless_framebuffer',
+        'uniformBufferStandardLayout': 'uniform_buffer_standard_layout',
+        'shaderSubgroupExtendedTypes': 'shader_subgroup_extended_types',
+        'separateDepthStencilLayouts': 'separate_depth_stencil_layouts',
+        'hostQueryReset': 'host_query_reset',
+        'timelineSemaphore': 'timeline_semaphore',
+        'bufferDeviceAddress': 'buffer_device_address',
+        'bufferDeviceAddressCaptureReplay': 'buffer_device_address_capture_replay',
+        'bufferDeviceAddressMultiDevice': 'buffer_device_address_multi_device',
+        'vulkanMemoryModel': 'vulkan_memory_model',
+        'vulkanMemoryModelDeviceScope': 'vulkan_memory_model_device_scope',
+        'vulkanMemoryModelAvailabilityVisibilityChains': 'vulkan_memory_model_availability_visibility_chains',
+        'shaderOutputViewportIndex': 'shader_output_viewport_index',
+        'shaderOutputLayer': 'shader_output_layer',
+        'subgroupBroadcastDynamicId': 'subgroup_broadcast_dynamic_id',
+    }
+    _vk_versions_ = {
+        (1, 2),
+    }
+    _vk_extensions_ = set()
+    _vk_enum_ = {
+        'sType': 'VkStructureType',
+    }
+    _vk_structure_type_ = 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        from .._vulkan_enum.VkStructureType import VkStructureType
+        self.sType = VkStructureType.VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 VkPhysicalDeviceVulkan12Features._type_ = {
     'sType': ctypes.c_int,
     'pNext': ctypes.c_void_p,

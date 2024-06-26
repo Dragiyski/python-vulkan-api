@@ -1,7 +1,41 @@
 import ctypes
 
 class VkDisplayPropertiesKHR(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = {
+        'VkExtent2D',
+    }
+    _included_in_ = {
+        'VkDisplayProperties2KHR',
+    }
+    _input_of_ = set()
+    _output_of_ = {
+        'vkGetPhysicalDeviceDisplayPropertiesKHR',
+    }
+    _python_name_ = {
+        'display': 'display',
+        'displayName': 'display_name',
+        'physicalDimensions': 'physical_dimensions',
+        'physicalResolution': 'physical_resolution',
+        'supportedTransforms': 'supported_transforms',
+        'planeReorderPossible': 'plane_reorder_possible',
+        'persistentContent': 'persistent_content',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'VK_KHR_display',
+    }
+    _vk_enum_ = {
+        'supportedTransforms': 'VkSurfaceTransformFlagsKHR',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .VkExtent2D import VkExtent2D
 

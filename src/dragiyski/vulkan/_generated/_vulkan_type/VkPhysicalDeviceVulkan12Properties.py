@@ -1,7 +1,95 @@
 import ctypes
 
 class VkPhysicalDeviceVulkan12Properties(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = {
+        'VkPhysicalDeviceProperties2',
+    }
+    _extended_by_ = set()
+    _includes_ = {
+        'VkConformanceVersion',
+    }
+    _included_in_ = set()
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'sType': 'type',
+        'pNext': 'next',
+        'driverID': 'driver_id',
+        'driverName': 'driver_name',
+        'driverInfo': 'driver_info',
+        'conformanceVersion': 'conformance_version',
+        'denormBehaviorIndependence': 'denorm_behavior_independence',
+        'roundingModeIndependence': 'rounding_mode_independence',
+        'shaderSignedZeroInfNanPreserveFloat16': 'shader_signed_zero_inf_nan_preserve_float16',
+        'shaderSignedZeroInfNanPreserveFloat32': 'shader_signed_zero_inf_nan_preserve_float32',
+        'shaderSignedZeroInfNanPreserveFloat64': 'shader_signed_zero_inf_nan_preserve_float64',
+        'shaderDenormPreserveFloat16': 'shader_denorm_preserve_float16',
+        'shaderDenormPreserveFloat32': 'shader_denorm_preserve_float32',
+        'shaderDenormPreserveFloat64': 'shader_denorm_preserve_float64',
+        'shaderDenormFlushToZeroFloat16': 'shader_denorm_flush_to_zero_float16',
+        'shaderDenormFlushToZeroFloat32': 'shader_denorm_flush_to_zero_float32',
+        'shaderDenormFlushToZeroFloat64': 'shader_denorm_flush_to_zero_float64',
+        'shaderRoundingModeRTEFloat16': 'shader_rounding_mode_rtefloat16',
+        'shaderRoundingModeRTEFloat32': 'shader_rounding_mode_rtefloat32',
+        'shaderRoundingModeRTEFloat64': 'shader_rounding_mode_rtefloat64',
+        'shaderRoundingModeRTZFloat16': 'shader_rounding_mode_rtzfloat16',
+        'shaderRoundingModeRTZFloat32': 'shader_rounding_mode_rtzfloat32',
+        'shaderRoundingModeRTZFloat64': 'shader_rounding_mode_rtzfloat64',
+        'maxUpdateAfterBindDescriptorsInAllPools': 'max_update_after_bind_descriptors_in_all_pools',
+        'shaderUniformBufferArrayNonUniformIndexingNative': 'shader_uniform_buffer_array_non_uniform_indexing_native',
+        'shaderSampledImageArrayNonUniformIndexingNative': 'shader_sampled_image_array_non_uniform_indexing_native',
+        'shaderStorageBufferArrayNonUniformIndexingNative': 'shader_storage_buffer_array_non_uniform_indexing_native',
+        'shaderStorageImageArrayNonUniformIndexingNative': 'shader_storage_image_array_non_uniform_indexing_native',
+        'shaderInputAttachmentArrayNonUniformIndexingNative': 'shader_input_attachment_array_non_uniform_indexing_native',
+        'robustBufferAccessUpdateAfterBind': 'robust_buffer_access_update_after_bind',
+        'quadDivergentImplicitLod': 'quad_divergent_implicit_lod',
+        'maxPerStageDescriptorUpdateAfterBindSamplers': 'max_per_stage_descriptor_update_after_bind_samplers',
+        'maxPerStageDescriptorUpdateAfterBindUniformBuffers': 'max_per_stage_descriptor_update_after_bind_uniform_buffers',
+        'maxPerStageDescriptorUpdateAfterBindStorageBuffers': 'max_per_stage_descriptor_update_after_bind_storage_buffers',
+        'maxPerStageDescriptorUpdateAfterBindSampledImages': 'max_per_stage_descriptor_update_after_bind_sampled_images',
+        'maxPerStageDescriptorUpdateAfterBindStorageImages': 'max_per_stage_descriptor_update_after_bind_storage_images',
+        'maxPerStageDescriptorUpdateAfterBindInputAttachments': 'max_per_stage_descriptor_update_after_bind_input_attachments',
+        'maxPerStageUpdateAfterBindResources': 'max_per_stage_update_after_bind_resources',
+        'maxDescriptorSetUpdateAfterBindSamplers': 'max_descriptor_set_update_after_bind_samplers',
+        'maxDescriptorSetUpdateAfterBindUniformBuffers': 'max_descriptor_set_update_after_bind_uniform_buffers',
+        'maxDescriptorSetUpdateAfterBindUniformBuffersDynamic': 'max_descriptor_set_update_after_bind_uniform_buffers_dynamic',
+        'maxDescriptorSetUpdateAfterBindStorageBuffers': 'max_descriptor_set_update_after_bind_storage_buffers',
+        'maxDescriptorSetUpdateAfterBindStorageBuffersDynamic': 'max_descriptor_set_update_after_bind_storage_buffers_dynamic',
+        'maxDescriptorSetUpdateAfterBindSampledImages': 'max_descriptor_set_update_after_bind_sampled_images',
+        'maxDescriptorSetUpdateAfterBindStorageImages': 'max_descriptor_set_update_after_bind_storage_images',
+        'maxDescriptorSetUpdateAfterBindInputAttachments': 'max_descriptor_set_update_after_bind_input_attachments',
+        'supportedDepthResolveModes': 'supported_depth_resolve_modes',
+        'supportedStencilResolveModes': 'supported_stencil_resolve_modes',
+        'independentResolveNone': 'independent_resolve_none',
+        'independentResolve': 'independent_resolve',
+        'filterMinmaxSingleComponentFormats': 'filter_minmax_single_component_formats',
+        'filterMinmaxImageComponentMapping': 'filter_minmax_image_component_mapping',
+        'maxTimelineSemaphoreValueDifference': 'max_timeline_semaphore_value_difference',
+        'framebufferIntegerColorSampleCounts': 'framebuffer_integer_color_sample_counts',
+    }
+    _vk_versions_ = {
+        (1, 2),
+    }
+    _vk_extensions_ = set()
+    _vk_enum_ = {
+        'sType': 'VkStructureType',
+        'driverID': 'VkDriverId',
+        'denormBehaviorIndependence': 'VkShaderFloatControlsIndependence',
+        'roundingModeIndependence': 'VkShaderFloatControlsIndependence',
+        'supportedDepthResolveModes': 'VkResolveModeFlags',
+        'supportedStencilResolveModes': 'VkResolveModeFlags',
+        'framebufferIntegerColorSampleCounts': 'VkSampleCountFlags',
+    }
+    _vk_structure_type_ = 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        from .._vulkan_enum.VkStructureType import VkStructureType
+        self.sType = VkStructureType.VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .VkConformanceVersion import VkConformanceVersion
 

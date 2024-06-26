@@ -1,7 +1,37 @@
 import ctypes
 
 class StdVideoH265ProfileTierLevel(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = set()
+    _extended_by_ = set()
+    _includes_ = {
+        'StdVideoH265ProfileTierLevelFlags',
+    }
+    _included_in_ = {
+        'StdVideoH265SequenceParameterSet',
+        'StdVideoH265VideoParameterSet',
+    }
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'flags': 'flags',
+        'general_profile_idc': 'general_profile_idc',
+        'general_level_idc': 'general_level_idc',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'vulkan_video_codec_h265std',
+    }
+    _vk_enum_ = {
+        'general_profile_idc': 'StdVideoH265ProfileIdc',
+        'general_level_idc': 'StdVideoH265LevelIdc',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .StdVideoH265ProfileTierLevelFlags import StdVideoH265ProfileTierLevelFlags
 

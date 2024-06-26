@@ -1,11 +1,9 @@
 import ctypes
 from collections.abc import Collection
-from weakref import finalize
 from ..loader import LibraryLoader
 from ..error import *
 from .. import binding
 from ..version import VkVersion, VkApiVersion
-from ..context import Context
 
 
 class VkLayer(str):

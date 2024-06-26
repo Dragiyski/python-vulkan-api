@@ -1,11 +1,14 @@
 import ctypes
 from collections.abc import Iterable
+from importlib import import_module
 
 from .. import binding
 from ..error import *
 from ..loader import InstanceLoader
-from ..context import Context
 from .._pointer import finalize, PointerStorageType
+
+import_module('.VkApplicationInfo', __package__)
+import_module('.VkInstanceCreateInfo', __package__)
 
 
 def _destroy_handle(vkDestroyInstance, *args):
@@ -43,9 +46,7 @@ class VkInstance(metaclass = PointerStorageType):
             optional_extensions = optional_extensions.intersection(available_extensions)
         extensions = list(required_extensions.union(optional_extensions))
 
-        from .VkInstanceCreateInfo import VkInstanceCreateInfo
-
-        create_info = VkInstanceCreateInfo.create(
+        create_info = binding.VkInstanceCreateInfo(
             flags = flags,
             application_info = application_info,
             layers = layers,
@@ -55,6 +56,9 @@ class VkInstance(metaclass = PointerStorageType):
         handle = binding.VkInstance()
         VkException.check(application._loader_.vkCreateInstance(ctypes.byref(create_info), None, ctypes.byref(handle)))
         self = object.__new__(cls)
+        self.application = application
+        self.extensions = [s.decode() for s in extensions]
+        self.layers = [s.decode() for s in layers]
         self._as_parameter_ = handle.value
         self._loader_ = InstanceLoader(application._loader_, self)
         finalize(handle.value, self, _destroy_handle, self._loader_.vkDestroyInstance, handle.value, None)
@@ -62,7 +66,7 @@ class VkInstance(metaclass = PointerStorageType):
 
     def enumerate_physical_devices(self):
         vkEnumeratePhysicalDevices = self._loader_.vkEnumeratePhysicalDevices
-        length = vkEnumeratePhysicalDevices.argtypes[1]._type_()
+        length = vkEnumeratePhysicalDevices.argtypes[1]._type_(0)
         try:
             VkException.check(vkEnumeratePhysicalDevices(self, ctypes.byref(length), None))
         except VkIncomplete:

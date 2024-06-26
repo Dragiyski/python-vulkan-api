@@ -1,7 +1,43 @@
 import ctypes
 
 class VkVideoDecodeAV1PictureInfoKHR(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = {
+        'VkVideoDecodeInfoKHR',
+    }
+    _extended_by_ = set()
+    _includes_ = {
+        'StdVideoDecodeAV1PictureInfo',
+    }
+    _included_in_ = set()
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'sType': 'type',
+        'pNext': 'next',
+        'pStdPictureInfo': 'std_picture_info',
+        'referenceNameSlotIndices': 'reference_name_slot_indices',
+        'frameHeaderOffset': 'frame_header_offset',
+        'tileCount': 'tile_count',
+        'pTileOffsets': 'tile_offsets',
+        'pTileSizes': 'tile_sizes',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'VK_KHR_video_decode_av1',
+    }
+    _vk_enum_ = {
+        'sType': 'VkStructureType',
+    }
+    _vk_structure_type_ = 'VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_PICTURE_INFO_KHR'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        from .._vulkan_enum.VkStructureType import VkStructureType
+        self.sType = VkStructureType.VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_PICTURE_INFO_KHR
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .StdVideoDecodeAV1PictureInfo import StdVideoDecodeAV1PictureInfo
 

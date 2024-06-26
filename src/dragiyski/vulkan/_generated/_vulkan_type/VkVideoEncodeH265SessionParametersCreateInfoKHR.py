@@ -1,7 +1,41 @@
 import ctypes
 
 class VkVideoEncodeH265SessionParametersCreateInfoKHR(ctypes.Structure):
-    pass
+    _init_ = []
+    _extends_ = {
+        'VkVideoSessionParametersCreateInfoKHR',
+    }
+    _extended_by_ = set()
+    _includes_ = {
+        'VkVideoEncodeH265SessionParametersAddInfoKHR',
+    }
+    _included_in_ = set()
+    _input_of_ = set()
+    _output_of_ = set()
+    _python_name_ = {
+        'sType': 'type',
+        'pNext': 'next',
+        'maxStdVPSCount': 'max_std_vpscount',
+        'maxStdSPSCount': 'max_std_spscount',
+        'maxStdPPSCount': 'max_std_ppscount',
+        'pParametersAddInfo': 'parameters_add_info',
+    }
+    _vk_versions_ = set()
+    _vk_extensions_ = {
+        'VK_KHR_video_encode_h265',
+    }
+    _vk_enum_ = {
+        'sType': 'VkStructureType',
+    }
+    _vk_structure_type_ = 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        from .._vulkan_enum.VkStructureType import VkStructureType
+        self.sType = VkStructureType.VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR
+        for function in self._init_:
+            function(self, *args, **kwargs)
+
 
 from .VkVideoEncodeH265SessionParametersAddInfoKHR import VkVideoEncodeH265SessionParametersAddInfoKHR
 
