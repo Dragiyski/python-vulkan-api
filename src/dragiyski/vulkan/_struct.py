@@ -1,18 +1,22 @@
 import ctypes
-from collections.abc import Iterable, Mapping, Callable
+from collections.abc import Callable, Iterable, Mapping
+from types import MappingProxyType, SimpleNamespace
 from . import binding
 from .version import *
 
+
 def _enumerate_struct_stype_map():
     from ._generated import vulkan_type
-    type_map = { n: getattr(vulkan_type, n) for n in dir(vulkan_type) if not n.startswith('_') }
-    type_map = { k: v for k, v in type_map.items() if issubclass(v, ctypes.Structure) and isinstance(getattr(v, '_type_', None), dict) and 'sType' in v._type_ and isinstance(getattr(v, '_vk_structure_type_', None), str) }
-    stype_map = { getattr(binding.VkStructureType, v._vk_structure_type_): v for v in type_map.values() }
+    type_map = {n: getattr(vulkan_type, n) for n in dir(vulkan_type) if not n.startswith('_')}
+    type_map = {k: v for k, v in type_map.items() if issubclass(v, ctypes.Structure) and isinstance(getattr(v, '_type_', None), dict) and 'sType' in v._type_ and isinstance(getattr(v, '_vk_structure_type_', None), str)}
+    stype_map = {getattr(binding.VkStructureType, v._vk_structure_type_): v for v in type_map.values()}
     binding.VkPhysicalDeviceFeatures2
     return stype_map
 
+
 _stype_map = _enumerate_struct_stype_map()
 del _enumerate_struct_stype_map
+
 
 def build_out_struct_chain(structure: ctypes.Structure, version: VkApiVersion, extensions: Iterable[str]) -> ctypes.Structure:
     extensions = set(extensions)
@@ -41,8 +45,10 @@ def build_out_struct_chain(structure: ctypes.Structure, version: VkApiVersion, e
                 last_structure.pNext = ctypes.cast(ctypes.pointer(next_structure), ctypes.c_void_p)
                 last_structure = next_structure
 
+
 class StructureChainDuplicateConflictError(RuntimeError):
     pass
+
 
 def dictify_unchain_strcuture(structure, unchain, /, dict_processor: Mapping[str, Callable] = {}, value_processor: Mapping[str, Mapping[str, Callable]] = {}) -> dict:
     fields = [x[0] for x in structure._fields_]
@@ -64,7 +70,7 @@ def dictify_unchain_strcuture(structure, unchain, /, dict_processor: Mapping[str
             name = structure._python_name_[name]
         ctype = getattr(structure, '_type_', {}).get(field, None)
         if isinstance(value, ctypes.Structure) or isinstance(value, ctypes.Union):
-            value = dictify_unchain_strcuture(value, False, dict_processor = dict_processor, value_processor = value_processor)
+            value = dictify_unchain_strcuture(value, False, dict_processor=dict_processor, value_processor=value_processor)
         elif isinstance(value, ctypes.Array):
             value = list(value)
         elif (ctype is ctypes.c_char_p or issubclass(ctype, ctypes.Array) and ctype._type_ is ctypes.c_char) and isinstance(value, bytes):
@@ -82,13 +88,14 @@ def dictify_unchain_strcuture(structure, unchain, /, dict_processor: Mapping[str
             if this_structure_type in _stype_map:
                 this_structure_class = _stype_map[this_structure_type]
                 this_structure_name = this_structure_class.__name__
-                if this_structure_name in mapping:
-                    # TODO: This might be supported behavior. Maybe replace the element with a list?
+                if this_structure_name in mapping:  # Unlikely or impossible maybe?
+                    # TODO: But check if this might be supported behavior.
+                    # TODO: Possible solution: replace the element with a list if not a list already?
                     raise StructureChainDuplicateConflictError('More than one structure "%s" found in the structure chain.' % this_structure_name)
                 this_structure = ctypes.cast(ctypes.c_void_p(last_structure.pNext), ctypes.POINTER(this_structure_class)).contents
-                mapping[this_structure_name] = dictify_unchain_strcuture(this_structure, False, dict_processor = dict_processor, value_processor = value_processor)
+                mapping[this_structure_name] = dictify_unchain_strcuture(this_structure, False, dict_processor=dict_processor, value_processor=value_processor)
                 last_structure = this_structure
-    
+
     structure_name = type(structure).__name__
     mapping['__name__'] = structure_name
     mapping['_as_parameter_'] = structure
@@ -97,7 +104,38 @@ def dictify_unchain_strcuture(structure, unchain, /, dict_processor: Mapping[str
         return structure_dict_processor(mapping)
     return mapping
 
+
 _data_type = {}
+
+def _create_data_proxy_method(name):
+    def _data_proxy_method(self, *args, **kwargs):
+        nonlocal name
+        return getattr(self._data_, name)(*args, **kwargs)
+    return _data_proxy_method
+
+class DataType(type):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ['__contains__', '__getitem__', '__eq__', '__ne__', '__le__', '__lt__', '__ge__', '__gt__', '__or__', '__ror__', '__iter__', '__len__', '__reversed__', '__str__', 'copy', 'get', 'items', 'keys', 'values']:
+            setattr(self, name, _create_data_proxy_method(name))
+        Mapping.register(self)
+
+class Data:
+    def __init__(self, **kwargs):
+        self._data_ = MappingProxyType(kwargs)
+
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name, name=name, obj=self)
+
+    def __repr__(self):
+        items = (f"{k} = {self._data_[k]!r}" for k in sorted(self._data_))
+        return "{}({})".format(type(self).__name__, ", ".join(items))
+
+    def __dir__(self):
+        return set(object.__dir__(self)).union(self._data_.keys())
 
 def pythonify_dict(kv: Mapping):
     for k, v in kv.items():
@@ -107,15 +145,16 @@ def pythonify_dict(kv: Mapping):
     del kv['__name__']
     if name not in _data_type:
         Structure = getattr(binding, name)
-        _data_type[name] = type(name, (), {
+        _data_type[name] = DataType(name, (Data,), {
             '__module__': Structure.__module__
         })
-    self = _data_type[name]()
-    self.__dict__.update(kv)
+    self = _data_type[name](**kv)
     return self
+
 
 def pythonify_unchain_structure(structure, /, *args, **kwargs):
     return pythonify_dict(dictify_unchain_strcuture(structure, True, *args, **kwargs))
+
 
 def get_chain_map(name: str):
     if name not in _chain_map_cache:
