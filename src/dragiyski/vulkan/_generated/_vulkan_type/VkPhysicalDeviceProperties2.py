@@ -40,6 +40,7 @@ class VkPhysicalDeviceProperties2(ctypes.Structure):
         'VkPhysicalDeviceImageProcessing2PropertiesQCOM',
         'VkPhysicalDeviceImageProcessingPropertiesQCOM',
         'VkPhysicalDeviceInlineUniformBlockProperties',
+        'VkPhysicalDeviceLayeredApiPropertiesListKHR',
         'VkPhysicalDeviceLayeredDriverPropertiesMSFT',
         'VkPhysicalDeviceLegacyVertexAttributesPropertiesEXT',
         'VkPhysicalDeviceLineRasterizationPropertiesKHR',
@@ -47,6 +48,7 @@ class VkPhysicalDeviceProperties2(ctypes.Structure):
         'VkPhysicalDeviceMaintenance4Properties',
         'VkPhysicalDeviceMaintenance5PropertiesKHR',
         'VkPhysicalDeviceMaintenance6PropertiesKHR',
+        'VkPhysicalDeviceMaintenance7PropertiesKHR',
         'VkPhysicalDeviceMapMemoryPlacedPropertiesEXT',
         'VkPhysicalDeviceMemoryDecompressionPropertiesNV',
         'VkPhysicalDeviceMeshShaderPropertiesEXT',
@@ -99,7 +101,9 @@ class VkPhysicalDeviceProperties2(ctypes.Structure):
     _includes_ = {
         'VkPhysicalDeviceProperties',
     }
-    _included_in_ = set()
+    _included_in_ = {
+        'VkPhysicalDeviceLayeredApiVulkanPropertiesKHR',
+    }
     _input_of_ = set()
     _output_of_ = {
         'vkGetPhysicalDeviceProperties2',

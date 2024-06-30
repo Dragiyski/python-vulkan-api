@@ -97,6 +97,7 @@ class VkDeviceCreateInfo(ctypes.Structure):
         'VkPhysicalDeviceMaintenance4Features',
         'VkPhysicalDeviceMaintenance5FeaturesKHR',
         'VkPhysicalDeviceMaintenance6FeaturesKHR',
+        'VkPhysicalDeviceMaintenance7FeaturesKHR',
         'VkPhysicalDeviceMapMemoryPlacedFeaturesEXT',
         'VkPhysicalDeviceMemoryDecompressionFeaturesNV',
         'VkPhysicalDeviceMemoryPriorityFeaturesEXT',

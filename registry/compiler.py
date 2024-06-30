@@ -646,6 +646,29 @@ class Compiler:
             code.append(child.get_text())
         return ''.join(code)
     
+    @staticmethod
+    def _process_len_attribute(target: dict, node: Node):
+        # If the len value is computed, it must be handled manually
+        target['is_string'] = False
+        if node.has_attribute('len'):
+            length = node.get_attribute('len')
+            if 'latexmath' in length:
+                target['length_need_processor'] = None
+                if node.has_attribute('altlen'):
+                    target['length_need_processor'] = node.get_attribute('altlen')
+                    return
+            length = [s.strip() for s in length.split(',')]
+            if length[-1] == 'null-terminated':
+                target['is_string'] = True
+                length = length[:-1]
+            for i, entry in enumerate(length):
+                try:
+                    entry = int(entry, base=10)
+                except ValueError:
+                    entry = entry.split('->')
+                length[i] = entry
+            target['length'] = length
+    
     def _resolve_complex_type(self, context: Context, name: str, node: Node):
         assert name in context.ctypes_map, 'name in context.ctypes_map'
         ctype = context.ctypes_map[name]
@@ -691,18 +714,7 @@ class Compiler:
                     member_desc['value'] = values[0]
                 else:
                     member_desc['values'] = values
-            if member_node.has_attribute('len'):
-                member_len = member_node.get_attribute('len')
-                # If the len value is computed, it must be handled manually
-                if not ('latexmath' in member_len and member_node.has_attribute('altlen')):
-                    member_len = [s.strip() for s in member_len.split(',')]
-                    if member_len[-1] == 'null-terminated':
-                        member_desc['is_string'] = True
-                        member_len = member_len[:-1]
-                    if len(member_len) == 1:
-                        member_len = member_len[0].split('->')
-                        if member_len[0] in ctype.member_map and isinstance(member_ctype, CPointerType):
-                            member_desc['length'] = member_len
+            self._process_len_attribute(member_desc, member_node)
             if member_node.has_attribute('externsync'):
                 member_externsync = [s.strip() for s in member_node.get_attribute('externsync').split(',')]
                 member_externsync = [s.split('->') for s in member_externsync]
@@ -780,14 +792,27 @@ class Compiler:
             ctype = context.ctypes_map[name[4:]]
             assert isinstance(ctype, CFunctionType), 'isinstance(ctype, CFunctionType)'
             ctype.constructor = 'VKAPI_PTR'
+            callback_info = {
+                'name': name,
+                'node': node,
+                'ctype': ctype,
+                'arg_list': [],
+                'arg_map': {}
+            }
             for param in fn_decl.args.params:
                 param_ctype = context.get_type_from_decl(param.type)
                 ctype.argument_types.append(param_ctype)
+                callback_info['arg_list'].append(param.name)
+                callback_info['arg_map'][param.name] = param_ctype
                 if param.name == 'pUserData':
                     ctype['user_data'] = len(ctype.argument_types) - 1
             if len(ctype.argument_types) == 1 and ctype.argument_types[0] is context.ctypes_map['void']:
                 ctype.argument_types.pop()
+                callback_info['arg_map'].clear()
+                callback_info['arg_list'].clear()
             return_ctype = context.get_type_from_decl(fn_decl.type)
+            callback_info['return'] = return_ctype
+            context.callback_map.set(name, callback_info)
             ctype.return_type = return_ctype
 
     def _compile_commands(self, context: Context):
@@ -876,11 +901,7 @@ class Compiler:
                 command_descriptor['argument_list'].append(param_name)
                 type_name = context.resolve_alias(param_node.get('type').get_text())
                 param_descriptor = { 'type': type_name, 'ctype': command_descriptor['ctype'].argument_types[param_index] }
-                if param_node.has_attribute('len'):
-                    len_value = [s.strip() for s in param_node.get_attribute('len').split(',')]
-                    len_value = [s for s in len_value if s.lower() != 'null-terminated']
-                    if len(len_value) > 0:
-                        param_descriptor['len'] = len_value
+                self._process_len_attribute(param_descriptor, param_node)
                 if param_node.has_attribute('optional'):
                     param_descriptor['optional'] = [s.strip() for s in param_node.get_attribute('optional').split(',')]
                 if param_node.has_attribute('externsync'):

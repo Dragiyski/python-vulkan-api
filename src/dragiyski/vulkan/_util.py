@@ -1,5 +1,6 @@
 import ctypes
 import weakref
+import re
 from threading import RLock
 from typing import Iterable
 
@@ -16,6 +17,16 @@ def make_array_ptr_from_iterable(ctype, iterable: Iterable):
 
 def make_c_string_list(iterable: Iterable):
     return list(s.encode() if isinstance(s, str) else s for s in iterable)
+
+def make_python_name(name, *, p = False, s = True):
+        words = name.split('_')
+        words = [re.findall(r'(?:[A-Z][A-Z0-9]*|^)[a-z0-9]*', word) for word in words]
+        words = [word.lower() for x in words for word in x]
+        if p and len(words) > 1 and re.fullmatch(r'p+', words[0]):
+            words = words[1:]
+        elif s and len(words) > 1 and re.fullmatch(r's+', words[0]):
+            words = words[1:]
+        return '_'.join(words)
 
 def create_handle_storage_meta(binding_type, handle_map):
     def handle_meta_call(self, value):

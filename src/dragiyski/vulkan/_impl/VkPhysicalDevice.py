@@ -45,6 +45,11 @@ def _postprocess_dictionary(kv):
     return namedtuple(name, kv.keys())(*kv.values())
 
 class VkPhysicalDevice(metaclass = PointerStorageType):
+    def __init__(self, instance):
+        self._loader_ = instance._loader_
+        self.instance = instance
+        finalize(self._as_parameter_, self, None)
+
     def _get_properties(self):
         vkGetPhysicalDeviceProperties = self._loader_.vkGetPhysicalDeviceProperties
         properties = binding.VkPhysicalDeviceProperties()
@@ -186,32 +191,14 @@ class VkPhysicalDevice(metaclass = PointerStorageType):
                 continue
         raise error
 
-    def enumerate_device_layer_properties(self):
-        vkEnumerateDeviceLayerProperties = self._loader_.vkEnumerateDeviceLayerProperties
-        length = vkEnumerateDeviceLayerProperties.argtypes[1]._type_(0)
-        try:
-            VkException.check(vkEnumerateDeviceLayerProperties(self, ctypes.byref(length), None))
-        except VkIncomplete:
-            pass
-        c_array = []
-        while length.value > 0:
-            c_array = (vkEnumerateDeviceLayerProperties.argtypes[2]._type_ * length.value)()
-            c_ptr = ctypes.cast(c_array, vkEnumerateDeviceLayerProperties.argtypes[2])
-            try:
-                VkException.check(vkEnumerateDeviceLayerProperties(self, ctypes.byref(length), c_ptr))
-            except VkIncomplete:
-                continue
-            break
-        return list(VkLayer(c_array[i]) for i in range(length.value))
-
-    def enumerate_device_extension_properties(self, layer: str | bytes = None) -> Collection[VkExtension]:
+    def enumerate_device_extension_properties(self) -> Collection[VkExtension]:
         if layer is not None:
             if isinstance(layer, str):
                 layer = layer.encode()
         vkEnumerateDeviceExtensionProperties = self._loader_.vkEnumerateDeviceExtensionProperties
         length = vkEnumerateDeviceExtensionProperties.argtypes[2]._type_(0)
         try:
-            VkException.check(vkEnumerateDeviceExtensionProperties(self, layer, ctypes.byref(length), None))
+            VkException.check(vkEnumerateDeviceExtensionProperties(self, None, ctypes.byref(length), None))
         except VkIncomplete:
             pass
         c_array = []
@@ -219,7 +206,7 @@ class VkPhysicalDevice(metaclass = PointerStorageType):
             c_array = (vkEnumerateDeviceExtensionProperties.argtypes[3]._type_ * length.value)()
             c_ptr = ctypes.cast(c_array, vkEnumerateDeviceExtensionProperties.argtypes[3])
             try:
-                VkException.check(vkEnumerateDeviceExtensionProperties(self, layer, ctypes.byref(length), c_ptr))
+                VkException.check(vkEnumerateDeviceExtensionProperties(self, None, ctypes.byref(length), c_ptr))
             except VkIncomplete:
                 continue
             break

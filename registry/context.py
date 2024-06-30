@@ -72,6 +72,7 @@ class Context:
         # Map commands
         self.command_name_map = NameMap()
         self.command_map = NameMap()
+        self.callback_map = NameMap()
         self.api = api
         # self.base_vulkan_types = {}
         # self.enum_base_type = {}
@@ -316,7 +317,8 @@ class Context:
             name = self.alias_map[name]
         return name
 
-    def make_python_name(self, name):
+    @staticmethod
+    def make_python_name(name):
         words = name.split('_')
         words = [re.findall(r'(?:[A-Z][A-Z0-9]*|^)[a-z0-9]*', word) for word in words]
         words = [word.lower() for x in words for word in x]

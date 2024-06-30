@@ -314,6 +314,103 @@ class Generator:
             code.append('    %r,' % fn_name)
         code.extend([']', ''])
         return linesep.join(code)
+    
+    def _generate_callback_descriptor_source(self, context: Context, callback_name: str):
+        ctype = context.ctypes_map[callback_name]
+        assert isinstance(ctype, CFunctionType)
+        info = context.callback_map['PFN_%s' % callback_name]
+        code = ['from ..._ctypes import *', '']
+        code.append("_category_ = 'callback'")
+        code.append('_name_ = %r' % callback_name)
+        code.append('_constructor_ = %r' % ctype.constructor)
+        code.append('_argument_list_ = %r' % info['arg_list'])
+        code.append('_argument_info_ = {')
+        for arg_name in info['arg_list']:
+            arg_type = info['arg_map'][arg_name]
+            code.append('    %r: {' % (arg_name))
+            code.append('        %r: %s,' % ('type', arg_type.get_runtime_source()))
+            code.append('    },')
+        code.append('}')
+        code.append('_return_type_ = %s' % info['return'].get_runtime_source())
+        code.append('')
+        return linesep.join(code)
+    
+    def _generate_function_descriptor_source(self, context: Context, function_name: str):
+        ctype = context.ctypes_map[function_name]
+        assert isinstance(ctype, CFunctionType)
+        info = context.command_map[function_name]
+        code = ['from ..._ctypes import *', '']
+        code.append("_category_ = 'function'")
+        code.append('_name_ = %r' % function_name)
+        code.append('_constructor_ = %r' % ctype.constructor)
+        code.append('_argument_list_ = %r' % info['argument_list'])
+        code.append('_argument_info_ = {')
+        for arg_name in info['argument_list']:
+            arg_desc = info['argument_map'][arg_name]
+            code.append('    %r: {' % (arg_name))
+            code.append('        %r: %s,' % ('type', arg_desc['ctype'].get_runtime_source()))
+            if 'is_string' in arg_desc:
+                code.append('        %r: %r,' % ('is_string', arg_desc['is_string']))
+            if 'length' in arg_desc:
+                code.append('        %r: %r,' % ('length', arg_desc['length']))
+            # Special property to signify the length must be handled manually.
+            # The value is ignored by the code, and considered a documentation string. 
+            if 'length_need_processor' in arg_desc:
+                code.append('        %r: %r,' % ('alt_length', arg_desc['length_need_processor'] if arg_desc['length_need_processor'] is not None else ''))
+            code.append('    },')
+        code.append('}')
+        code.append('_return_type_ = %s' % ctype.return_type.get_runtime_source())
+        if 'success_code_list' in info:
+            code.append('_success_code_list_ = %r' % set(info['success_code_list']))
+        if 'error_code_list' in info:
+             code.append('_error_code_list_ = %r' % set(info['error_code_list']))
+        code.append('')
+        return linesep.join(code)
+
+    def _generate_complex_descriptor_source(self, context: Context, type_name: str):
+        ctype = context.ctypes_map[type_name]
+        assert isinstance(ctype, CComplexType)
+        info = context.struct_map[type_name]
+        code = ['from ..._ctypes import *', '']
+        code.append('_category_ = %r' % (ctype.constructor.lower()))
+        code.append('_name_ = %r' % type_name)
+        code.append('_member_list_ = %r' % (ctype.member_list))
+        code.append('_member_info_ = {')
+        for member_name in ctype.member_list:
+            member_info = ctype.member_map[member_name]
+            code.append('    %r: {' % member_name)
+            code.append('        %r: %s,' % ('type', member_info['ctype'].get_runtime_source()))
+            if 'type' in member_info:
+                member_type = member_info['type']
+                code.append('        %r: %r,' % ('type_name', member_type))
+                if member_type in context.enum_map:
+                    code.append('        %r: %r,' % ('enum', member_type))
+                elif member_type in context.struct_map:
+                    code.append('        %r: %r,' % (context.ctypes_map[member_type].constructor.lower(), member_type))
+            if isinstance(member_info['ctype'], CFunctionType) and ('PFN_%s' % member_info['ctype'].name) in context.type_node_map['funcpointer']:
+                code.append('        %r: %r,' % ('callback', member_info['ctype'].name))
+            if 'bitsize' in member_info:
+                code.append('        %r: %d,' % ('bitsize', member_info['bitsize']))
+            if 'length' in member_info:
+                code.append('        %r: %r,' % ('length', member_info['length']))
+            if 'value' in member_info:
+                code.append('        %r: %r,' % ('value', member_info['value']))
+            if 'values' in member_info:
+                code.append('        %r: %r,' % ('values', member_info['values']))
+            if 'is_string' in member_info:
+                code.append('        %r: %r,' % ('is_string', member_info['is_string']))
+            code.append('    },')
+        code.append('}')
+        for usage_name in ['extends', 'extended_by', 'includes', 'included_in', 'input_of', 'output_of']:
+            if len(info[usage_name]) > 0:
+                code.append('_%s_ = {' % usage_name)
+                for reference in sorted(info[usage_name]):
+                    code.append('    %r,' % reference)
+                code.append('}')
+            else:
+                code.append('_%s_ = set()' % usage_name)
+        code.append('')
+        return linesep.join(code)
 
     def _generate_function_source(self, context: Context, name: str):
         ctype = context.ctypes_map[name]
@@ -584,6 +681,23 @@ class Generator:
         for name in [context.ctypes_map[k].name for k in context.type_node_map['funcpointer'].keys()]:
             filename = callback_dir.joinpath('%s.py' % name)
             source = self._generate_function_source(context, name)
+            with open(filename, 'w') as file:
+                file.write(source)
+        descriptor_dir = self.base_dir.joinpath('_descriptor')
+        descriptor_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        for name in [context.ctypes_map[k].name for k in context.type_node_map['funcpointer'].keys()]:
+            filename = descriptor_dir.joinpath('%s.py' % name)
+            source = self._generate_callback_descriptor_source(context, name)
+            with open(filename, 'w') as file:
+                file.write(source)
+        for name in context.type_node_map['complex']:
+            filename = descriptor_dir.joinpath('%s.py' % name)
+            source = self._generate_complex_descriptor_source(context, name)
+            with open(filename, 'w') as file:
+                file.write(source)
+        for name in context.command_map:
+            filename = descriptor_dir.joinpath('%s.py' % name)
+            source = self._generate_function_descriptor_source(context, name)
             with open(filename, 'w') as file:
                 file.write(source)
         source = self._generate_callback_init_source(context)

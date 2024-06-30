@@ -4,6 +4,8 @@ from types import MappingProxyType, SimpleNamespace
 from . import binding
 from .version import *
 
+def __init__(*args, **kwargs):
+    pass
 
 def _enumerate_struct_stype_map():
     from ._generated import vulkan_type

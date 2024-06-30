@@ -2,7 +2,6 @@ import ctypes.util
 from collections.abc import Callable
 from . import binding
 
-
 def locate_library():
     return ctypes.util.find_library('vulkan')
 
@@ -24,7 +23,7 @@ def get_vk_instance_get_proc_address(loader = load_library, *args, **kwargs):
     return binding.vkGetInstanceProcAddr(ctypes.cast(library.vkGetInstanceProcAddr, ctypes.c_void_p).value)
 
 
-class LibraryLoader:
+class DriverLoader:
     def __init__(self, vkGetInstanceProcAddr: Callable = get_vk_instance_get_proc_address()):
         if not callable(vkGetInstanceProcAddr):
             raise TypeError('Expected vkGetInstanceProcAddr to be a callable.')
@@ -49,7 +48,7 @@ class LibraryLoader:
 
 
 class InstanceLoader:
-    def __init__(self, loader: LibraryLoader, instance):
+    def __init__(self, loader: DriverLoader, instance):
         self.loader = loader
         self.instance = instance
 

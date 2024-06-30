@@ -28,6 +28,10 @@ class CVoidType(CType):
     def to_source(self, *args, **kwargs):
         return 'None'
     
+    @staticmethod
+    def get_runtime_source():
+        return 'CVoidType()'
+    
     def __repr__(self):
         return '<CVoidType>'
 
@@ -55,6 +59,9 @@ class CPlainType(CType):
 
     def ctype(self):
         return getattr(ctypes, self.parent_ctype)
+    
+    def get_runtime_source(self):
+        return '%s(%r)' % (self.__class__.__name__, self.parent_ctype)
 
     def pointer(self):
         if self._pointer is None:
@@ -92,6 +99,9 @@ class CPointerType(CIntType):
     
     def deref(self):
         return self.parent_ctype
+    
+    def get_runtime_source(self):
+        return '%s(%s)' % (self.__class__.__name__, self.parent_ctype.get_runtime_source())
 
     def __repr__(self):
         return "<CPointerType: %r>" % self.parent_ctype
@@ -114,6 +124,9 @@ class CArrayType(CType):
         if self._pointer is None:
             self._pointer = CPointerType(self)
         return self._pointer
+    
+    def get_runtime_source(self):
+        return '%s(%s, %d)' % (self.__class__.__name__, self.item_ctype.get_runtime_source(), self.length)
 
     def __repr__(self):
         return "<CArrayType: %r[%d]>" % (self.item_ctype, self.length)
@@ -149,6 +162,9 @@ class CComplexType(CType):
             **kwargs
         }
 
+    def get_runtime_source(self):
+        return '%s(%r)' % (self.__class__.__name__, self.name)
+
     def __repr__(self):
         return "<CType %s(%s)>" % (self.constructor, self.name)
 
@@ -170,6 +186,9 @@ class CFunctionType(CType):
         if self._pointer is None:
             self._pointer = CPointerType(self)
         return self._pointer
+    
+    def get_runtime_source(self):
+        return '%s(%r)' % (self.__class__.__name__, self.name)
 
     def __repr__(self):
         return "<CType %s(%s)>" % ('Function', self.name)

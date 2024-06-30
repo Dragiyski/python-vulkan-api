@@ -6,6 +6,7 @@ from .. import binding
 from ..error import *
 from ..loader import InstanceLoader
 from .._pointer import finalize, PointerStorageType
+from .._struct import pythonify_dict
 
 import_module('.VkApplicationInfo', __package__)
 import_module('.VkInstanceCreateInfo', __package__)
@@ -15,37 +16,24 @@ def _destroy_handle(vkDestroyInstance, *args):
     print('vkDestroyInstance(0x%016x)' % args[0])
     vkDestroyInstance(*args)
 
-
 class VkInstance(metaclass = PointerStorageType):
+    def __init__(self, application: 'Application', extensions: Iterable = (), layers: Iterable = ()):
+        self._loader_ = InstanceLoader(application._loader_, self)
+        self.application = application
+        self.extensions = set(extensions)
+        self.layers = set(layers)
+        finalize(self._as_parameter_, self, _destroy_handle, self._loader_.vkDestroyInstance, self._as_parameter_, None)
+
     @classmethod
     def create(
         cls,
         application: 'Application',
         /, *,
         application_info: binding.VkApplicationInfo,
-        required_layers: Iterable[str | bytes] = (),
-        optional_layers: Iterable[str | bytes] = (),
-        required_extensions: Iterable[str | bytes] = (),
-        optional_extensions: Iterable[str | bytes] = (),
+        layers: Iterable = (),
+        extensions: Iterable = (),
         flags: binding.VkInstanceCreateFlags | int = 0
     ) -> 'VkInstance':
-        required_layers = set(layer.encode() if isinstance(layer, str) else bytes(layer) for layer in required_layers)
-        optional_layers = set(layer.encode() if isinstance(layer, str) else bytes(layer) for layer in optional_layers)
-        required_extensions = set(extension.encode() if isinstance(extension, str) else bytes(extension) for extension in required_extensions)
-        optional_extensions = set(extension.encode() if isinstance(extension, str) else bytes(extension) for extension in optional_extensions)
-        if len(optional_layers) > 0:
-            available_layers = set(layer.encode() for layer in application.enumerate_instance_layer_properties())
-            optional_layers = optional_layers.intersection(available_layers)
-        layers = list(required_layers.union(optional_layers))
-        if len(optional_extensions) > 0:
-            available_extensions = set(extension.encode() for extension in application.enumerate_instance_extension_properties())
-            for layer in layers:
-                available_extensions = available_extensions.union(
-                    set(extension.encode() for extension in application.enumerate_instance_extension_properties(layer))
-                )
-            optional_extensions = optional_extensions.intersection(available_extensions)
-        extensions = list(required_extensions.union(optional_extensions))
-
         create_info = binding.VkInstanceCreateInfo(
             flags = flags,
             application_info = application_info,
@@ -55,14 +43,7 @@ class VkInstance(metaclass = PointerStorageType):
 
         handle = binding.VkInstance()
         VkException.check(application._loader_.vkCreateInstance(ctypes.byref(create_info), None, ctypes.byref(handle)))
-        self = object.__new__(cls)
-        self.application = application
-        self.extensions = [s.decode() for s in extensions]
-        self.layers = [s.decode() for s in layers]
-        self._as_parameter_ = handle.value
-        self._loader_ = InstanceLoader(application._loader_, self)
-        finalize(handle.value, self, _destroy_handle, self._loader_.vkDestroyInstance, handle.value, None)
-        return self
+        return cls(handle.value, application, extensions = extensions, layers = layers)
 
     def enumerate_physical_devices(self) -> 'Collection[VkPhysicalDevice]':
         vkEnumeratePhysicalDevices = self._loader_.vkEnumeratePhysicalDevices
@@ -84,16 +65,47 @@ class VkInstance(metaclass = PointerStorageType):
             except VkIncomplete:
                 continue
             break
-        from .VkPhysicalDevice import VkPhysicalDevice
-        def initialize(ptr):
-            obj = object.__new__(VkPhysicalDevice)
-            obj._as_parameter_ = ptr
-            obj._loader_ = self._loader_
-            finalize(ptr, obj, None)
-            return obj
+        return list(VkPhysicalDevice(handle, self) for handle in c_array)
+    
+    def enumerate_physical_device_groups(self):
+        while True:
+            try:
+                vkEnumeratePhysicalDeviceGroups = self._loader_.vkEnumeratePhysicalDeviceGroups
+                break
+            except AttributeError:
+                if 'VK_KHR_device_group_creation' in self.extensions:
+                    try:
+                        vkEnumeratePhysicalDeviceGroups = self._loader_.vkEnumeratePhysicalDeviceGroupsKHR
+                        break
+                    except AttributeError:
+                        pass
+            raise NotImplementedError('vkEnumeratePhysicalDeviceGroups')
+        length = vkEnumeratePhysicalDeviceGroups.argtypes[1]._type_(0)
+        try:
+            VkException.check(vkEnumeratePhysicalDeviceGroups(self, ctypes.byref(length), None))
+        except VkIncomplete:
+            pass
 
-        return list(initialize(value) for value in c_array)
+        c_array = []
+        def create_properties(properties: binding.VkPhysicalDeviceGroupProperties):
+            return pythonify_dict({
+                '__name__': properties.__class__.__name__,
+                '_as_parameter_': properties,
+                'devices': [VkPhysicalDevice(properties.physicalDevices[i], self) for i in range(properties.physicalDeviceCount)],
+                'subset_allocation': properties.subsetAllocation
+            })
+
+        if length.value > 0:
+            while True:
+                c_array = (vkEnumeratePhysicalDeviceGroups.argtypes[2]._type_ * length.value)()
+                try:
+                    VkException.check(vkEnumeratePhysicalDeviceGroups(self, ctypes.byref(length), ctypes.cast(c_array, vkEnumeratePhysicalDeviceGroups.argtypes[2])))
+                except VkIncomplete:
+                    continue
+                break
+
+        return list(create_properties(c_array[i]) for i in range(length.value))
 
 
-from .Application import Application
+from .VkApplication import VkApplication
 from .VkPhysicalDevice import VkPhysicalDevice

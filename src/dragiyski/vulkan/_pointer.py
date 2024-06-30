@@ -21,6 +21,10 @@ def finalize(ptr, obj, callback, /, *args, **kwargs):
         ptr = ptr.value
     if ptr is None:
         return
+    if not isinstance(ptr, int) or ptr < 0:
+            raise TypeError('Invalid pointer: %r' % ptr)
+    if ptr == 0:
+        return
     with _pointer_lock:
         if ptr in _ptr_ref:
             if _ptr_ref[ptr] is not obj:
@@ -34,18 +38,24 @@ def finalize(ptr, obj, callback, /, *args, **kwargs):
 
 
 class PointerStorageType(type):
-    def __call__(self, ptr):
+    def __call__(self, ptr, /, *args, **kwargs):
         global _pointer_lock, _pointer_storage
         if isinstance(ptr, ctypes._SimpleCData):
             ptr = ptr.value
         if ptr is None:
-            raise ReferenceError('Attempt to initialize %r from NULL pointer' % self)
-        if not isinstance(ptr, int):
-            raise TypeError('Invalid pointer: expected int or ctypes int-compatible simple type.')
+            return
+        if not isinstance(ptr, int) or ptr < 0:
+            raise TypeError('Invalid pointer: %r' % ptr)
+        if ptr == 0:
+            return
         with _pointer_lock:
-            obj = _ptr_ref.get(ptr)
-            if obj is None:
-                raise ReferenceError('Unknown pointer: 0x%016x' % ptr)
-            if not isinstance(obj, self):
-                raise TypeError('Invalid pointer: pointer 0x%016x of type %r, cannot be wrapped into %r' % (ptr, type(obj), self))
-            return obj
+            obj = _ptr_ref.get(ptr, None)
+            if obj is not None:
+                if not isinstance(obj, self):
+                    raise TypeError('Invalid pointer: pointer 0x%016x of type %r, cannot be wrapped into %r' % (ptr, type(obj), self))
+                return obj
+            obj = object.__new__(self)
+            object.__setattr__(obj, '_as_parameter_', ptr)
+            _ptr_ref[ptr] = obj
+        obj.__init__(*args, **kwargs)
+        return obj
