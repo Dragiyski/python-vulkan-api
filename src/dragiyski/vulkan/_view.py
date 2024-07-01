@@ -1,23 +1,46 @@
-import ctypes, weakref
-
-_array_view = weakref.WeakKeyDictionary()
+import itertools
 
 class ArrayView:
-    __slots__ = ('__weakref__')
-
-    def __init__(self, target, *, view: callable = lambda v: v):
-        _array_view[self] = (target, view)
+    def __init__(self, array, getter, setter):
+        self.__array = array
+        self.__getter = getter
+        self.__setter = setter
+    
+    def __getitem_cached(self, index):
+        if index not in self.__dict__:
+            self.__dict__[index] = self.__getter(self.__array, index)
+        return self.__dict__[index]
+        
     
     def __getitem__(self, key):
-        target, view = _array_view[self]
         if isinstance(key, int):
-            return self.__view(self.__target[key])
-        if isinstance(key, slice):
-            return list(self.__view(item) for item in self.__target[key])
+            return self.__getitem_cached(key)
+        elif isinstance(key, slice):
+            return list(self.__getitem_cached(index) for index in range(key.start, key.stop, key.step))
         raise KeyError(key)
     
+    def __setitem__(self, key, value):
+        if isinstance(key, int):
+            self.__dict__.pop(key, None)
+            self.__setter(self.__array, key, value)
+        elif isinstance(key, slice):
+            for source_index, target_index in enumerate(range(key.start, key.stop, key.step)):
+                self.__dict__.pop(target_index, None)
+                self.__setter(self.__array, target_index, source_index)
+        else:
+            raise KeyError(key)
+    
     def __len__(self):
-        return len(self.__target)
+        return len(self.__array)
     
     def __iter__(self):
-        yield from self.__target
+        for i in range(len(self)):
+            yield self.__getter(self.__array, i)
+
+    def __contains__(self, index):
+        if not isinstance(index, int):
+            return False
+        return index >= 0 and index < len(self.__array)
+
+    def __repr__(self):
+        return f"""[{', '.join(repr(value) for value in self)}]"""

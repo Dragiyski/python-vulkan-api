@@ -17,6 +17,9 @@ class CType:
     
     def __init__(self, *args, **kwargs):
         pass
+
+    def get_python_type(self):
+        return None
     
     def __repr__(self):
         return '<%s>' % self.__class__.__name__
