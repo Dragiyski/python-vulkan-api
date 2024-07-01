@@ -8,7 +8,6 @@ def __init__():
     from .._generated._vulkan_enum.VkStructureType import VkStructureType
     from .._view import ArrayView
 
-
     module = sys.modules[__name__]
 
     def collect_complex_descriptor(name):
