@@ -320,7 +320,7 @@ class Generator:
         assert isinstance(ctype, CFunctionType)
         info = context.callback_map['PFN_%s' % callback_name]
         code = ['from ..._ctypes import *', '']
-        code.append("_category_ = 'callback'")
+        code.append("category = 'callback'")
         code.append('_name_ = %r' % callback_name)
         code.append('_constructor_ = %r' % ctype.constructor)
         code.append('_argument_list_ = %r' % info['arg_list'])
@@ -335,12 +335,12 @@ class Generator:
         code.append('')
         return linesep.join(code)
     
-    def _generate_function_descriptor_source(self, context: Context, function_name: str):
+    def _generate_procedure_descriptor_source(self, context: Context, function_name: str):
         ctype = context.ctypes_map[function_name]
         assert isinstance(ctype, CFunctionType)
         info = context.command_map[function_name]
         code = ['from ..._ctypes import *', '']
-        code.append("_category_ = 'function'")
+        code.append("_category_ = 'procedure'")
         code.append('_name_ = %r' % function_name)
         code.append('_constructor_ = %r' % ctype.constructor)
         code.append('_argument_list_ = %r' % info['argument_list'])
@@ -353,6 +353,8 @@ class Generator:
                 code.append('        %r: %r,' % ('is_string', arg_desc['is_string']))
             if 'length' in arg_desc:
                 code.append('        %r: %r,' % ('length', arg_desc['length']))
+            if 'output' in arg_desc:
+                code.append('        %r: %r,' % ('output', arg_desc['output']))
             # Special property to signify the length must be handled manually.
             # The value is ignored by the code, and considered a documentation string. 
             if 'length_need_processor' in arg_desc:
@@ -697,7 +699,7 @@ class Generator:
                 file.write(source)
         for name in context.command_map:
             filename = descriptor_dir.joinpath('%s.py' % name)
-            source = self._generate_function_descriptor_source(context, name)
+            source = self._generate_procedure_descriptor_source(context, name)
             with open(filename, 'w') as file:
                 file.write(source)
         source = self._generate_callback_init_source(context)

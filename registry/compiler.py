@@ -907,11 +907,11 @@ class Compiler:
                 if param_node.has_attribute('externsync'):
                     param_descriptor['externsync'] = param_node.get_attribute('externsync')
                 command_descriptor['argument_map'].set(param_name, param_descriptor)
+                param_descriptor['output'] = isinstance(param_descriptor['ctype'], CPointerType) and 'const' not in re.split(r'\b', ''.join([node.get_text() for node in param_node.get_text_nodes_before(param_node.get('name'))]))
                 if type_name in context.type_node_map['complex']:
                     # Structures given by value or structures given by constant pointer are inputs
-                    is_input = (not isinstance(param_descriptor['ctype'], CPointerType)) or 'const' in re.split(r'\b', ''.join([node.get_text() for node in param_node.get_text_nodes_before(param_node.get('name'))]))
                     struct_descriptor = context.struct_map[type_name]
-                    struct_key = 'input_of' if is_input else 'output_of'
+                    struct_key = 'output_of' if param_descriptor['output'] else 'input_of'
                     struct_descriptor[struct_key].add(command_name)
                 param_index += 1
             pass

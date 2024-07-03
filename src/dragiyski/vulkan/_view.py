@@ -16,7 +16,7 @@ class ArrayView:
         if isinstance(key, int):
             return self.__getitem_cached(key)
         elif isinstance(key, slice):
-            return list(self.__getitem_cached(index) for index in range(key.start, key.stop, key.step))
+            return list(self.__getitem_cached(index) for index in range(*key.indices(len(self))))
         raise KeyError(key)
     
     def __setitem__(self, key, value):
@@ -24,9 +24,9 @@ class ArrayView:
             self.__dict__.pop(key, None)
             self.__setter(self.__array, key, value)
         elif isinstance(key, slice):
-            for source_index, target_index in enumerate(range(key.start, key.stop, key.step)):
+            for source_index, target_index in enumerate(range(*key.indices(len(self)))):
                 self.__dict__.pop(target_index, None)
-                self.__setter(self.__array, target_index, source_index)
+                self.__setter(self.__array, target_index, value[source_index])
         else:
             raise KeyError(key)
     

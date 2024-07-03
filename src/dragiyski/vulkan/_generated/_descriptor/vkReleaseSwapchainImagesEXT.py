@@ -1,6 +1,6 @@
 from ..._ctypes import *
 
-_category_ = 'function'
+_category_ = 'procedure'
 _name_ = 'vkReleaseSwapchainImagesEXT'
 _constructor_ = 'VKAPI_CALL'
 _argument_list_ = ['device', 'pReleaseInfo']
@@ -8,10 +8,12 @@ _argument_info_ = {
     'device': {
         'type': CIntType('c_void_p'),
         'is_string': False,
+        'output': False,
     },
     'pReleaseInfo': {
         'type': CPointerType(CComplexType('VkReleaseSwapchainImagesInfoEXT')),
         'is_string': False,
+        'output': False,
     },
 }
 _return_type_ = CIntType('c_int')

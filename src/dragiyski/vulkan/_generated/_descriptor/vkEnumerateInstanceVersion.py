@@ -1,6 +1,6 @@
 from ..._ctypes import *
 
-_category_ = 'function'
+_category_ = 'procedure'
 _name_ = 'vkEnumerateInstanceVersion'
 _constructor_ = 'VKAPI_CALL'
 _argument_list_ = ['pApiVersion']
@@ -8,6 +8,7 @@ _argument_info_ = {
     'pApiVersion': {
         'type': CPointerType(CIntType('c_uint32')),
         'is_string': False,
+        'output': True,
     },
 }
 _return_type_ = CIntType('c_int')

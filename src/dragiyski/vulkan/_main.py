@@ -1,12 +1,11 @@
 def __init__():
     import importlib, pkgutil, sys, ctypes, types
     from collections import OrderedDict
-    from collections.abc import Iterable, Mapping
-    from warnings import warn
-    from .._ctypes import CComplexType, CPointerType, CArrayType, CFunctionType, ctypes_map, VKAPI_CALL,VKAPI_PTR
-    from .._util import make_python_name
-    from .._generated._vulkan_enum.VkStructureType import VkStructureType
-    from .._view import ArrayView
+    from collections.abc import Mapping
+    from ._ctypes import CComplexType, CPointerType, CArrayType, CFunctionType, ctypes_map, VKAPI_CALL,VKAPI_PTR
+    from ._util import make_python_name
+    from ._generated._vulkan_enum.VkStructureType import VkStructureType
+    from ._view import ArrayView
 
     module = sys.modules[__name__]
 
@@ -62,25 +61,6 @@ def __init__():
             namespace.update(kwargs)
             namespace['__dict__'] = namespace
         return class_body
-    
-    class ComplexProxy:
-        def __init__(self, target, base_class, descriptor):
-            object.__setattr__(self, '_ComplexProxy__target', target)
-            object.__setattr__(self, '_ComplexProxy__base_class', base_class)
-            object.__setattr__(self, '_ComplexProxy__descriptor', descriptor)
-            object.__setattr__(self, '_initialized_', set())
-
-        def __getattr__(self, name):
-            if name in self.__descriptor._member_info_:
-                return self.__base_class.__getattribute__(self.__target, name)
-            raise AttributeError(name, name=name, obj=self.__target)
-        
-        def __setattr__(self, name, value):
-            if name in self.__descriptor._member_info_:
-                self.__base_class.__setattr__(self.__target, name, value)
-                self._initialized_.add(name)
-            else:
-                object.__setattr__(self, name, value)
     
     def complex_init(descriptor, base_class, property_map, extension):
         structure_type = descriptor._member_info_.get('sType', None)
@@ -248,10 +228,11 @@ def __init__():
         is_complex_type_pointer = isinstance(field_ctype, CPointerType) and isinstance(field_ctype.type, CComplexType)
         enum_class = None
         if 'enum' in field_desc:
-            enum_module = importlib.import_module('.._generated.vulkan_enum', __package__)
+            enum_module = importlib.import_module('._generated.vulkan_enum', __package__)
             enum_class = getattr(enum_module, field_desc['enum'], None)
             if enum_class is None:
                 raise ReferenceError('Reference to non-existing enum: %s' % field_desc['enum'])
+        pass
         def __get__(self):
             value = base_class.__getattribute__(self, field_name)
             if is_str_convert_required and isinstance(value, bytes):
@@ -281,7 +262,7 @@ def __init__():
         __set__.__qualname__ = '%s.%s.%s.%s' % (__package__, descriptor._name_, property_name, __set__.__name__)
         return __set__
 
-    def compile_property_map(descriptor, base_class, extension):
+    def complex_property_map(descriptor, base_class, extension):
         nonlocal ctypes_map
         property_name_map = { field_name: make_python_name(field_name, p = True, s = True) for field_name in descriptor._member_info_ }
         property_map = {}
@@ -410,10 +391,10 @@ def __init__():
         except ModuleNotFoundError:
             class_extensions = object()
         resolve_complex_fields.append(descriptor._name_)
-        property_map = compile_property_map(descriptor, base_class, class_extensions)
+        property_map = complex_property_map(descriptor, base_class, class_extensions)
         complex_type = ctypes_map[descriptor._name_] = types.new_class(descriptor._name_, (base_class,), None, extend_namespace(
             base_class.__dict__,
-            __module__ = '%s.binding' % __package__,
+            __module__ = __package__,
             __init__ = complex_init(descriptor, base_class, property_map, class_extensions),
             __getattribute__ = complex_getattribute(descriptor, base_class, property_map),
             __setattr__ = complex_setattr(descriptor, base_class, property_map),
@@ -438,9 +419,17 @@ def __init__():
         ctypes_map[descriptor._name_]._fields_ = fields
         ctypes_map[descriptor._name_]._type_ = { name: ctype for name, ctype, *_ in fields }
 
-    def make_singleton_callback(descriptor, ctype):
-        def __init__(self):
-            pass
+    def function_property_map(descriptor):
+        # Similar to complex property map, but has only setters, thus need only a single function per property.
+        # Additionally, properties with length, the length field is excluded, but it can be part of a structure in another argument.
+        # Calls from python will receive a mix from positional and named arguments.
+        #
+        # Processing:
+        # There will be loop taking `len(_argtypes_)` arguments from the parent.
+        # If property name present in kwargs, it is consumed from kwargs, otherwise it is consumed with args:
+        # This means kwargs can shift values from positional arguments.
+        # 
+        pass
 
     def compile_callback_type(descriptor):
         constructor = {'VKAPI_CALL': VKAPI_CALL, 'VKAPI_PTR': VKAPI_PTR}[descriptor._constructor_]
@@ -448,10 +437,10 @@ def __init__():
         for arg_name in descriptor._argument_list_:
             base_args.append(descriptor._argument_info_[arg_name]['type'].get_c_type())
         base_type = constructor(*base_args)
-        # if 'pUserData' not in descriptor._argument_list_:
+        pass
         callback_type = ctypes_map[descriptor._name_] = types.new_class(descriptor._name_, (base_type,), None, extend_namespace(
             base_type.__dict__,
-            __module__ = '%s.binding' % __package__,
+            __module__ = __package__,
             __vulkan_descriptor__ = descriptor,
             __doc__ = 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/PFN_%s.html' % descriptor._name_
         ))
@@ -466,7 +455,7 @@ def __init__():
         base_type = constructor(*base_args)
         function_type = ctypes_map[descriptor._name_] = types.new_class(descriptor._name_, (base_type,), None, extend_namespace(
             base_type.__dict__,
-            __module__ = '%s.binding' % __package__,
+            __module__ = __package__,
             __vulkan_descriptor__ = descriptor,
             __doc__ = 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/PFN_%s.html' % descriptor._name_
         ))
@@ -484,7 +473,7 @@ def __init__():
         elif descriptor._category_ == 'callback':
             compile_callback_type(descriptor)
 
-    descriptor_namespace = importlib.import_module('.._generated._descriptor', __package__)
+    descriptor_namespace = importlib.import_module('._generated._descriptor', __package__)
     descriptors = {}
     descriptor_jobs = OrderedDict()
     for module_info in pkgutil.iter_modules(descriptor_namespace.__spec__.submodule_search_locations, descriptor_namespace.__spec__.name + '.'):

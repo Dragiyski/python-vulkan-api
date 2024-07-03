@@ -1,6 +1,6 @@
 from ..._ctypes import *
 
-_category_ = 'callback'
+category = 'callback'
 _name_ = 'vkDebugReportCallbackEXT'
 _constructor_ = 'VKAPI_PTR'
 _argument_list_ = ['flags', 'objectType', 'object', 'location', 'messageCode', 'pLayerPrefix', 'pMessage', 'pUserData']

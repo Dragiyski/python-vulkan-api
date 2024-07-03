@@ -1,6 +1,6 @@
 from ..._ctypes import *
 
-_category_ = 'callback'
+category = 'callback'
 _name_ = 'vkVoidFunction'
 _constructor_ = 'VKAPI_PTR'
 _argument_list_ = []

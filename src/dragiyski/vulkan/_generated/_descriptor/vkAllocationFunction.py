@@ -1,6 +1,6 @@
 from ..._ctypes import *
 
-_category_ = 'callback'
+category = 'callback'
 _name_ = 'vkAllocationFunction'
 _constructor_ = 'VKAPI_PTR'
 _argument_list_ = ['pUserData', 'size', 'alignment', 'allocationScope']

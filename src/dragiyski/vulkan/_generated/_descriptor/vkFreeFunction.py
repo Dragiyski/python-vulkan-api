@@ -1,6 +1,6 @@
 from ..._ctypes import *
 
-_category_ = 'callback'
+category = 'callback'
 _name_ = 'vkFreeFunction'
 _constructor_ = 'VKAPI_PTR'
 _argument_list_ = ['pUserData', 'pMemory']

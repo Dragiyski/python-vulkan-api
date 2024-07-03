@@ -10,6 +10,7 @@ else:
     VKAPI_PTR = ctypes.CFUNCTYPE
 
 ctypes_map = {}
+implementation_map = {}
 
 class CType:
     def __new__(cls, *args, **kwargs):
@@ -141,7 +142,7 @@ class CComplexType(CType):
         self.fields = OrderedDict()
     
     def get_c_type(self):
-        return ctypes_map[self.name]
+        return implementation_map[self.name]
     
     def pointer(self):
         return CPointerType(self)
@@ -167,7 +168,7 @@ class CFunctionType(CType):
         return CPointerType(self)
     
     def get_c_type(self):
-        return ctypes_map[self.name]
+        return implementation_map[self.name]
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.name)
