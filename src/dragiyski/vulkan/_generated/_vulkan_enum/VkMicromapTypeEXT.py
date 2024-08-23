@@ -1,5 +1,0 @@
-from enum import IntEnum
-
-class VkMicromapTypeEXT(IntEnum):
-    VK_MICROMAP_TYPE_DISPLACEMENT_MICROMAP_NV = 1000397000
-    VK_MICROMAP_TYPE_OPACITY_MICROMAP_EXT = 0

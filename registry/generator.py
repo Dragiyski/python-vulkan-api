@@ -264,7 +264,7 @@ class Generator:
 
     def _generate_command_source2(self, context: Context):
         dep_map = {}
-        code = ['import ctypes', 'from .vulkan_base import VKAPI_PTR, VKAPI_CALL']
+        code = ['import ctypes', 'from .._function_type import VKAPI_PTR, VKAPI_CALL']
         fn_code_map = {}
         fn_list = []
 
@@ -417,7 +417,12 @@ class Generator:
     def _generate_function_source(self, context: Context, name: str):
         ctype = context.ctypes_map[name]
         assert isinstance(ctype, CFunctionType)
-        code = ['import ctypes', 'from ..vulkan_base import %s' % (ctype.constructor), '']
+        code = [
+            'import ctypes',
+            'from ..._function_type import %s' % (ctype.constructor),
+            'from ..._ctypes import *',
+            ''
+        ]
 
         def check_type_dep(ctype):
             nonlocal code
@@ -441,8 +446,8 @@ class Generator:
                 ', '.join([ctype.return_type.to_source()] + [arg.to_source() for arg in ctype.argument_types])
             )
         )
-        code.append('')
-        return linesep.join(code)
+        code.append('%s._vulkan_ctype_ = %s' % (ctype.name, ctype.get_runtime_source()))
+        return code
 
     def _generate_callback_init_source(self, context: Context):
         code = []
@@ -487,7 +492,7 @@ class Generator:
         return linesep.join(code)
 
     def _generate_funcpointer_source(self, context: Context):
-        code = ['import ctypes', 'from .vulkan_base import VKAPI_PTR, VKAPI_CALL']
+        code = ['import ctypes', 'from .._function_type import VKAPI_PTR, VKAPI_CALL']
         done = set()
         doing = set()
         postponed = OrderedDict()
@@ -659,12 +664,289 @@ class Generator:
             code.append('    %r,' % name)
         code.extend([']', ''])
         return linesep.join(code)
+    
+    def _write_vulkan_database(self, context: Context):
+        source = ['vendor_suffix = %r' % (list(sorted(context.tag_set))), '']
+        file_path = self.base_dir.joinpath('_vulkan_database.py')
+        with open(file_path, 'w') as file:
+            file.write(linesep.join(source))
+
+    def _write_vulkan_enum(self, context: Context, enum_name: str):
+        descriptor = context.enum_map[enum_name]
+        type_descriptor = context.plain_ctype_class[descriptor['class']][descriptor['ctype'].ctype()]
+        code = ['from enum import %s' % type_descriptor['base_class_name'], '']
+        code.append('class %s(%s):' % (enum_name, type_descriptor['base_class_name']))
+        values = {}
+        for value_name in descriptor['values']:
+            value_descriptor = context.value_map[value_name]
+            values[value_name] = '    %s = %r' % (value_name, value_descriptor['value'])
+        if len(values) > 0:
+            for value_name in sorted(values.keys()):
+                code.append(values[value_name])
+            alias = {name: value for name, value in {name: context.resolve_alias(name) for name in context.alias_map}.items() if value in values}
+            for name in sorted(alias.keys()):
+                value = alias[name]
+                code.append('    %s = %s' % (name, value))
+        else:
+            code.append('    pass')
+        code.append('')
+        file = self.base_dir.joinpath('_vulkan_enum/%s.py' % enum_name)
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+
+    def _write_vulkan_enums(self, context: Context):
+        if len(context.enum_map) <= 0:
+            return
+        code = []
+        deps = []
+        for enum_name in context.enum_map:
+            self._write_vulkan_enum(context, enum_name)
+            deps.append(enum_name)
+        for enum_name in sorted(deps):
+            code.append('from .%s import %s' % (enum_name, enum_name))
+        code.append('')
+        alias_enum = { k: v for k, v in context.alias_map.items() if v in context.enum_map }
+        for alias_name in sorted(alias_enum.keys()):
+            enum_name = alias_enum[alias_name]
+            code.append('%s = %s' % (alias_name, enum_name))
+        code.append('')
+        file = self.base_dir.joinpath('_vulkan_enum/__init__.py')
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+
+    def _write_vulkan_value(self, context: Context):
+        code = ['import ctypes']
+        enum_set = set()
+        exports = set()
+        for descriptor in context.value_map.values():
+            if 'enum_name' in descriptor:
+                enum_set.add(descriptor['enum_name'])
+        for enum_name in sorted(enum_set):
+            code.append('from ._vulkan_enum.%s import %s' % (enum_name, enum_name))
+        code.append('')
+        value_map = {}
+        for name, descriptor in context.value_map.items():
+            exports.add(name)
+            if 'enum_name' in descriptor:
+                value_map[name] = '%s = %s.%s' % (name, descriptor['enum_name'], name)
+            else:
+                value_map[name] = '%s = %r' % (name, descriptor['value'])
+        for name in sorted(value_map.keys()):
+            code.append(value_map[name])
+        code.append('')
+        for name in sorted(context.object_macro_map.keys()):
+            exports.add(name)
+            descriptor = context.object_macro_map[name]
+            code.append('%s = %r' % (name, descriptor['value']))
+        code.append('')
+        for name in sorted([k for k, v in context.func_macro_map.items() if 'python_node' in v]):
+            exports.add(name)
+            descriptor = context.func_macro_map[name]
+            func_code = ast.unparse(descriptor['python_node']).split(linesep)
+            func_code.append('')
+            code.extend(func_code)
+        alias = {name: value for name, value in {name: context.resolve_alias(name) for name in context.alias_map}.items() if value in context.value_map}
+        for name in sorted(alias.keys()):
+            exports.add(name)
+            code.append('%s = %s' % (name, alias[name]))
+        code.append('__all__ = [')
+        for name in sorted(exports):
+            code.append('    %r,' % name)
+        code.extend([']', ''])
+        file = self.base_dir.joinpath('_vulkan_value.py')
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+
+    def _write_vulkan_callback(self, context: Context, name: str):
+        code = self._generate_function_source(context, name)
+        info = context.callback_map[f'PFN_{name}']
+        code.append('%s._vulkan_ctype_.return_type = %s' % (name, info['return'].get_runtime_source()))
+        for arg_index, arg_name in enumerate(info['arg_list']):
+            arg_type = info['arg_map'][arg_name]
+            info['node'].children['type'][arg_index]
+            code.append('%s._vulkan_ctype_.arguments[%r] = %s' % (name, arg_name, arg_type.get_runtime_source()))
+        code.append('')
+        file = self.base_dir.joinpath('_vulkan_callback/%s.py' % name)
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+    
+    def _write_vulkan_callbacks(self, context: Context):
+        code = []
+        for name in [context.ctypes_map[k].name for k in context.type_node_map['funcpointer'].keys()]:
+            self._write_vulkan_callback(context, name)
+            code.append('from .%s import %s' % (name, name))
+        code.append('')
+
+        file = self.base_dir.joinpath('_vulkan_callback/__init__.py')
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+    
+    def _write_vulkan_type(self, context: Context, name: str):
+        code = ['import ctypes', 'from ..._ctypes import *', '']
+        ctype = context.ctypes_map[name]
+        ctype: CComplexType
+        info = context.struct_map[name]
+
+        def generate_class_body():
+            return False
+
+        code.append('class %s(ctypes.%s):' % (name, ctype.constructor))
+        member_types = [ctype.member_map[x]['node'].get('type').get_text() for x in ctype.member_list]
+        complex_member_types = set([x for x in member_types if x in context.type_node_map['complex']])
+        funcpointer_member_types = set([x for x in member_types if x in context.type_node_map['funcpointer']])
+        delay_fields = ctype['delay_fields'] or name in complex_member_types or name in funcpointer_member_types
+        in_class_body = True
+        if delay_fields or len(complex_member_types) > 0 or len(funcpointer_member_types) > 0:
+            if not generate_class_body():
+                code.append('    pass')
+            in_class_body = False
+            code.append('')
+            for dependency in sorted([context.ctypes_map[t].name for t in funcpointer_member_types]):
+                code.append('from .._vulkan_callback.%s import %s' % (dependency, dependency))
+            for dependency in sorted(complex_member_types):
+                if dependency != name:
+                    code.append('from .%s import %s' % (dependency, dependency))
+            code.append('')
+            code.append('%s._fields_ = [' % name)
+            indent = 1
+        else:
+            code.append('    _fields_ = [')
+            indent = 2
+        for member_name in ctype.member_list:
+            member_desc = ctype.member_map[member_name]
+            if 'bitsize' in member_desc:
+                code.append('%s(%r, %s, %d),' % ('    ' * indent, member_name, member_desc['ctype'].to_source(), member_desc['bitsize']))
+            else:
+                code.append('%s(%r, %s),' % ('    ' * indent, member_name, member_desc['ctype'].to_source()))
+        code.append('    ' * (indent - 1) + ']')
+        code.append('')
+        if in_class_body:
+            generate_class_body()
+        members = OrderedDict()
+        member_deps = {
+            'enum': set(),
+            'value': set()
+        }
+        for member_name in ctype.member_list:
+            member_info = ctype.member_map[member_name]
+            member_code = ['    %r: {' % member_name]
+            member_type = member_info['node'].get('type').get_text()
+            member_type_class = 'ctypes'
+            if member_type in context.enum_map:
+                member_type_class = 'enum'
+                member_deps['enum'].add(member_type)
+                member_code.append('        %r: %s,' % ('enum', member_type))
+            elif member_type in context.type_node_map['complex']:
+                member_type_class = context.ctypes_map[member_type].constructor.lower()
+            elif member_type in context.type_node_map['funcpointer']:
+                member_type_class = 'callback'
+            elif member_type in context.type_node_map['handle']:
+                member_type_class = 'handle'
+            member_code.append('        %r: %r,' % ('type', {
+                'class': member_type_class,
+                'name': member_type
+            }))
+            if member_info['node'].has_attribute('values'):
+                member_value = member_info['node'].attributes['values']
+                if member_value in context.value_map:
+                    member_deps['value'].add(member_value)
+                    member_code.append('        %r: %s,' % ('value', member_value))
+            members[member_name] = member_code
+            if member_info['node'].has_attribute('selection'):
+                assert ctype.constructor == 'Union'
+                member_selection = member_info['node'].attributes['selection']
+                if member_selection in context.value_map:
+                    member_deps['value'].add(member_selection)
+                    member_code.append('        %r: %s,' % ('selection', member_selection))
+            if member_info['node'].has_attribute('selector'):
+                member_selector = member_info['node'].attributes['selector']
+                assert member_selector in ctype.member_list
+                member_code.append('        %r: %r,' % ('selector', member_selector))
+            if member_info['node'].has_attribute('len'):
+                member_len = member_info['node'].attributes['len']
+                if member_len.startswith('latexmath:'):
+                    assert member_info['node'].has_attribute('altlen')
+                    member_len = member_info['node'].attributes['altlen']
+                member_len = [x.replace('->', '.') for x in member_len.split(',')]
+                member_code.append('        %r: %r,' % ('length', member_len))
+            member_externsync = False
+            if member_info['node'].has_attribute('externsync'):
+                assert member_info['node'].attributes['externsync'].lower() == 'true'
+                member_externsync = True
+            member_code.append('        %r: %r,' % ('sync', member_externsync))
+            if member_info['node'].has_attribute('objecttype'):
+                # This should be only applied to uint64_t type.
+                # The field specified in objecttype specify type of handle, while the uint64_t specify the value of the handle, if any.
+                member_objecttype = member_info['node'].attributes['objecttype']
+                assert member_objecttype in ctype.member_list
+                member_code.append('        %r: %r,' % ('handle_type', member_objecttype))
+            if member_info['node'].has_attribute('limittype'):
+                member_limittype = member_info['node'].attributes['limittype']
+                member_code.append('        %r: %r,' % ('limit_function', member_limittype))
+            member_code.append('    },')
+            members[member_name] = member_code
+
+        if len(member_deps['enum']) > 0 or len(member_deps['value']) > 0:
+            code.append('')
+            if len(member_deps['enum']) > 0:
+                code.append('from .._vulkan_enum import %s' % ', '.join(sorted(member_deps['enum'])))
+            if len(member_deps['value']) > 0:
+                code.append('from .._vulkan_value import %s' % ', '.join(sorted(member_deps['value'])))
+        code.append('')
+
+        code.append('%s._vulkan_type_ = %s' % (name, ctype.get_runtime_source()))
+        code.append('%s._vulkan_type_._class_ = %s' % (name, name))
+        for member_name in ctype.member_list:
+            code.append('%s._vulkan_type_.fields[%r] = %s' % (
+                name,
+                member_name,
+                ctype.member_map[member_name]['ctype'].get_runtime_source()
+            ))
+
+        code.append('%s._vulkan_fields_ = {' % name)
+        for member_code in members.values():
+            code.extend(member_code)
+        code.append('}')
+        code.append('')
+
+        file = self.base_dir.joinpath('_vulkan_type/%s.py' % (name))
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+
+    def _write_vulkan_types(self, context: Context):
+        code = []
+        deps = []
+        for name in context.type_node_map['complex']:
+            self._write_vulkan_type(context, name)
+            deps.append(name)
+        for name in sorted(deps):
+            code.append('from .%s import %s' % (name, name))
+        alias_map = { k: v for k, v in context.alias_map.items() if v in context.type_node_map['complex'] }
+        for alias_name in sorted(alias_map.keys()):
+            type_name = alias_map[alias_name]
+            code.append('%s = %s' % (alias_name, type_name))
+        file = self.base_dir.joinpath('_vulkan_type/__init__.py')
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
 
     def generate(self, context: Context):
         self.base_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        source = self._generate_base_source(context)
-        with open(self.base_dir.joinpath('vulkan_base.py'), 'w') as file:
-            file.write(source)
+        self._write_vulkan_database(context)
+        self._write_vulkan_enums(context)
+        self._write_vulkan_value(context)
+        self._write_vulkan_callbacks(context)
+        self._write_vulkan_types(context)
+        pass
+
+    def _generate_old(self, context: Context):
+        self.base_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        self._write_vulkan_database(context, self.base_dir)
         enum_dir = self.base_dir.joinpath('_vulkan_enum')
         enum_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
         for name in context.enum_map.keys():

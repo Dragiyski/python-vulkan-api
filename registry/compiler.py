@@ -7,7 +7,7 @@ import pycparser.c_ast
 import pycparser.c_generator
 from .xml_parser import Node, parse_xml
 from .code import get_preprocessor_lines, PythonCode
-from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, ctypes_map, handle_type_map, CType, CPointerType, CComplexType, CArrayType, CFunctionType
+from .platform import basic_ctypes, platform_ctypes, object_macro_map, func_macro_map, ctypes_map, handle_type_map, CType, CPointerType, CComplexType, CArrayType, CFunctionType, CHandleType
 from .context import Context, NameMap, Alias
 from .cparser import CParser
 
@@ -297,7 +297,7 @@ class Compiler:
         for name, node in context.type_node_map['handle'].items():
             typedef = node.get('type').get_text()
             # One of [VK_NULL_HANDLE, VK_DEFINE_NON_DISPATCHABLE_HANDLE]
-            ctype = handle_type_map[typedef]
+            ctype = CHandleType(name)
             if name in context.ctypes_map:
                 raise CompileNodeError('Handle node type "%s" already defined as %r' % (name, context.ctypes_map[name]), node=node)
             context.ctypes_map[name] = ctype

@@ -1,6 +1,0 @@
-from enum import IntEnum
-
-class VkSciSyncClientTypeNV(IntEnum):
-    VK_SCI_SYNC_CLIENT_TYPE_SIGNALER_NV = 0
-    VK_SCI_SYNC_CLIENT_TYPE_SIGNALER_WAITER_NV = 2
-    VK_SCI_SYNC_CLIENT_TYPE_WAITER_NV = 1

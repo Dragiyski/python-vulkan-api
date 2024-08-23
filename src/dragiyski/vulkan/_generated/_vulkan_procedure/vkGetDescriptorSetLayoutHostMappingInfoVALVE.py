@@ -1,7 +1,0 @@
-import ctypes
-from ..vulkan_base import VKAPI_CALL
-
-from .._vulkan_type.VkDescriptorSetBindingReferenceVALVE import VkDescriptorSetBindingReferenceVALVE
-from .._vulkan_type.VkDescriptorSetLayoutHostMappingInfoVALVE import VkDescriptorSetLayoutHostMappingInfoVALVE
-
-vkGetDescriptorSetLayoutHostMappingInfoVALVE = VKAPI_CALL(None, ctypes.c_void_p, ctypes.POINTER(VkDescriptorSetBindingReferenceVALVE), ctypes.POINTER(VkDescriptorSetLayoutHostMappingInfoVALVE))

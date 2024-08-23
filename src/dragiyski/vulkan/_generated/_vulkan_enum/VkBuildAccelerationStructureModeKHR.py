@@ -1,5 +1,0 @@
-from enum import IntEnum
-
-class VkBuildAccelerationStructureModeKHR(IntEnum):
-    VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR = 0
-    VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR = 1

@@ -84,8 +84,6 @@ class CFloatType(CPlainType):
 
 class CPointerType(CIntType):
     def __init__(self, ctype, **kwargs):
-        if not isinstance(ctype, CType):
-            raise ValueError('Pointer type must be made from another CType')
         super().__init__(ctype, **kwargs)
 
     def to_source(self, *args, prefix='ctypes.', **kwargs):
@@ -236,6 +234,16 @@ class CWideCharType(CPlainType):
     def pointer(self):
         return ctypes_map['c_wchar_p']
 
+class CHandleType(CIntType):
+    def __init__(self, name, **kwargs):
+        super().__init__('c_uint64', **kwargs)
+        self.name = name
+    
+    def get_runtime_source(self):
+        return '%s(%r)' % ('CHandleType', self.name)
+
+    def __repr__(self):
+        return '<CHandleType: %s>' % self.name
 
 # List of all known ctypes. All representable types must be in this dictionary or a complex type.
 ctypes_map = {

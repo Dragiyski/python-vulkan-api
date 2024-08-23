@@ -1,5 +1,0 @@
-from enum import IntFlag
-
-class VkVideoCapabilityFlagsKHR(IntFlag):
-    VK_VIDEO_CAPABILITY_PROTECTED_CONTENT_BIT_KHR = 1
-    VK_VIDEO_CAPABILITY_SEPARATE_REFERENCE_IMAGES_BIT_KHR = 2

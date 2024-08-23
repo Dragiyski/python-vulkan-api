@@ -1,6 +1,0 @@
-from enum import IntEnum
-
-class VkImageTiling(IntEnum):
-    VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT = 1000158000
-    VK_IMAGE_TILING_LINEAR = 1
-    VK_IMAGE_TILING_OPTIMAL = 0

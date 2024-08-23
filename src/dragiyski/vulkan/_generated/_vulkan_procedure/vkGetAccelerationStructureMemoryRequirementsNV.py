@@ -1,7 +1,0 @@
-import ctypes
-from ..vulkan_base import VKAPI_CALL
-
-from .._vulkan_type.VkAccelerationStructureMemoryRequirementsInfoNV import VkAccelerationStructureMemoryRequirementsInfoNV
-from .._vulkan_type.VkMemoryRequirements2 import VkMemoryRequirements2
-
-vkGetAccelerationStructureMemoryRequirementsNV = VKAPI_CALL(None, ctypes.c_void_p, ctypes.POINTER(VkAccelerationStructureMemoryRequirementsInfoNV), ctypes.POINTER(VkMemoryRequirements2))

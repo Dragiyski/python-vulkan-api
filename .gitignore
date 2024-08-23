@@ -7,3 +7,5 @@ generated/
 dist/
 **/*.egg-info/
 .idea/
+src/dragiyski/vulkan/_generated
+

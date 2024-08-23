@@ -232,6 +232,17 @@ class CWideCharType(CPlainType):
     def pointer(self):
         return ctypes_map['c_wchar_p']
 
+class CHandleType(CIntType):
+    __handle_map = {}
+    def __new__(cls, name):
+        if name not in cls.__handle_map:
+            self = object.__new__(cls)
+            cls.__init(self, 'c_uint64') # Note: Vulkan Headers set handles to 64-bit always (even on 32-bit system)
+            # That is: void* on 64-bit or uint64_t on 32-bit.
+            cls.__handle_map[name] = self
+        return cls.__handle_map[name]
+
+
 ctypes_map.update({
     'void': object.__new__(CVoidType),
     'c_char': CCharType('c_char'),
