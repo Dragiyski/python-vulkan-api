@@ -48,12 +48,12 @@ class CPlainType(CType):
                 raise TypeError('Invalid simple type: ctypes.%s does not exists or it is not a type' % name)
             if ctype not in cls.__type_map:
                 self = object.__new__(cls)
-                cls.__init(self, ctype)
+                cls._init(self, ctype)
                 cls.__type_map[name] = self
         return cls.__type_map[name]
     
-    def __init(self, ctype = None):
-        self.name = ctype.__name__
+    def _init(self, ctype = None):
+        self.__name = ctype.__name__
         self._ctype = ctype
     
     def pointer(self):
@@ -63,7 +63,7 @@ class CPlainType(CType):
         return self._ctype
     
     def __repr__(self):
-        return '<%s: %s>' % (self.__class__.__name__, self.name)
+        return '<%s: %s>' % (self.__class__.__name__, self.__name)
 
 class CIntType(CPlainType):
     @staticmethod
@@ -88,11 +88,11 @@ class CPointerType(CIntType):
     def __new__(cls, base_type):
         if base_type not in cls.__pointer_map:
             self = object.__new__(cls)
-            cls.__init(self, base_type)
+            cls._init(self, base_type)
             cls.__pointer_map[base_type] = self
         return cls.__pointer_map[base_type]
     
-    def __init(self, base_type):
+    def _init(self, base_type):
         self.type = base_type
     
     def get_c_type(self):
@@ -108,11 +108,11 @@ class CArrayType(CType):
             cls.__array_map[base_type] = {}
         if length not in cls.__array_map[base_type]:
             self = object.__new__(cls)
-            cls.__init(self, base_type, length)
+            cls._init(self, base_type, length)
             cls.__array_map[base_type][length] = self
         return cls.__array_map[base_type][length]
     
-    def __init(self, base_type, length):
+    def _init(self, base_type, length):
         self.type = base_type
         self.length = length
     
@@ -133,11 +133,11 @@ class CComplexType(CType):
     def __new__(cls, name):
         if name not in cls.__complex_map:
             self = object.__new__(cls)
-            cls.__init(self, name)
+            cls._init(self, name)
             cls.__complex_map[name] = self
         return cls.__complex_map[name]
     
-    def __init(self, name):
+    def _init(self, name):
         self.name = name
         self.fields = OrderedDict()
     
@@ -237,10 +237,15 @@ class CHandleType(CIntType):
     def __new__(cls, name):
         if name not in cls.__handle_map:
             self = object.__new__(cls)
-            cls.__init(self, 'c_uint64') # Note: Vulkan Headers set handles to 64-bit always (even on 32-bit system)
+            # Note: Vulkan Headers set handles to 64-bit always (even on 32-bit system)
             # That is: void* on 64-bit or uint64_t on 32-bit.
+            cls._init(self, ctypes_map['c_void_p' if ctypes.sizeof(ctypes.c_void_p) == 8 else 'c_uint64'].get_c_type())
             cls.__handle_map[name] = self
+            self.name = name
         return cls.__handle_map[name]
+    
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, self.name)
 
 
 ctypes_map.update({
