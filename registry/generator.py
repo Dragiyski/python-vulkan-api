@@ -723,6 +723,8 @@ class Generator:
         else:
             code.append('    pass')
         code.append('')
+        code.append('%s.__doc__ = %r' % (enum_name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % enum_name))
+        code.append('')
         file = self.base_dir.joinpath('_vulkan_enum/%s.py' % enum_name)
         file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
         with open(file, 'w') as stream:
@@ -804,6 +806,7 @@ class Generator:
                 code.append('from .%s import %s' % (dep_name, dep_name))
         code.append('')
         code.extend(fn_code)
+        code.append('%s.__doc__ = %r' % (name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % name))
         info = context.callback_map[f'PFN_{name}']
         code.append('%s._vulkan_ctype_.return_type = %s' % (name, info['return'].get_runtime_source()))
         for arg_index, arg_name in enumerate(info['arg_list']):
@@ -866,6 +869,8 @@ class Generator:
             else:
                 code.append('%s(%r, %s),' % ('    ' * indent, member_name, member_desc['ctype'].to_source()))
         code.append('    ' * (indent - 1) + ']')
+        code.append('')
+        code.append('%s.__doc__ = %r' % (name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % name))
         code.append('')
         if in_class_body:
             generate_class_body()
@@ -1033,6 +1038,7 @@ class Generator:
         if return_status:
             code.append('from .._vulkan_enum.VkResult import VkResult')
         code.extend(fn_code)
+        code.append('%s.__doc__ = %r' % (name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % name))
         code.append('%s._vulkan_ctype_.return_type = %s' % (name, info['return']['ctype'].get_runtime_source()))
         for arg_name in info['argument_list']:
             arg_type = info['argument_map'][arg_name]['ctype']
@@ -1062,6 +1068,7 @@ class Generator:
             arg_info = info['argument_map'][arg_name]
             code.append('%s._vulkan_arguments_[%r] = {' % (name, arg_name))
             arg_type = arg_info['type']
+            arg_type_class = 'ctypes'
             if arg_type in context.enum_map:
                 arg_type_class = 'enum'
                 arg_code.append('    %r: %s,' % ('enum', arg_type))
@@ -1123,6 +1130,20 @@ class Generator:
             code.append(']')
         else:
             code.append('%s._vulkan_sync_ = []' % name)
+        doc_text = []
+        if 'implicitexternsyncparams' in info['node'].children:
+            for sync_doc in info['node'].get_all('implicitexternsyncparams'):
+                for sync_doc_param in sync_doc.get_all('param'):
+                    sync_doc_param_text = sync_doc_param.get_text().strip()
+                    if len(sync_doc_param_text) > 0:
+                        doc_text.append(sync_doc_param_text)
+        if len(doc_text) > 0:
+            code.append('%s._vulkan_sync_doc_ = [' % name)
+            for doc_entry in doc_text:
+                code.append('    %r,' % doc_entry)
+            code.append(']')
+        else:
+            code.append('%s._vulkan_sync_doc_ = []' % name)
         code.append('')
 
         file = self.base_dir.joinpath('_vulkan_command/%s.py' % (name))
@@ -1135,7 +1156,7 @@ class Generator:
         code = []
         for name in context.command_map:
             self._write_vulkan_command(context, name)
-            code.append('from _vulkan_command.%s import %s' % (name, name))
+            code.append('from .%s import %s' % (name, name))
         alias_map = { k: v for k, v in context.alias_map.items() if v in context.command_map }
         for alias_name in sorted(alias_map.keys()):
             name = alias_map[alias_name]
@@ -1156,74 +1177,3 @@ class Generator:
         self._write_vulkan_types(context)
         self._write_vulkan_handles(context)
         self._write_vulkan_commands(context)
-        pass
-
-    def _generate_old(self, context: Context):
-        self.base_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        self._write_vulkan_database(context, self.base_dir)
-        enum_dir = self.base_dir.joinpath('_vulkan_enum')
-        enum_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        for name in context.enum_map.keys():
-            filename = enum_dir.joinpath(name + '.py')
-            source = self._generate_enum_source(context, name)
-            with open(filename, 'w') as file:
-                file.write(source)
-        source = self._generate_enum_init_source(context)
-        with open(self.base_dir.joinpath('vulkan_enum.py'), 'w') as file:
-            file.write(source)
-        source = self._generate_value_source(context)
-        with open(self.base_dir.joinpath('vulkan_value.py'), 'w') as file:
-            file.write(source)
-        callback_dir = self.base_dir.joinpath('_vulkan_callback')
-        callback_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        for name in [context.ctypes_map[k].name for k in context.type_node_map['funcpointer'].keys()]:
-            filename = callback_dir.joinpath('%s.py' % name)
-            source = self._generate_function_source(context, name)
-            with open(filename, 'w') as file:
-                file.write(source)
-        descriptor_dir = self.base_dir.joinpath('_descriptor')
-        descriptor_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        for name in [context.ctypes_map[k].name for k in context.type_node_map['funcpointer'].keys()]:
-            filename = descriptor_dir.joinpath('%s.py' % name)
-            source = self._generate_callback_descriptor_source(context, name)
-            with open(filename, 'w') as file:
-                file.write(source)
-        for name in context.type_node_map['complex']:
-            filename = descriptor_dir.joinpath('%s.py' % name)
-            source = self._generate_complex_descriptor_source(context, name)
-            with open(filename, 'w') as file:
-                file.write(source)
-        for name in context.command_map:
-            filename = descriptor_dir.joinpath('%s.py' % name)
-            source = self._generate_procedure_descriptor_source(context, name)
-            with open(filename, 'w') as file:
-                file.write(source)
-        source = self._generate_callback_init_source(context)
-        with open(self.base_dir.joinpath('vulkan_callback.py'), 'w') as file:
-            file.write(source)
-        type_dir = self.base_dir.joinpath('_vulkan_type')
-        type_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        for name in context.type_node_map['complex'].keys():
-            filename = type_dir.joinpath(name + '.py')
-            source = self._generate_complex_source(context, name)
-            with open(filename, 'w') as file:
-                file.write(source)
-        source = self._generate_type_init_source(context)
-        with open(self.base_dir.joinpath('vulkan_type.py'), 'w') as file:
-            file.write(source)
-        source = self._generate_handle_source(context)
-        with open(self.base_dir.joinpath('vulkan_handle.py'), 'w') as file:
-            file.write(source)
-        command_dir = self.base_dir.joinpath('_vulkan_procedure')
-        command_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        for name in context.command_map:
-            filename = command_dir.joinpath('%s.py' % name)
-            source = self._generate_procedure_source(context, name)
-            with open(filename, 'w') as file:
-                file.write(source)
-        source = self._generate_procedure_init_source(context)
-        with open(self.base_dir.joinpath('vulkan_procedure.py'), 'w') as file:
-            file.write(source)
-        source = self._generate_error_source(context)
-        with open(self.base_dir.joinpath('vulkan_error.py'), 'w') as file:
-            file.write(source)

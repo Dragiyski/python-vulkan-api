@@ -39,7 +39,7 @@ class DriverLoader:
         if hasattr(binding, name):
             signature = getattr(binding, name)
             if isinstance(signature, type) and issubclass(signature, ctypes._CFuncPtr):
-                ptr = ctypes.cast(self.vkGetInstanceProcAddr(None, c_name), ctypes.c_void_p).value
+                ptr = ctypes.cast(self.vkGetInstanceProcAddr(binding.VK_NULL_HANDLE, c_name), ctypes.c_void_p).value
                 if ptr is not None:
                     return signature(ptr)
             else:
@@ -69,7 +69,7 @@ class InstanceLoader:
 
 
 class DeviceLoader:
-    def __init__(self, loader: InstanceLoader, device: binding.VkDevice | int):
+    def __init__(self, loader: InstanceLoader, device):
         self.loader = loader
         if isinstance(device, binding.VkDevice):
             device = device.value
