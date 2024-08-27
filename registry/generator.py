@@ -665,6 +665,39 @@ class Generator:
         code.extend([']', ''])
         return linesep.join(code)
     
+    def _create_function_source(self, context: Context, name: str, dep_map: dict):
+        def check_type_dep(ctype):
+            if isinstance(ctype, CPointerType):
+                check_type_dep(ctype.deref())
+            elif isinstance(ctype, CArrayType):
+                check_type_dep(ctype.item_ctype)
+            elif isinstance(ctype, CComplexType):
+                if 'struct' not in dep_map:
+                    dep_map['struct'] = set()
+                dep_map['struct'].add(ctype.name)
+            elif isinstance(ctype, CFunctionType):
+                if 'callback' not in dep_map:
+                    dep_map['callback'] = set()
+                dep_map['callback'].add(ctype.name)
+
+        ctype = context.ctypes_map[name]
+        code = []
+        check_type_dep(ctype.return_type)
+        for arg in ctype.argument_types:
+            check_type_dep(arg)
+        code.append('')
+        code.append(
+            '%s = %s(%s)' % (
+                ctype.name,
+                ctype.constructor,
+                ', '.join([ctype.return_type.to_source()] + [arg.to_source() for arg in ctype.argument_types])
+            )
+        )
+        code.append('%s._vulkan_ctype_ = %s' % (ctype.name, ctype.get_runtime_source()))
+        code.append('%s._vulkan_ctype_._class_ = %s' % (ctype.name, ctype.name))
+        return code
+
+    
     def _write_vulkan_database(self, context: Context):
         source = ['vendor_suffix = %r' % (list(sorted(context.tag_set))), '']
         file_path = self.base_dir.joinpath('_vulkan_database.py')
@@ -760,7 +793,17 @@ class Generator:
             stream.write(linesep.join(code))
 
     def _write_vulkan_callback(self, context: Context, name: str):
-        code = self._generate_function_source(context, name)
+        dep_map = {}
+        code = ['import ctypes', 'from ..._ctypes import *']
+        fn_code = self._create_function_source(context, name, dep_map)
+        if 'struct' in dep_map and len(dep_map['struct']) > 0:
+            for dep_name in sorted(dep_map['struct']):
+                code.append('from .._vulkan_type.%s import %s' % (dep_name, dep_name))
+        if 'callback' in dep_map and len(dep_map['callback']) > 0:
+            for dep_name in sorted(dep_map['callback']):
+                code.append('from .%s import %s' % (dep_name, dep_name))
+        code.append('')
+        code.extend(fn_code)
         info = context.callback_map[f'PFN_{name}']
         code.append('%s._vulkan_ctype_.return_type = %s' % (name, info['return'].get_runtime_source()))
         for arg_index, arg_name in enumerate(info['arg_list']):
@@ -898,10 +941,10 @@ class Generator:
                 code.append('from .._vulkan_value import %s' % ', '.join(sorted(member_deps['value'])))
         code.append('')
 
-        code.append('%s._vulkan_type_ = %s' % (name, ctype.get_runtime_source()))
-        code.append('%s._vulkan_type_._class_ = %s' % (name, name))
+        code.append('%s._vulkan_ctype_ = %s' % (name, ctype.get_runtime_source()))
+        code.append('%s._vulkan_ctype_._class_ = %s' % (name, name))
         for member_name in ctype.member_list:
-            code.append('%s._vulkan_type_.fields[%r] = %s' % (
+            code.append('%s._vulkan_ctype_.fields[%r] = %s' % (
                 name,
                 member_name,
                 ctype.member_map[member_name]['ctype'].get_runtime_source()
@@ -935,6 +978,175 @@ class Generator:
         with open(file, 'w') as stream:
             stream.write(linesep.join(code))
 
+    def _write_vulkan_handles(self, context: Context):
+        code = ['from .._ctypes import *', '']
+        for handle_name in context.handle_map:
+            handle_info = context.handle_map[handle_name]
+            code.append('%s = %s' % (handle_name, handle_info['ctype'].get_runtime_source()))
+        code.append('')
+        for handle_name in context.handle_map:
+            handle_info = context.handle_map[handle_name]
+            is_dispatchable = handle_info['typedef'] != 'VK_DEFINE_NON_DISPATCHABLE_HANDLE'
+            code.append('%s.dispatchable = %r' % (handle_name, is_dispatchable))
+            if 'parent' in handle_info and isinstance(handle_info['parent'], str):
+                code.append('%s.parent = %s' % (handle_name, handle_info['parent']))
+        code.append('')
+
+        handle_alias = { k: v for k, v in context.alias_map.items() if v in context.handle_map }
+        for alias_name, handle_name in handle_alias.items():
+            code.append('%s = %s' % (alias_name, handle_name))
+        code.append('')
+        
+        file = self.base_dir.joinpath('_vulkan_handle.py')
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+
+    def _write_vulkan_command(self, context: Context, name: str):
+        ctype = context.ctypes_map[name]
+        info = context.command_map[name]
+        dep_map = { 'enum': set() }
+        code = ['import ctypes', 'from collections import OrderedDict', 'from ..._ctypes import *']
+        fn_code = self._create_function_source(context, name, dep_map)
+        for arg_name in info['argument_list']:
+            arg_info = info['argument_map'][arg_name]
+            arg_type = arg_info['type']
+            if arg_type in context.enum_map:
+                dep_map['enum'].add(arg_type)
+            if arg_info['node'].has_attribute('validstructs'):
+                arg_valid_struct_list = [x.strip() for x in arg_info['node'].get_attribute('validstructs').split(',')]
+                for arg_struct in arg_valid_struct_list:
+                    arg_struct = context.resolve_alias(arg_struct)
+                    assert arg_struct in context.type_node_map['complex'] and arg_struct in context.ctypes_map
+                    assert tuple(context.ctypes_map[arg_struct].member_list[:2]) == ('sType', 'pNext')
+                    dep_map['struct'].add(arg_struct)
+        if 'struct' in dep_map and len(dep_map['struct']) > 0:
+            for dep_name in sorted(dep_map['struct']):
+                code.append('from .._vulkan_type.%s import %s' % (dep_name, dep_name))
+        if 'callback' in dep_map and len(dep_map['callback']) > 0:
+            for dep_name in sorted(dep_map['callback']):
+                code.append('from .._vulkan_callback.%s import %s' % (dep_name, dep_name))
+        if 'enum' in dep_map and len(dep_map['enum']) > 0:
+            for dep_name in sorted(dep_map['enum']):
+                code.append('from .._vulkan_enum.%s import %s' % (dep_name, dep_name))
+        code.append('')
+        return_status = info['return']['type'] == 'VkResult'
+        if return_status:
+            code.append('from .._vulkan_enum.VkResult import VkResult')
+        code.extend(fn_code)
+        code.append('%s._vulkan_ctype_.return_type = %s' % (name, info['return']['ctype'].get_runtime_source()))
+        for arg_name in info['argument_list']:
+            arg_type = info['argument_map'][arg_name]['ctype']
+            code.append('%s._vulkan_ctype_.arguments[%r] = %s' % (name, arg_name, arg_type.get_runtime_source()))
+        code.append('')
+        if return_status or info['return']['type'] == 'void':
+            return_arguments = [arg_name for arg_name in info['argument_list'] if info['argument_map'][arg_name]['output']]
+        else:
+            return_arguments = []
+        code.append('%s._vulkan_return_ = {' % name)
+        code.append('    %r: %r,' % ('status', return_status))
+        code.append('    %r: %r,' % ('arguments', return_arguments))
+        if return_status:
+            if 'success_code_list' in info:
+                code.append('    %r: [%s],' % ('success', ', '.join(f'VkResult.{x}' for x in sorted(info['success_code_list']))))
+            else:
+                code.append('    %r: [],' % ('success'))
+            if 'error_code_list' in info:
+                code.append('    %r: [%s],' % ('error', ', '.join(f'VkResult.{x}' for x in sorted(info['error_code_list']))))
+            else:
+                code.append('    %r: [],' % ('error'))
+        code.append('}')
+        code.append('%s._vulkan_arguments_ = OrderedDict()' % name)
+        externsync = []
+        for arg_name in info['argument_list']:
+            arg_code = []
+            arg_info = info['argument_map'][arg_name]
+            code.append('%s._vulkan_arguments_[%r] = {' % (name, arg_name))
+            arg_type = arg_info['type']
+            if arg_type in context.enum_map:
+                arg_type_class = 'enum'
+                arg_code.append('    %r: %s,' % ('enum', arg_type))
+            elif arg_type in context.type_node_map['complex']:
+                arg_type_class = context.ctypes_map[arg_type].constructor.lower()
+            elif arg_type in context.type_node_map['funcpointer']:
+                arg_type_class = 'callback'
+            elif arg_type in context.type_node_map['handle']:
+                arg_type_class = 'handle'
+            code.append('    %r: %r,' % ('type', {
+                'class': arg_type_class,
+                'name': arg_type
+            }))
+            code.extend(arg_code)
+            arg_optional = []
+            if arg_info['node'].has_attribute('optional'):
+                arg_optional = [x.strip().lower() == 'true' for x in arg_info['node'].get_attribute('optional').split(',')]
+            if len(arg_optional) == 0:
+                arg_optional.append(False)
+            code.append('    %r: %r,' % ('optional', arg_optional))
+            if arg_info['node'].has_attribute('externsync'):
+                arg_externsync = arg_info['node'].get_attribute('externsync')
+                if arg_externsync == 'true':
+                    externsync.append(arg_name)
+                else:
+                    arg_externsync = [x.strip().replace('[]', '[:]').replace('->', '.') for x in arg_externsync.split(',')]
+                    externsync.extend(arg_externsync)
+            if arg_info['node'].has_attribute('len'):
+                length = arg_info['node'].get_attribute('len')
+                if arg_info['node'].has_attribute('altlen'):
+                    length = arg_info['node'].get_attribute('altlen')
+                length = [item.strip().replace('[]', '[:]').replace('->', '.') for item in length.split(',')]
+                code.append('    %r: %r,' % ('length', length))
+            if arg_info['node'].has_attribute('selector'):
+                # Note: currently no command takes union argument, thus no command contain @selector attribute
+                arg_selector = arg_info['node'].get_attribute('selector')
+                code.append('    %r: %r,' % ('selector', arg_selector.strip().replace('->', '.')))
+            if arg_info['node'].has_attribute('objecttype'):
+                # Indicator that the current 64-bit integer type contains a handle. Its content will be the name
+                # of another argument (or argument's struct member) that contain enumeration specifying the type
+                # of the contained handle. The handle can be NULL, in which case the type does not matter.
+                arg_objecttype = arg_info['node'].get_attribute('objecttype')
+                code.append('    %r: %r,' % ('handle_type', arg_objecttype.strip().replace('->', '.')))
+            if arg_info['node'].has_attribute('validstructs'):
+                # In some cases the argument is an I/O of generic VkBaseInStructure or VkBaseOutStructure.
+                # In such case the argument should point to one or more structures chained with pNext and determined by sType.
+                # Which type of structures are supported for this parameter will be determined by the @validstructs
+                arg_valid_struct_list = [x.strip() for x in arg_info['node'].get_attribute('validstructs').split(',')]
+                arg_struct_set = set()
+                for arg_struct in arg_valid_struct_list:
+                    arg_struct = context.resolve_alias(arg_struct)
+                    arg_struct_set.add(arg_struct)
+                code.append('    %r: {%r},' % ('structure_type', ', '.join(sorted(arg_struct_set))))
+            code.append('}')
+        if len(externsync) > 0:
+            code.append('%s._vulkan_sync_ = [' % name)
+            for sname in externsync:
+                code.append('    %r,' % sname)
+            code.append(']')
+        else:
+            code.append('%s._vulkan_sync_ = []' % name)
+        code.append('')
+
+        file = self.base_dir.joinpath('_vulkan_command/%s.py' % (name))
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+
+
+    def _write_vulkan_commands(self, context: Context):
+        code = []
+        for name in context.command_map:
+            self._write_vulkan_command(context, name)
+            code.append('from _vulkan_command.%s import %s' % (name, name))
+        alias_map = { k: v for k, v in context.alias_map.items() if v in context.command_map }
+        for alias_name in sorted(alias_map.keys()):
+            name = alias_map[alias_name]
+            code.append('%s = %s' % (alias_name, name))
+        code.append('')
+
+        file = self.base_dir.joinpath('_vulkan_command/__init__.py')
+        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(file, 'w') as stream:
+            stream.write(linesep.join(code))
+
     def generate(self, context: Context):
         self.base_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
         self._write_vulkan_database(context)
@@ -942,6 +1154,8 @@ class Generator:
         self._write_vulkan_value(context)
         self._write_vulkan_callbacks(context)
         self._write_vulkan_types(context)
+        self._write_vulkan_handles(context)
+        self._write_vulkan_commands(context)
         pass
 
     def _generate_old(self, context: Context):

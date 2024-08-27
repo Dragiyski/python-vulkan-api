@@ -832,6 +832,7 @@ class Compiler:
             ctype['node'] = node
             ctype.constructor = 'VKAPI_CALL'
             ctype.return_type = context.get_type_from_decl(decl.type)
+            context.fn_decl_map.set(name, decl)
             for param in decl.args.params:
                 param_ctype = context.get_type_from_decl(param.type)
                 ctype.argument_types.append(param_ctype)
@@ -879,7 +880,7 @@ class Compiler:
     def _compile_command_nodes(self, context: Context):
         command_node: Node
         for command_name, command_node in context.command_node_map.items():
-            command_descriptor = { 'argument_list': [], 'argument_map': NameMap(), 'ctype': context.ctypes_map[command_name] }
+            command_descriptor = { 'argument_list': [], 'argument_map': NameMap(), 'ctype': context.ctypes_map[command_name], 'node': command_node }
             return_type = context.resolve_alias(command_node.get('proto').get('type').get_text())
             return_descriptor = { 'type': return_type, 'ctype': context.ctypes_map[return_type] }
             command_descriptor['return'] = return_descriptor
@@ -894,20 +895,29 @@ class Compiler:
                     command_descriptor['error_code_list'] = []
             param_node: Node
             param_index = 0
+            decl_param_map = {}
+            for decl_param in context.fn_decl_map[command_name].args.params:
+                decl_param_map[decl_param.name] = decl_param
             for param_node in command_node.get_all('param'):
                 if not context.is_target_api(param_node):
                     continue
                 param_name = param_node.get('name').get_text()
                 command_descriptor['argument_list'].append(param_name)
                 type_name = context.resolve_alias(param_node.get('type').get_text())
-                param_descriptor = { 'type': type_name, 'ctype': command_descriptor['ctype'].argument_types[param_index] }
+                param_descriptor = { 'type': type_name, 'ctype': command_descriptor['ctype'].argument_types[param_index], 'node': param_node }
                 self._process_len_attribute(param_descriptor, param_node)
                 if param_node.has_attribute('optional'):
                     param_descriptor['optional'] = [s.strip() for s in param_node.get_attribute('optional').split(',')]
                 if param_node.has_attribute('externsync'):
                     param_descriptor['externsync'] = param_node.get_attribute('externsync')
                 command_descriptor['argument_map'].set(param_name, param_descriptor)
-                param_descriptor['output'] = isinstance(param_descriptor['ctype'], CPointerType) and 'const' not in re.split(r'\b', ''.join([node.get_text() for node in param_node.get_text_nodes_before(param_node.get('name'))]))
+                param_descriptor['output'] = False
+                if isinstance(param_descriptor['ctype'], CPointerType):
+                    param_type = decl_param_map[param_name].type
+                    while isinstance(param_type, pycparser.c_ast.PtrDecl):
+                        param_type = param_type.type
+                    if 'const' not in param_type.quals:
+                        param_descriptor['output'] = True
                 if type_name in context.type_node_map['complex']:
                     # Structures given by value or structures given by constant pointer are inputs
                     struct_descriptor = context.struct_map[type_name]

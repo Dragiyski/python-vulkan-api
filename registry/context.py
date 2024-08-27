@@ -55,6 +55,7 @@ class Context:
         self.func_macro_map = dict(func_macro_map)
         self.alias_map = {}
         self.handle_map = NameMap()
+        self.fn_decl_map = NameMap()
         # All constants must go into the value map *only*
         # If they belong to enum, it must have 'enum' key, containing the enum name.
         # If the value has been added by a feature or an extension, it must have have 'feature' or 'extension' key as a list of dict.
