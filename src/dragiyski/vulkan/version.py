@@ -1,5 +1,5 @@
 import ctypes
-from ._generated.vulkan_value import (
+from ._generated._vulkan_value import (
     VK_MAKE_VERSION,
     VK_VERSION_MAJOR,
     VK_VERSION_MINOR,
