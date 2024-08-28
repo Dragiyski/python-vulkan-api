@@ -1,6 +1,7 @@
 import ctypes
+import typing
+import collections.abc
 from collections import OrderedDict
-from collections.abc import Sized, Iterable
 
 if hasattr(ctypes, 'WINFUNCTYPE'):
     VKAPI_CALL = ctypes.WINFUNCTYPE
@@ -21,6 +22,14 @@ class CType:
 
     def get_python_type(self):
         return None
+    
+    @staticmethod
+    def append_hint_deps(deps: dict):
+        pass
+    
+    @staticmethod
+    def get_hint_source():
+        return 'None'
     
     def __repr__(self):
         return '<%s>' % self.__class__.__name__
@@ -62,6 +71,10 @@ class CPlainType(CType):
     def get_c_type(self):
         return self._ctype
     
+    @staticmethod
+    def get_hint_source():
+        raise ValueError('Abstract method: %s' % 'CPlainType.get_hint_source')
+    
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.__name)
 
@@ -73,6 +86,10 @@ class CIntType(CPlainType):
     @staticmethod
     def get_hint_type():
         return int
+    
+    @staticmethod
+    def get_hint_source():
+        return 'int'
 
 class CFloatType(CPlainType):
     @staticmethod
@@ -82,6 +99,10 @@ class CFloatType(CPlainType):
     @staticmethod
     def get_hint_type():
         return float
+    
+    @staticmethod
+    def get_hint_source():
+        return 'float'
 
 class CPointerType(CIntType):
     __pointer_map = {}
@@ -94,9 +115,17 @@ class CPointerType(CIntType):
     
     def _init(self, base_type):
         self.type = base_type
-    
-    def get_c_type(self):
-        return ctypes.POINTER(self.type.get_c_type())
+
+    def append_hint_deps(self, deps: dict):
+        if 'ctypes' not in deps:
+            deps['ctypes'] = set()
+        deps['ctypes'].add(False)
+        self.type.append_hint_deps(deps)
+
+    def get_hint_source(self):
+        if self.type.__class__ in [CType, CVoidType]:
+            return 'ctypes.c_void_p'
+        return 'ctypes._Pointer[%s]' % self.type.get_hint_source()
     
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.type)
@@ -120,7 +149,22 @@ class CArrayType(CType):
         return self.type.get_c_type() * self.length
     
     def get_hint_type(self):
-        return Sized | Iterable
+        return collections.abc.Collection[self.type.get_hint_type()]
+    
+    def append_hint_deps(self, deps: dict):
+        if 'collections.abc' not in deps:
+            deps['collections.abc'] = set()
+        deps['collections.abc'].add('Collection')
+        self.type.append_hint_deps(deps)
+
+    def get_hint_source(self):
+        types = ['Collection[%s]' % self.type.get_hint_source()]
+        if isinstance(self.type, CPlainType):
+            if self.type.get_c_type() == ctypes.c_char:
+                types.append('bytes')
+            elif self.type.get_c_type() == ctypes.c_wchar:
+                types.append('str')
+        return ' | '.join(types)
     
     def get_python_type(self):
         return list
@@ -141,11 +185,26 @@ class CComplexType(CType):
         self.name = name
         self.fields = OrderedDict()
     
+    def get_python_type(self):
+        return super().get_python_type()
+    
     def get_c_type(self):
-        return implementation_map[self.name]
+        return self._class_
+    
+    def get_hint_type(self):
+        return self._class_
     
     def pointer(self):
         return CPointerType(self)
+    
+    def append_hint_deps(self, deps: dict):
+        module = self._class_.__module__
+        if module not in deps:
+            deps[module] = set()
+        deps[module].add(self._class_.__name__)
+    
+    def get_hint_source(self):
+        return self.name
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.name)
@@ -168,7 +227,14 @@ class CFunctionType(CType):
         return CPointerType(self)
     
     def get_c_type(self):
-        return implementation_map[self.name]
+        return self._class_
+    
+    @staticmethod
+    def append_hint_deps(deps: dict):
+       pass
+    
+    def get_hint_source(self):
+        return self.name
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.name)
@@ -182,10 +248,14 @@ class CBooleanType(CPlainType):
     def get_python_type():
         return bool
     
+    @staticmethod
+    def get_hint_source():
+        return 'bool'
+    
 class CStringType(CPlainType):
     def __new__(cls, type):
         if type != 'c_char_p':
-            raise TypeError('Invalid CWideStringType: %s' % type)
+            raise TypeError('Invalid CStringType: %s' % type)
         return super().__new__(cls, type)
 
     @staticmethod
@@ -195,6 +265,10 @@ class CStringType(CPlainType):
     @staticmethod
     def get_python_type():
         return bytes
+    
+    @staticmethod
+    def get_hint_source():
+        return 'bytes'
 
 class CWideStringType(CPlainType):
     def __new__(cls, type):
@@ -207,6 +281,10 @@ class CWideStringType(CPlainType):
 
     def get_python_type(self):
         return str
+    
+    @staticmethod
+    def get_hint_source():
+        return 'str'
 
 class CCharType(CIntType):
     def __new__(cls, type):
@@ -228,6 +306,10 @@ class CWideCharType(CPlainType):
 
     def get_hint_type(self):
         return str
+    
+    @staticmethod
+    def get_hint_source():
+        return 'str'
 
     def pointer(self):
         return ctypes_map['c_wchar_p']
