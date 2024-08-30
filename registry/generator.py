@@ -21,6 +21,8 @@ enum_base_class = {
 
 ctypes_types = [name for name in dir(ctypes) if name.startswith('c_')]
 
+def module_sorted(modules):
+    return sorted([m for m in modules if not m.startswith('.')]) + sorted([m for m in modules if m.startswith('.')])
 
 class GeneratorError(RuntimeError):
     def __init__(self, *args, **kwargs):
@@ -30,7 +32,7 @@ class GeneratorError(RuntimeError):
 class GeneratedModule:
     def __init__(self, path: list):
         self.path = path
-        self.code = []
+        self.lines = []
         self.deps = {}
 
     def add_dep(self, module: str, selector: str | bool):
@@ -41,35 +43,43 @@ class GeneratedModule:
 
     def flush_dep(self):
         is_import = False
-        for mod, ns in self.deps.items():
+        for mod in module_sorted(self.deps.keys()):
+            ns = self.deps[mod]
             if False in ns and not ns[False]:
-                self.code.append('import %s' % mod)
+                self.lines.append('import %s' % mod)
                 is_import = True
                 ns[False] = True
             if True in ns and not ns[True]:
-                self.code.append('from %s import *' % mod)
+                self.lines.append('from %s import *' % mod)
                 is_import = True
                 ns[True] = True
             names = {k: v for k, v in ns.items() if isinstance(k, str) and not v}
             if len(names) > 3:
                 is_import = True
-                self.code.append('from %s import (' % mod)
+                self.lines.append('from %s import (' % mod)
                 for name in sorted(names):
-                    self.code.append('    %s,' % name)
+                    self.lines.append('    %s,' % name)
                     ns[name] = True
-                self.code.append(')')
+                self.lines.append(')')
             elif len(names) > 0:
-                self.code.append('from %s import %s' % (mod, ', '.join(names)))
+                self.lines.append('from %s import %s' % (mod, ', '.join(sorted(names.keys()))))
                 is_import = True
                 for name in names:
                     ns[name] = True
         if is_import:
-            self.code.append('')
+            self.lines.append('')
+    
+    def update_file(self, base_path: Path):
+        path = base_path.joinpath('/'.join(self.path) + '.py')
+        path.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        with open(path, 'w') as stream:
+            stream.write(linesep.join(self.lines))
 
 
 class Generator:
     def __init__(self, base_dir):
         self.base_dir = Path(base_dir).resolve()
+        self.base_dir: Path
 
     def _create_function_source(self, context: Context, name: str, module: GeneratedModule, *, loc_type='.._vulkan_type', loc_callback='.._vulkan_callback'):
         def check_type_dep(ctype):
@@ -109,59 +119,54 @@ class Generator:
 
     
     def _write_vulkan_database(self, context: Context):
-        source = ['vendor_suffix = %r' % (list(sorted(context.tag_set))), '']
-        file_path = self.base_dir.joinpath('_vulkan_database.py')
-        with open(file_path, 'w') as file:
-            file.write(linesep.join(source))
+        module = GeneratedModule(['_vulkan_database'])
+        module.lines.append('vendor_suffix = [')
+        for name in sorted(context.tag_set):
+            module.lines.append('    %r,' % name)
+        module.lines.append(']')
+        module.lines.append('')
+        module.update_file(self.base_dir)
 
     def _write_vulkan_enum(self, context: Context, enum_name: str):
+        module = GeneratedModule(['_vulkan_enum', enum_name])
         descriptor = context.enum_map[enum_name]
         type_descriptor = context.plain_ctype_class[descriptor['class']][descriptor['ctype'].ctype()]
-        code = ['from enum import %s' % type_descriptor['base_class_name'], '']
-        code.append('class %s(%s):' % (enum_name, type_descriptor['base_class_name']))
+        module.lines.extend(['from enum import %s' % type_descriptor['base_class_name'], ''])
+        module.lines.append('class %s(%s):' % (enum_name, type_descriptor['base_class_name']))
         values = {}
         for value_name in descriptor['values']:
             value_descriptor = context.value_map[value_name]
             values[value_name] = '    %s = %r' % (value_name, value_descriptor['value'])
         if len(values) > 0:
             for value_name in sorted(values.keys()):
-                code.append(values[value_name])
+                module.lines.append(values[value_name])
             alias = {name: value for name, value in {name: context.resolve_alias(name) for name in context.alias_map}.items() if value in values}
             for name in sorted(alias.keys()):
                 value = alias[name]
-                code.append('    %s = %s' % (name, value))
+                module.lines.append('    %s = %s' % (name, value))
         else:
-            code.append('    pass')
-        code.append('')
-        code.append('%s.__doc__ = %r' % (enum_name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % enum_name))
-        code.append('')
-        file = self.base_dir.joinpath('_vulkan_enum/%s.py' % enum_name)
-        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        with open(file, 'w') as stream:
-            stream.write(linesep.join(code))
+            module.lines.append('    pass')
+        module.lines.append('')
+        module.lines.append('%s.__doc__ = %r' % (enum_name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % enum_name))
+        module.lines.append('')
+        module.update_file(self.base_dir)
 
     def _write_vulkan_enums(self, context: Context):
         if len(context.enum_map) <= 0:
             return
-        code = []
-        deps = []
+        module = GeneratedModule(['_vulkan_enum', '__init__'])
         for enum_name in context.enum_map:
-            self._write_vulkan_enum(context, enum_name)
-            deps.append(enum_name)
-        for enum_name in sorted(deps):
-            code.append('from .%s import %s' % (enum_name, enum_name))
-        code.append('')
+            module.add_dep(f'.{enum_name}', enum_name)
+        module.lines.append('')
         alias_enum = { k: v for k, v in context.alias_map.items() if v in context.enum_map }
         for alias_name in sorted(alias_enum.keys()):
             enum_name = alias_enum[alias_name]
-            code.append('%s = %s' % (alias_name, enum_name))
-        code.append('')
-        file = self.base_dir.joinpath('_vulkan_enum/__init__.py')
-        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
-        with open(file, 'w') as stream:
-            stream.write(linesep.join(code))
+            module.lines.append('%s = %s' % (alias_name, enum_name))
+        module.lines.append('')
+        module.update_file()
 
     def _write_vulkan_value(self, context: Context):
+        module = GeneratedModule('_vulkan_value')
         code = ['import ctypes']
         enum_set = set()
         exports = set()
