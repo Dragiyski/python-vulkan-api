@@ -5,7 +5,6 @@ import re
 
 import pycparser.c_ast
 from .platform import CArrayType
-from .context import Context
 
 class ParseError(RuntimeError):
     def __init__(self, *args, **kwargs):
@@ -68,16 +67,14 @@ def preprocessor(code):
         print(token)
 
 class CParser(pycparser.CParser):
-    def __init__(self, context: Context):
+    def __init__(self, lookup: callable):
         super().__init__()
-        self.context = context
+        self.__lookup = lookup
 
     def _lex_type_lookup_func(self, name):
         if super()._lex_type_lookup_func(name):
             return True
-        while name in self.context.alias_map:
-            name = self.context.alias_map[name]
-        return name in self.context.ctypes_map
+        return self.__lookup(name)
     
     @staticmethod
     def parse_c_int(value):
@@ -168,25 +165,25 @@ class CParser(pycparser.CParser):
         value = re.sub(r'[^\u0000-\u007F]', cls.subst_string_unicode_char, value)
         return '"%s"' % value
     
-    def get_type_from_decl(self, node: pycparser.c_ast.Node):
-        if type(node) is pycparser.c_ast.PtrDecl:
-            return self.get_type_from_decl(node.type).pointer()
-        if type(node) is pycparser.c_ast.ArrayDecl:
-            length = self.context.get_c_ast_const_value(node.dim)
-            return CArrayType(self.get_type_from_decl(node.type), length)
-        if type(node) is pycparser.c_ast.TypeDecl:
-            if type(node.type) is pycparser.c_ast.IdentifierType:
-                type_name = ' '.join(node.type.names)
-            elif type(node.type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]:
-                type_name = node.type.name
-            else:
-                raise NotImplementedError('TODO: C: TypeDecl => %s' % type(node.type).__name__)
-            while type_name in self.context.alias_map:
-                type_name = self.context.alias_map[type_name]
-            if type_name not in self.context.ctypes_map:
-                raise ParseError('Reference to undefined type "%s"' % (type_name))
-            return self.ctypes_map[type_name]
-        raise NotImplementedError('TODO: C: %s' % type(node).__name__)
+    # def get_type_from_decl(self, node: pycparser.c_ast.Node):
+    #     if type(node) is pycparser.c_ast.PtrDecl:
+    #         return self.get_type_from_decl(node.type).pointer()
+    #     if type(node) is pycparser.c_ast.ArrayDecl:
+    #         length = self.context.get_c_ast_const_value(node.dim)
+    #         return CArrayType(self.get_type_from_decl(node.type), length)
+    #     if type(node) is pycparser.c_ast.TypeDecl:
+    #         if type(node.type) is pycparser.c_ast.IdentifierType:
+    #             type_name = ' '.join(node.type.names)
+    #         elif type(node.type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]:
+    #             type_name = node.type.name
+    #         else:
+    #             raise NotImplementedError('TODO: C: TypeDecl => %s' % type(node.type).__name__)
+    #         while type_name in self.context.alias_map:
+    #             type_name = self.context.alias_map[type_name]
+    #         if type_name not in self.context.ctypes_map:
+    #             raise ParseError('Reference to undefined type "%s"' % (type_name))
+    #         return self.ctypes_map[type_name]
+    #     raise NotImplementedError('TODO: C: %s' % type(node).__name__)
     
 class CGenerator(pycparser.c_generator.CGenerator):
     def visit_Code(self, node):

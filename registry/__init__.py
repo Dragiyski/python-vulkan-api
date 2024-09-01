@@ -4,8 +4,8 @@ import sys
 from datetime import datetime, timezone
 import urllib.parse
 from setuptools import Command
-from .compiler import Compiler
-from .generator import Generator
+from .gen import Compiler
+from .xml_parser import parse_xml
 
 repository_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
 
@@ -57,8 +57,6 @@ class GenerateVulkanSourceFiles(Command):
         generated_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         compiler = Compiler()
         for file in files:
-            compiler.add_xml_file(file)
-        context = compiler.compile()
-        generator = Generator(generated_dir)
-        generator.generate(context)
+            root_node = parse_xml(file, is_file=True)
+            compiler.add_xml(root_node)
         pass
