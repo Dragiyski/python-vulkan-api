@@ -62,6 +62,9 @@ class Node:
             return ''.join([x.node_value for x in self.get_text_nodes()])
         else:
             return ''
+        
+    def get_path(self):
+        return (self.parent_node.get_path() if self.parent_node is not None else []) + [self.node_name]
 
     def get_text_nodes_before(self, node):
         items = []
@@ -72,6 +75,12 @@ class Node:
         items = []
         self._get_text_nodes_after(node, items)
         return items
+    
+    def get_text_before(self, node):
+        return ''.join([n.get_text() for n in self.get_text_nodes_before(node)])
+    
+    def get_text_after(self, node):
+        return ''.join([n.get_text() for n in self.get_text_nodes_after(node)])
 
     def _get_text_nodes_before(self, node, items):
         return_value = True

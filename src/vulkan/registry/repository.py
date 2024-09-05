@@ -1,9 +1,9 @@
 url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
 
-file_list = [
-    'registry/vk.xml',
-    'registry/video.xml'
-]
+file_list = {
+    'registry/vk.xml': 'vk.xml',
+    'registry/video.xml': 'video.xml'
+}
 
 import pathlib, urllib.parse
 from logging import getLogger
@@ -16,7 +16,7 @@ def update(target):
     files = []
     for setup_file in file_list:
         source_url = urllib.parse.urljoin(url, setup_file)
-        target_file = target.joinpath(setup_file)
+        target_file = target.joinpath(file_list[setup_file])
         logger.debug(f'http.download: \n  url: {source_url}\n  file: {target_file}')
         status, reason, headers = fetch_file(target_file, source_url)
         if status == 0:

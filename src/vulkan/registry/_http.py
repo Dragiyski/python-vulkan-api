@@ -1,6 +1,6 @@
 import os
 import pathlib
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import urllib.request
 
 HTTP_DATE_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
@@ -9,13 +9,17 @@ HTTP_DATE_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
 def fetch_file(target_file, source_url):
     target_file = pathlib.Path(target_file)
     target_file.parent.mkdir(parents=True, exist_ok=True)
+    date_now = datetime.now(timezone.utc)
     headers = {
-        'Date': datetime.now(timezone.utc).strftime(HTTP_DATE_FORMAT)
+        'Date': date_now.strftime(HTTP_DATE_FORMAT)
     }
     has_file = True
     try:
         stat = os.stat(target_file)
-        headers['if-modified-since'] = datetime.fromtimestamp(stat.st_mtime, timezone.utc).strftime(HTTP_DATE_FORMAT)
+        mtime = datetime.fromtimestamp(stat.st_mtime, timezone.utc)
+        if date_now - mtime < timedelta(hours=24):
+            return (304, 'Cached', {})
+        headers['if-modified-since'] = mtime.strftime(HTTP_DATE_FORMAT)
     except FileNotFoundError:
         has_file = False
     etag_path = target_file.parent.joinpath(f'.{target_file.name}.etag')
