@@ -59,6 +59,6 @@ class GenerateVulkanSourceFiles(Command):
         for file in files:
             compiler.add_xml_file(file)
         context = compiler.compile()
-        generator = Generator(generated_dir)
-        generator.generate(context)
+        # generator = Generator(generated_dir)
+        # generator.generate(context)
         pass
