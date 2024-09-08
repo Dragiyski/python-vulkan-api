@@ -48,18 +48,20 @@ class Node:
         self.child_nodes.append(node)
         self.children[node.node_name].append(node)
 
-    def get_text_nodes(self):
+    def get_text_nodes(self, *, skip_comments = True):
         for child in self.child_nodes:
             if child.node_type == 'text':
                 yield child
             elif child.node_type == 'element':
+                if skip_comments and child.node_name == 'comment':
+                    continue
                 yield from child.get_text_nodes()
 
-    def get_text(self):
+    def get_text(self, *, skip_comments = True):
         if self.node_type == 'text':
             return self.node_value
         elif self.node_type == 'element':
-            return ''.join([x.node_value for x in self.get_text_nodes()])
+            return ''.join([x.node_value for x in self.get_text_nodes(skip_comments=skip_comments)])
         else:
             return ''
         
@@ -76,13 +78,13 @@ class Node:
         self._get_text_nodes_after(node, items)
         return items
     
-    def get_text_before(self, node):
-        return ''.join([n.get_text() for n in self.get_text_nodes_before(node)])
+    def get_text_before(self, node, *, skip_comments = True):
+        return ''.join([n.get_text() for n in self.get_text_nodes_before(node, skip_comments=skip_comments)])
     
-    def get_text_after(self, node):
-        return ''.join([n.get_text() for n in self.get_text_nodes_after(node)])
+    def get_text_after(self, node, *, skip_comments = True):
+        return ''.join([n.get_text() for n in self.get_text_nodes_after(node, skip_comments=skip_comments)])
 
-    def _get_text_nodes_before(self, node, items):
+    def _get_text_nodes_before(self, node, items, *, skip_comments = True):
         return_value = True
         for child in self.child_nodes:
             if not return_value:
@@ -92,10 +94,12 @@ class Node:
             if child.node_type == 'text':
                 items.append(child)
             elif child.node_type == 'element':
+                if skip_comments and child.node_name == 'comment':
+                    continue
                 return_value = child._get_text_nodes_before(node, items)
         return return_value
 
-    def _get_text_nodes_after(self, node, items):
+    def _get_text_nodes_after(self, node, items, *, skip_comments = True):
         return_value = True
         for child in reversed(self.child_nodes):
             if not return_value:
@@ -105,6 +109,8 @@ class Node:
             if child.node_type == 'text':
                 items.insert(0, child)
             elif child.node_type == 'element':
+                if skip_comments and child.node_name == 'comment':
+                    continue
                 return_value = child._get_text_nodes_before(node, items)
         return return_value
 

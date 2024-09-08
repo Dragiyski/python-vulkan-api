@@ -38,3 +38,35 @@ Documentation must be stored in the classes `__annotations__`. Do note that `__a
 ## XML processing
 
 Everything named in the XML must be aggregated into `dict[str, set[Node]]`. In most cases there will be only one `Node`, but not all cases. In case of more than one node, the node path (examining ancestors) must be used to determine the node's role. For example `features / feature / enum` node associated with enum and `enums / enum` on the same name, the latter takes preferences.
+
+# Binding
+
+## Direct/XML Binding
+
+All vulkan commands take some input handle as a parameter. The only exceptions are the following:
+
+* `vkEnumerateInstanceLayerProperties`
+* `vkEnumerateInstanceExtensionProperties`
+* `vkEnumerateInstanceVersion`
+* `vkCreateInstance`
+
+The same 4 methods can be retrieved by `vkInstanceGetProcAddr` with `NULL` for the `instance` parameter.
+
+This means every output handle can be class that store `_loader_` attribute. The direct binding will then replace the returned handles with python object that should be accepted by all function bindings, including methods like `ctypes.pointer`, etc. In addition the returned handles will have loader.
+
+Upon a call to a command, the binding class should:
+
+1. Lookup the binding data parsed from the XML;
+2. Identify the signature of the command, specifically parameters;
+3. Find the first input handle parameter;
+4. Get the loader from the handle;
+5. Call the `vkInstanceGetProcAddr` or `vkDeviceGetProcAddr` from the loader (which might call parent loader);
+  1. If the return value is `None`, raise `NotImplementedError`
+  2. If the return value is not `None`, obtain `int` value from the pointer and the `ctypes` type from the XML processor and generate `ctypes._CFuncPtr` by `CFUNCTYPE` or `WINFUNCTYPE`.
+6. Call the function with the arguments given to the call;
+
+Step 1 and 2 might be made earlier during the attribute retrieval (and cached), since for every function the argument on which the handle is passed is fixed and won't change. Thus this can be cached and further calls to the same vulkan command might immediately return a function *.
+
+Note: No call will return an actual python function. Instead an instance of a class with `__call__` method will be returned.
+
+Conclusion: Direct binding from a single object can be made by special handling of the handle attributes. However, this will have the limitation that no externally created handles can be accepted.
