@@ -36,6 +36,12 @@ class Node:
         if name not in self.children:
             return []
         return self.children[name]
+    
+    def tree_get_all(self, name: str):
+        if self.node_name == name:
+            yield self
+        for child in self.child_nodes:
+            yield from child.tree_get_all(name)
 
     def append_child(self, node):
         if node.node_name not in self.children:
