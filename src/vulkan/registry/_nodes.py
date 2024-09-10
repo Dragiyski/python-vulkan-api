@@ -119,7 +119,7 @@ def __init__():
                     logger.warning(f'xml:{enum_node.file_path}: skipping, missing attribute @name')
                     continue
                 name = enum_node.get_attribute('name')
-                if type_node.has_attribute('alias'):
+                if enum_node.has_attribute('alias'):
                     category_name_map['alias'].add(name)
                 else:
                     category_name_map['value'].add(name)

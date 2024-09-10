@@ -1,12 +1,15 @@
-import ast, types
-from types import MappingProxyType
+import ast, types, ctypes, sys
+from logging import getLogger
+from types import SimpleNamespace
 from enum import IntEnum, IntFlag
-import pycparser.c_ast
 from ._nodes import nodes, bit_enum_map, enum_bit_map, category_name_map, enum_value_map, value_enum_map
 from .platform import macro_ignore, platform_types, native_types
 from .xml_parser import Node
 
-vulkan_extension_base = 1000000000
+_vulkan_extension_base = 1000000000
+_handle_nd_ctype = ctypes.c_void_p if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_uint64
+
+logger = getLogger('vulkan.registry')
 
 class Binding:
     def __init__(self):
@@ -72,6 +75,7 @@ class Binding:
             try:
                 value = self._get_binding(name)
             except NotImplementedError:
+                logger.warning(sys.exc_info(), exc_info=True)
                 raise KeyError(name)
             self.__dict__[name] = value
             return value
@@ -92,6 +96,8 @@ class Binding:
             return self._get_vulkan_enum(name, IntEnum)
         if name in category_name_map['bitmask']:
             return self._get_vulkan_enum(name, IntFlag)
+        if name in category_name_map['handle']:
+            return self._generate_handle_class(name)
         raise NotImplementedError('No vulkan binding for "%s"' % name)
     
     def _resolve_alias(self, name):
@@ -131,7 +137,7 @@ class Binding:
                             ext_name = f'Node at {ext_node.file_path}'
                         raise ValueError(f'Missing extension @number for extension {ext_name} while lookup value for {name}')
                     ext_number = self.c_context.c_parser.parse_c_int(ext_node.get_attribute('number'))
-                value = vulkan_extension_base + (ext_number - 1) + offset
+                value = _vulkan_extension_base + (ext_number - 1) * 1000 + offset
             else:
                 continue
             if node.get_attribute('dir') == '-':
@@ -147,7 +153,48 @@ class Binding:
             # Just an empty enum class for enum?
             return types.new_class(enum_name, (base_class,))
         def _prepare_enum(namespace):
+            # While it is possible to just assign the same value for the aliases
+            # the name of the alias would depend on the order of the set()
+            # Instead, only assign non-alias member first here...
             for name in enum_value_map[content_name]:
-                value_name = self._resolve_alias(name)
-                namespace[name] = self._get_vulkan_value(value_name)
-        return types.new_class(enum_name, (base_class,), None, _prepare_enum)
+                if name in category_name_map['alias']:
+                    continue
+                namespace[name] = self._get_vulkan_value(name)
+        cls = types.new_class(enum_name, (base_class,), None, _prepare_enum)
+        # ... and then declare alias members after the class __prepare__ has been called.
+        for name in enum_value_map[content_name]:
+            if name in category_name_map['alias']:
+                alias_name = self._resolve_alias(name)
+                if alias_name != name:
+                    assert hasattr(cls, alias_name), 'hasattr(cls, alias_name)'
+                    setattr(cls, name, getattr(cls, alias_name))
+        return cls
+    
+    def _generate_handle_class(self, name: str):
+        # Direct binding won't have some fancy handle processing, instead that is left to the user
+        # or other bindings using the direct binding. Instead the only thing this binding will do
+        # is ensure a properly named class is returned.
+        for node in nodes[name]:
+            info = { name: name }
+            if node.get_path()[-2:] == ['types', 'type'] and node.get_attribute('category') == 'handle':
+                handle_type = node.get('type').get_text()
+                match handle_type:
+                    # Dispatchable handles are just (opaque) pointers in main (host) memory. They are guarateed to be unique for the entire process.
+                    case 'VK_DEFINE_HANDLE':
+                        handle_base_class = ctypes.c_void_p
+                        info['dispatchable'] = True
+                    case 'VK_DEFINE_NON_DISPATCHABLE_HANDLE':
+                        handle_base_class = _handle_nd_ctype
+                        info['dispatchable'] = False
+                    case _:
+                        raise NotImplementedError('Unexpected handle type "%s" for handle "%s".' % (handle_type, handle_base_class))
+                if node.has_attribute('objtypeenum'):
+                    info['object_type'] = self[node.get_attribute('objtypeenum')]
+                info['parent'] = None
+                if node.has_attribute('parent'):
+                    info['parent'] = self[node.get_attribute('parent')]
+                return type(name, (handle_base_class,), {
+                    '_vulkan_': SimpleNamespace(**info)
+                })
+            pass
+        pass
