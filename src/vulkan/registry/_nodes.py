@@ -3,6 +3,7 @@ nodes = {}
 category_name_map = {
     'alias': set(),
     'type': set(),
+    'basetype': set(),
     'struct': set(),
     'union': set(),
     'define': set(),
@@ -77,7 +78,9 @@ def __init__():
                 if type_node.has_attribute('alias'):
                     category_name_map['alias'].add(name)
                 else:
-                    if category == 'bitmask':
+                    if category == 'basetype':
+                        pass
+                    elif category == 'bitmask':
                         mask_name = None
                         if type_node.has_attribute('bitvalues'):
                             mask_name = type_node.get_attribute('bitvalues')
@@ -95,7 +98,7 @@ def __init__():
                         category_name_map['bitmask'].add(name)
                     elif category == 'funcpointer':
                         category_name_map['callback'].add(name)
-                    elif category in ['struct', 'union', 'enum', 'handle', 'define']:
+                    elif category in ['struct', 'union', 'enum', 'handle', 'define', 'basetype']:
                         category_name_map[category].add(name)
                 append_node(name, type_node)
         for enums_node in xml.get_all('enums'):

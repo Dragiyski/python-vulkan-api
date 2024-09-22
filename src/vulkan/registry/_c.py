@@ -139,10 +139,11 @@ class CContext:
         pass
     
     def __init__(self):
-        self.c_type = set()
-        self.c_type.update(native_types.keys())
-        self.c_type.update(platform_types.keys())
-        self.c_parser = CParser(self.c_type)
+        # Known ctypes
+        self.c_type_map = {}
+        # Known types in C, may contain private types that do not map to ctypes, used during parsing.
+        self.c_type_set = set()
+        self.c_parser = CParser(self.c_type_set)
         self.c_generator = CGenerator()
         self.py_value = {}
         self.pp_value_code = {}
@@ -257,6 +258,10 @@ class CContext:
             has_descendant_substitution = self.preprocess_ast(child_node)
             has_substitution = has_substitution or has_descendant_substitution
         return has_substitution
+    
+    def parse(self, code):
+        code = self.preprocess_code(code)
+        return self.c_parser.parse(code)
 
     def get_python_code_for_func_macro(self, name):
         if name not in self.pp_func_code:
