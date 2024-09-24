@@ -33,9 +33,9 @@ class CParser(pycparser.CParser):
     """
     Same as pycparser.CParser, but allow types to be specified in a python Container (usually Set)
     """
-    def __init__(self, types: Container, **kwargs):
+    def __init__(self, types: Container = {}, **kwargs):
         super().__init__(**kwargs)
-        self.c_types = types
+        self.c_types = set(types)
 
     def _lex_type_lookup_func(self, name):
         if super()._lex_type_lookup_func(name):
