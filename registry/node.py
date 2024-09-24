@@ -29,7 +29,7 @@ class Node:
         if name not in self.children:
             return default
         node_list = self.children[name]
-        assert len(node_list) == 1, f'{get_error_prefix(self)}: Expected 1 child with name "{name}", got {len(node_list)} children'
+        assert len(node_list) == 1, f'{self.file_path}: Expected 1 child with name "{name}", got {len(node_list)} children'
         return node_list[0]
 
     def get_all(self, name: str) -> 'list[Node]':
@@ -63,17 +63,17 @@ class Node:
         else:
             return ''
 
-    def get_text_nodes_before(self, node):
+    def get_text_nodes_before(self, node, *, skip_comments = True):
         items = []
-        self._get_text_nodes_before(node, items)
+        self._get_text_nodes_before(node, items, skip_comments=skip_comments)
         return items
 
-    def get_text_nodes_after(self, node):
+    def get_text_nodes_after(self, node, *, skip_comments = True):
         items = []
-        self._get_text_nodes_after(node, items)
+        self._get_text_nodes_after(node, items, skip_comments=skip_comments)
         return items
 
-    def _get_text_nodes_before(self, node, items):
+    def _get_text_nodes_before(self, node, items, *, skip_comments = True):
         return_value = True
         for child in self.child_nodes:
             if not return_value:
@@ -83,10 +83,12 @@ class Node:
             if child.node_type == 'text':
                 items.append(child)
             elif child.node_type == 'element':
-                return_value = child._get_text_nodes_before(node, items)
+                if skip_comments and child.node_name == 'comment':
+                    continue
+                return_value = child._get_text_nodes_before(node, items, skip_comments=skip_comments)
         return return_value
 
-    def _get_text_nodes_after(self, node, items):
+    def _get_text_nodes_after(self, node, items, *, skip_comments = True):
         return_value = True
         for child in reversed(self.child_nodes):
             if not return_value:
@@ -96,8 +98,16 @@ class Node:
             if child.node_type == 'text':
                 items.insert(0, child)
             elif child.node_type == 'element':
-                return_value = child._get_text_nodes_before(node, items)
+                if skip_comments and child.node_name == 'comment':
+                    continue
+                return_value = child._get_text_nodes_before(node, items, skip_comments=skip_comments)
         return return_value
+    
+    def get_text_before(self, node, *, skip_comments = True):
+        return ''.join([n.get_text() for n in self.get_text_nodes_before(node, skip_comments=skip_comments)])
+    
+    def get_text_after(self, node, *, skip_comments = True):
+        return ''.join([n.get_text() for n in self.get_text_nodes_after(node, skip_comments=skip_comments)])
 
     @property
     def previous_sibling(self):
@@ -129,11 +139,12 @@ class Node:
         return f'{self.root.file}:{self.line}:{self.column}'
 
 
-def parse_xml(document, *, is_file=False):
+def parse_xml(document, *, is_file=False, filename=None):
     root = None
     parent = None
 
-    filename = document
+    if filename is None:
+        filename = document
     if not is_file:
         filename = f'document:{hash(document)}'
 
@@ -191,8 +202,3 @@ def parse_xml(document, *, is_file=False):
         parser.Parse(document)
     
     return root
-
-def get_error_prefix(node):
-    while node.parent_node is not None:
-        node = node.parent_node
-    return f'XMLError in {node.file}'

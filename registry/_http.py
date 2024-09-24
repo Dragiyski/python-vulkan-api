@@ -1,14 +1,11 @@
-import os
-import pathlib
+import os, pathlib, urllib.request, urllib.parse
 from datetime import datetime, timezone
-import urllib.request
 
 HTTP_DATE_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
 
-
 def fetch_file(target_file, source_url):
     target_file = pathlib.Path(target_file)
-    target_file.parent.mkdir(parents=True, exist_ok=True)
+    target_file.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
     headers = {
         'Date': datetime.now(timezone.utc).strftime(HTTP_DATE_FORMAT)
     }
@@ -48,3 +45,4 @@ def fetch_file(target_file, source_url):
     finally:
         res.close()
     return (res.status, res.reason, res.headers)
+
