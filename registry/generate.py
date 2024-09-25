@@ -18,7 +18,7 @@ class VulkanRegistryGenerateCommand(Command):
         self.target_dir = pathlib.Path(__file__).resolve().parent.parent.joinpath('src')
 
     def finalize_options(self) -> None:
-        self.xml_dir = pathlib.Path(self.target_dir).resolve()
+        self.xml_dir = pathlib.Path(self.xml_dir).resolve()
         self.target_dir = pathlib.Path(self.target_dir).resolve()
         if self.distribution.verbose:
             self.logger.setLevel(logging.INFO)
@@ -115,6 +115,8 @@ class VulkanRegistryGenerateCommand(Command):
         # NOTE: In the above mapping, types with 'class': 'array' may have length specified by a constant.
         # Such length must be resolved after resolving enum and values maps.
         cparser.c_types.update(metadata.ctypes.keys())
+        cparser.c_types.update({ k: { 'class': 'type', 'name': v } for k, v in metadata.bit_enum_map.items() })
+
         # All parsed data must be stored as dict(), so no C parsing occurs at runtime.
         # Enum, Bitmask, Non-enum values, macro values should be computed here and directly used at runtime.
         # Potentially also compute functional macros to python functions to be used at runtime.
@@ -164,6 +166,9 @@ class VulkanRegistryGenerateCommand(Command):
         # The goal of this script is NOT to be run AT INSTALLATION TIME,
         # instead it should be MANUALLY RUN at pre-deploy time and generated sources should be included
         # as a version.
+
+        generator = Generator(metadata)
+
         pass
 
 def get_type_dict_from_ast(c_ast: pycparser.c_ast.Node):
@@ -188,3 +193,26 @@ def get_type_dict_from_ast(c_ast: pycparser.c_ast.Node):
             return { 'class': 'type', 'quals': list(c_ast.quals), 'name': c_ast.type.name }
         raise NotImplementedError('Expected c_ast.TypeDecl to contain one of [c_ast.IdentifierType, c_ast.Struct, c_ast.Union]')
     raise NotImplementedError(f'Unexpected node c_ast.{c_ast.__class__.__name__}')
+
+class Generator:
+    def __init__(self, metadata):
+        self.metadata = metadata
+    
+    def resolve_alias(self, name):
+        if name in self.metadata['alias']:
+            for node in self.metadata.nodes[name]:
+                if node.has_attribute('alias'):
+                    return self.resolve_alias(node.get_attribute('alias'))
+        return name
+
+    def generate_enum(self, name, base_class):
+        name = self.resolve_alias(name)
+        if name in self.metadata.enum_bit_map:
+            name = self.resolve_alias
+
+# Do not use function here, combine everything into a single class containing:
+# alias_map
+# nodes
+# labels
+# etc.
+
