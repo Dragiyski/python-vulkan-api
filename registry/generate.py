@@ -103,7 +103,7 @@ class VulkanRegistryGenerateCommand(Command):
                         'parent': node.get_attribute('parent'),
                         'value': node.get_attribute('objtypeenum')
                     }
-        metadata.ctypes.update({ k: { 'class': 'type', 'name': n.get_attribute('alias') } for k in metadata.labels['alias'] for n in metadata.nodes[k] if n.has_attribute('alias') and n.get_attribute('alias') in metadata.ctypes })
+        metadata.c_types.update({ k: { 'class': 'type', 'name': n.get_attribute('alias') } for k in metadata.labels['alias'] for n in metadata.nodes[k] if n.has_attribute('alias') and n.get_attribute('alias') in metadata.ctypes })
         # At this point all types should be known, this include:
         # * Native C types used in the XML, mapped to ctypes;
         # * Platform specific C types that maps to specific ctypes;
