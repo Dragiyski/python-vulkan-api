@@ -2,7 +2,7 @@ import pathlib, logging, os, pycparser.c_ast
 from setuptools import Command
 from .node import parse_xml
 from .xml import get_data
-from .c import native_types, platform_types, CParser
+from . import c_types
 
 class VulkanRegistryGenerateCommand(Command):
     description = 'generate vulkan binding source files and meta information'
@@ -41,8 +41,55 @@ class VulkanRegistryGenerateCommand(Command):
         metadata = get_data(*files)
         metadata.ctypes = {
             'void': None,
-            **native_types,
-            **platform_types
+            'char': c_types.CIntType('c_char'),
+            'float': c_types.CFloatType('c_float'),
+            'double': c_types.CFloatType('c_double'),
+            'int8_t': c_types.CIntType('c_int8'),
+            'uint8_t': c_types.CIntType('c_uint8'),
+            'int16_t': c_types.CIntType('c_int16'),
+            'uint16_t': c_types.CIntType('c_uint16'),
+            'uint32_t': c_types.CIntType('c_uint32'),
+            'uint64_t': c_types.CIntType('c_uint64'),
+            'int32_t': c_types.CIntType('c_int32'),
+            'int64_t': c_types.CIntType('c_int64'),
+            'size_t': c_types.CIntType('c_size_t'),
+            'int': c_types.CIntType('c_int'),
+            'bool': c_types.CBooleanType('c_bool'),
+            'unsigned int': c_types.CIntType('c_uint'),
+            'unsigned long': c_types.CIntType('c_ulong'),
+            'unsigned long int': c_types.CIntType('c_ulong'),
+            'unsigned short': c_types.CIntType('c_ushort'),
+            'unsigned short int': c_types.CIntType('c_ushort'),
+            'unsigned char': c_types.CIntType('c_ubyte'),
+            'unsigned long long': c_types.CIntType('c_ulonglong'),
+            'unsigned long long int': c_types.CIntType('c_ulonglong'),
+            'long': c_types.CIntType('c_long'),
+            'long int': c_types.CIntType('c_long'),
+            'short': c_types.CIntType('c_short'),
+            'short int': c_types.CIntType('c_short'),
+            'long long': c_types.CIntType('c_longlong'),
+            'long long int': c_types.CIntType('c_longlong'),
+            'VisualID': c_types.CIntType('c_uint32'),  # X11/Xlib.h: CARD32
+            'Window': c_types.CIntType('c_uint32'),  # X11/Xlib.h: CARD32 => XID
+            'RROutput': c_types.CIntType('c_uint32'),  # X11/extensions/Xrandr.h
+            'xcb_window_t': c_types.CIntType('c_uint32'),  # xcb/xcb.h
+            'xcb_visualid_t': c_types.CIntType('c_uint32'), # xcb/xcb.h
+            'HINSTANCE': c_types.CPointerType(type=None, input=True),  # windows.h
+            'HWND': c_types.CPointerType(type=None, input=True),  # windows.h
+            'HMONITOR': c_types.CPointerType(type=None, input=True),  # windows.h
+            'HANDLE': c_types.CPointerType(type=None, input=True),  # windows.h
+            'DWORD': c_types.CIntType('c_uint32'),  # windows.h
+            'LPCSTR': c_types.CStringPointerType(char_type=c_types.CIntType('c_char'), input=True),  # windows.h
+            'LPCTSTR': c_types.CStringPointerType(char_type=c_types.CIntType('c_char'), input=True),  # windows.h
+            'LPCWSTR': c_types.CStringPointerType(char_type=c_types.CIntType('c_uint16'), encoding='utf-16', input=True),  # windows.h
+            'zx_handle_t': c_types.CIntType('c_uint32'),  # zircon/types.h (Fuschia?)
+            'GgpStreamDescriptor': c_types.CIntType('c_uint32'),  # Google games platform?
+            'GgpFrameToken': c_types.CIntType('c_uint32'),  # Google games platform?
+            'NvSciSyncAttrList': c_types.CPointerType(type=None, input=True), # NV Sci Platform
+            'NvSciSyncObj': c_types.CPointerType(type=None, input=True), # NV Sci Platform
+            'NvSciSyncFence': c_types.CArrayType(element_type=c_types.CIntType('c_uint64'), length=6), # NV Sci Platform
+            'NvSciBufAttrList': c_types.CPointerType(type=None, input=True), # NV Sci Platform
+            'NvSciBufObj': c_types.CPointerType(type=None, input=True), # NV Sci Platform
         }
         cparser = CParser()
         cparser.c_types.update(native_types.keys())
