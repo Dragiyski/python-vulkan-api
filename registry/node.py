@@ -48,6 +48,9 @@ class Node:
         self.child_nodes.append(node)
         self.children[node.node_name].append(node)
 
+    def get_path(self):
+        return (self.parent_node.get_path() if self.parent_node is not None else []) + [self.node_name]
+
     def get_text_nodes(self):
         for child in self.child_nodes:
             if child.node_type == 'text':

@@ -91,6 +91,25 @@ class VulkanRegistryGenerateCommand(Command):
             'NvSciBufAttrList': c_types.CPointerType(type=None, input=True), # NV Sci Platform
             'NvSciBufObj': c_types.CPointerType(type=None, input=True), # NV Sci Platform
         }
+        # 1. Process metadata.labels['basetype'] and add them to metadata.ctypes
+        # 2. Process metadata.labels['define'] and add then to:
+        #   a. value for object macros
+        #   b. create a python function for function macros (only if the code involves only simple/native types)
+        # 3. Process enum/bitmask to add them to type. We would process values later.
+        # 4. Process "value" (+ alias) to generate enum subclasses of IntEnum/IntFlag
+        # 5. Process handles and add them to metadata.ctypes.
+        # 6. Process callbacks and add them to metadata.ctypes.
+        # 7. Process complex types and add them to metadata.ctypes (do not process fields, yet).
+        # 8. Process the fields of the complex types.
+
+        for name in metadata.labels['basetype']:
+            for node in metadata.nodes[name]:
+                if 'name' not in node.children:
+                    continue
+                name_node = node.get('name')
+                type_line = node.get_text_before(name_node).split('\n')[-1] + name_node.get_text() + node.get_text_after(name_node).split('\n')[0]
+                pass
+
         cparser = CParser()
         cparser.c_types.update(native_types.keys())
         cparser.c_types.update(platform_types.keys())
