@@ -1,8 +1,10 @@
+from types import MappingProxyType
 import pathlib, logging, os, pycparser.c_ast
+import pycparser.plyparser
 from setuptools import Command
-from .node import parse_xml
 from .xml import get_data
 from . import c_types
+from .c import CParser, CGenerator
 
 class VulkanRegistryGenerateCommand(Command):
     description = 'generate vulkan binding source files and meta information'
@@ -102,17 +104,27 @@ class VulkanRegistryGenerateCommand(Command):
         # 7. Process complex types and add them to metadata.ctypes (do not process fields, yet).
         # 8. Process the fields of the complex types.
 
+        self.cparser = CParser(MappingProxyType(metadata.ctypes))
+        self.cgenerator = CGenerator(reduce_parentheses=True)
+
         for name in metadata.labels['basetype']:
             for node in metadata.nodes[name]:
                 if 'name' not in node.children:
                     continue
                 name_node = node.get('name')
-                type_line = node.get_text_before(name_node).split('\n')[-1] + name_node.get_text() + node.get_text_after(name_node).split('\n')[0]
+                type_line = node.get_text_before(name_node).splitlines()[-1] + name_node.get_text() + node.get_text_after(name_node).splitlines()[0]
+                try:
+                    type_c_ast = self.cparser.parse(type_line)
+                except pycparser.plyparser.ParseError:
+                    continue
+                if isinstance(type_c_ast.ext[0], pycparser.c_ast.Typedef):
+                    typedef = type_c_ast.ext[0]
+                    is_pointer = isinstance(typedef.type, pycparser.c_ast.PtrDecl)
+                    typedecl = typedef.type
+                    while not isinstance(typedecl, pycparser.c_ast.TypeDecl):
+                        typedecl = typedecl.type
                 pass
 
-        cparser = CParser()
-        cparser.c_types.update(native_types.keys())
-        cparser.c_types.update(platform_types.keys())
         for name in metadata.labels['basetype']:
             for node in metadata.nodes[name]:
                 if len(node.children) > 0:

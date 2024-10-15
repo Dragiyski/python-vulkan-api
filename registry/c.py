@@ -1,83 +1,26 @@
-import pycparser, re
+from collections.abc import Mapping
+import pycparser.c_generator, re
 
-# Maps all known C native types to ctypes (including some from stdint.h)
-native_types = {
-    'char': { 'class': 'ctypes', 'name': 'c_char' },
-    'float': { 'class': 'ctypes', 'name': 'c_float' },
-    'double': { 'class': 'ctypes', 'name': 'c_double' },
-    'int8_t': { 'class': 'ctypes', 'name': 'c_int8' },
-    'uint8_t': { 'class': 'ctypes', 'name': 'c_uint8' },
-    'int16_t': { 'class': 'ctypes', 'name': 'c_int16' },
-    'uint16_t': { 'class': 'ctypes', 'name': 'c_uint16' },
-    'uint32_t': { 'class': 'ctypes', 'name': 'c_uint32' },
-    'uint64_t': { 'class': 'ctypes', 'name': 'c_uint64' },
-    'int32_t': { 'class': 'ctypes', 'name': 'c_int32' },
-    'int64_t': { 'class': 'ctypes', 'name': 'c_int64' },
-    'size_t': { 'class': 'ctypes', 'name': 'c_size_t' },
-    'int': { 'class': 'ctypes', 'name': 'c_int' },
-    'bool': { 'class': 'ctypes', 'name': 'c_bool' },
-    'unsigned int': { 'class': 'ctypes', 'name': 'c_uint' },
-    'unsigned long': { 'class': 'ctypes', 'name': 'c_ulong' },
-    'unsigned long int': { 'class': 'ctypes', 'name': 'c_ulong' },
-    'unsigned short': { 'class': 'ctypes', 'name': 'c_ushort' },
-    'unsigned short int': { 'class': 'ctypes', 'name': 'c_ushort' },
-    'unsigned char': { 'class': 'ctypes', 'name': 'c_ubyte' },
-    'unsigned long long': { 'class': 'ctypes', 'name': 'c_ulonglong' },
-    'unsigned long long int': { 'class': 'ctypes', 'name': 'c_ulonglong' },
-    'int': { 'class': 'ctypes', 'name': 'c_int' },
-    'long': { 'class': 'ctypes', 'name': 'c_long' },
-    'long int': { 'class': 'ctypes', 'name': 'c_long' },
-    'short': { 'class': 'ctypes', 'name': 'c_short' },
-    'short int': { 'class': 'ctypes', 'name': 'c_short' },
-    'long long': { 'class': 'ctypes', 'name': 'c_longlong' },
-    'long long int': { 'class': 'ctypes', 'name': 'c_longlong' },
-}
+class CGenerator(pycparser.c_generator.CGenerator):
+    """
+    Same as pycparser.c_generator.CGenerator, but accept a special node CGenerator.Code that can substitute C code in the AST.
+    """
+    def visit_Code(self, node):
+        return node.code
+    
+    class Code(pycparser.c_ast.Node):
+        __slots__ = ('code', 'coord', '__weakref__')
 
-# Maps (hopefully) all external types that will be used by vulkan API
-# Those cannot be found in the XML, only reference to appropriate header file is specified.
-# Because C bindings are terrible, it means we had to hunt for those types in several APIs
-# Luckily, the only conditional types seems to depend on the machine word size (i.e. pointer size),
-# which means they will be bound to ctypes.c_void_p (even if they are not a pointer).
-# ctypes.c_void_p is not derefencible in ctypes, it contains an int value, so it is okay
-# to store machine word int, as long as we do not cast it to another pointer type.
-
-# NOTE: If you are not on a platform that support certain of the APIs,
-# those bindings will never be used as vkInstanceGetProcAddr and vkDeviceGetProcAddr won't
-# return VK API that uses those types on unsuppoted platforms.
-# However, properly processing the XML bindings would still require to know which types
-# those types correspond. Unlike C, python bindings won't be implementation dependent on
-# the choice of compiler, machine, cpu, arch, etc. A single piece of python code will run everywhere.
-platform_types = {
-    'VisualID': { 'class': 'ctypes', 'name': 'c_uint32' },  # X11/Xlib.h: CARD32
-    'Window': { 'class': 'ctypes', 'name': 'c_uint32' },  # X11/Xlib.h: CARD32 => XID
-    'RROutput': { 'class': 'ctypes', 'name': 'c_uint32' },  # X11/extensions/Xrandr.h
-    'xcb_window_t': { 'class': 'ctypes', 'name': 'c_uint32' },  # xcb/xcb.h
-    'xcb_visualid_t': { 'class': 'ctypes', 'name': 'c_uint32' }, # xcb/xcb.h
-    'HINSTANCE': { 'class': 'ctypes', 'name': 'c_void_p' },  # windows.h
-    'HWND': { 'class': 'ctypes', 'name': 'c_void_p' },  # windows.h
-    'HMONITOR': { 'class': 'ctypes', 'name': 'c_void_p' },  # windows.h
-    'HANDLE': { 'class': 'ctypes', 'name': 'c_void_p' },  # windows.h
-    'DWORD': { 'class': 'ctypes', 'name': 'c_uint32' },  # windows.h
-    'LPCSTR': { 'class': 'ctypes', 'name': 'c_char_p' },  # windows.h
-    'LPCTSTR': { 'class': 'ctypes', 'name': 'c_char_p' },  # windows.h
-    'LPCWSTR': { 'class': 'ctypes', 'name': 'c_wchar_p' },  # windows.h
-    'zx_handle_t': { 'class': 'ctypes', 'name': 'c_uint32' },  # zircon/types.h (Fuschia?)
-    'GgpStreamDescriptor': { 'class': 'ctypes', 'name': 'c_uint32' },  # Google games platform?
-    'GgpFrameToken': { 'class': 'ctypes', 'name': 'c_uint32' },  # Google games platform?
-    'NvSciSyncAttrList': { 'class': 'ctypes', 'name': 'c_void_p' }, # NV Sci Platform
-    'NvSciSyncObj': { 'class': 'ctypes', 'name': 'c_void_p' }, # NV Sci Platform
-    'NvSciSyncFence': { 'class': 'array', 'type': { 'class': 'ctypes', 'name': 'c_uint64' }, 'length': 6 }, # NV Sci Platform
-    'NvSciBufAttrList': { 'class': 'ctypes', 'name': 'c_void_p' }, # NV Sci Platform
-    'NvSciBufObj': { 'class': 'ctypes', 'name': 'c_void_p' }, # NV Sci Platform
-}
+        def __init__(self, code):
+            self.code = code
 
 class CParser(pycparser.CParser):
     """
     Same as pycparser.CParser, but allow types to be specified in a python Container (usually Set)
     """
-    def __init__(self, types = {}, **kwargs):
+    def __init__(self, c_types: Mapping = {}, /, **kwargs):
         super().__init__(**kwargs)
-        self.c_types = set(types)
+        self.c_types = c_types
 
     def _lex_type_lookup_func(self, name):
         if super()._lex_type_lookup_func(name):
