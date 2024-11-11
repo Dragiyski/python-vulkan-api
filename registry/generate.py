@@ -1,10 +1,8 @@
 from types import MappingProxyType
 import pathlib, logging, os, pycparser.c_ast
-import pycparser.plyparser
 from setuptools import Command
-from .xml import get_data
-from . import c_types
-from .c import CParser, CGenerator
+from .node import parse_xml
+from .compiler import Compiler
 
 class VulkanRegistryGenerateCommand(Command):
     description = 'generate vulkan binding source files and meta information'
@@ -39,6 +37,11 @@ class VulkanRegistryGenerateCommand(Command):
                     yield path
 
     def run(self) -> None:
+        compiler = Compiler()
+        for file in self._xml_iterator(self.xml_dir):
+            root = parse_xml(file, is_file=True)
+            compiler.add_xml(root)
+        return
         files = [file for file in self._xml_iterator(self.xml_dir)]
         metadata = get_data(*files)
         metadata.ctypes = {
@@ -119,10 +122,30 @@ class VulkanRegistryGenerateCommand(Command):
                     continue
                 if isinstance(type_c_ast.ext[0], pycparser.c_ast.Typedef):
                     typedef = type_c_ast.ext[0]
+                    pointer_wrap = []
                     is_pointer = isinstance(typedef.type, pycparser.c_ast.PtrDecl)
                     typedecl = typedef.type
                     while not isinstance(typedecl, pycparser.c_ast.TypeDecl):
+                        if isinstance(typedecl, pycparser.c_ast.PtrDecl):
+                            pointer_wrap.append({
+                                'class': c_types.CPointerType,
+                                'input': 'const' in typedecl.type.quals
+                            })
+                        elif isinstance(typedecl, pycparser.c_ast.ArrayDecl):
+                            pointer_wrap.append({
+                                'class': c_types.CArrayType,
+                                'length': self.cparser.parse_c_int(typedecl.dim) # TODO: Replace with self.get_const_value_ast
+                            })
                         typedecl = typedecl.type
+                    assert typedecl.declname == name
+                    if isinstance(typedecl.type, pycparser.c_ast.Struct):
+                        c_type = c_types.COpaqueType(typedecl.type.name)
+                    elif isinstance(typedecl.type, pycparser.c_ast.IdentifierType):
+                        c_type_name = ' '.join(typedecl.type.names)
+                        if c_type_name not in metadata.ctypes:
+                            raise RuntimeError(f'Unable to declare typedef to unknown type: {c_type_name}')
+                        c_type = metadata.ctypes[c_type_name]
+                    pass
                 pass
 
         for name in metadata.labels['basetype']:
@@ -248,6 +271,17 @@ class VulkanRegistryGenerateCommand(Command):
         generator = Generator(metadata)
 
         pass
+
+    def get_type_from_ast_node(self, node):
+        pass
+
+    def get_c_constant_value(self, ctype: str, value):
+        if ctype not in self.metadata:
+            raise CParser.ParseError('Unknown ctype: %s' % (ctype))
+        code = '%s value = %s;' % (ctype, value)
+        code = self.preprocess_c_code(code)
+        ast = self.cparser.parse(code)
+        return self.get_c_ast_const_value(ast.ext[0].init)
 
 def get_type_dict_from_ast(c_ast: pycparser.c_ast.Node):
     if c_ast.__class__ == pycparser.c_ast.PtrDecl:
