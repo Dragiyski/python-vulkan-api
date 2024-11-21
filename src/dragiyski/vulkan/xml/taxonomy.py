@@ -1,7 +1,6 @@
 from logging import getLogger
 from .node import Node
 
-
 logger = getLogger('vulkan.registry')
 
 class Taxonomy:
