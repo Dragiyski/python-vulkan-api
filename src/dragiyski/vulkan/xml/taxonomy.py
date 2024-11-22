@@ -1,5 +1,5 @@
 from logging import getLogger
-from .node import Node
+from .node import Node, parse_xml
 
 logger = getLogger('vulkan.registry')
 
@@ -10,6 +10,7 @@ class Taxonomy:
         self.category = {
             'alias': set(),
             'type': set(),
+            'external_type': set(),
             'basetype': set(),
             'struct': set(),
             'union': set(),
@@ -17,7 +18,6 @@ class Taxonomy:
             'define': set(),
             'enum': set(),
             'bitmask': set(),
-            'group': set(),
             'value': set(),
             'handle': set(),
             'callback': set(),
@@ -94,6 +94,10 @@ class Taxonomy:
                         self.category['callback'].add(name)
                     elif category in ['struct', 'union', 'enum', 'handle', 'define', 'basetype']:
                         self.category[category].add(name)
+                    elif category is None:
+                        self.category['external_type'].add(name)
+                    if category in ['struct', 'union']:
+                        self.category['complex'].add(name)
                 self.append_node(name, type_node)
         for enums_node in root.get_all('enums'):
             if not self.is_vulkan_api(enums_node):
@@ -105,7 +109,6 @@ class Taxonomy:
                     self.category['alias'].add(enum_name)
                 else:
                     self.category['enum'].add(enum_name)
-                    self.category['group'].add(enum_name)
                     self.category['type'].add(enum_name)
                     if enum_name not in self.group_value_map:
                         self.group_value_map[enum_name] = set()
@@ -122,6 +125,8 @@ class Taxonomy:
                 else:
                     self.category['value'].add(name)
                 if enum_name is not None:
+                    if enum_name not in self.group_value_map:
+                        self.group_value_map[enum_name] = set()
                     self.group_value_map[enum_name].add(name)
                     self.value_group_map[name] = enum_name
                 self.append_node(name, enum_node)
@@ -171,6 +176,7 @@ class Taxonomy:
                                 if enum_name not in self.group_value_map:
                                     self.group_value_map[enum_name] = set()
                                 self.group_value_map[enum_name].add(name)
+                                self.value_group_map[name] = enum_name
                         self.append_node(name, node)
         for extensions_node in root.get_all('extensions'):
             if not self.is_vulkan_api(extensions_node):
@@ -203,4 +209,7 @@ class Taxonomy:
                                     if enum_name not in self.group_value_map:
                                         self.group_value_map[enum_name] = set()
                                     self.group_value_map[enum_name].add(name)
+                                    self.value_group_map[name] = enum_name
                             self.append_node(name, node)
+
+
