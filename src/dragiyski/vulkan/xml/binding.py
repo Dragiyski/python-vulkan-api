@@ -209,14 +209,11 @@ class LazyBinding(Binding):
         }
         self.c_parser = CParser(names=MappingProxyType(self._types))
         self.c_generator = CGenerator()
-        # Preprocessor definitions
+        # Preprocessor definitions:
         self.pp_value_code = {}
         self.pp_func_code = {}
 
-        # Note: Preprocessor macros are converted to functions which may call other preprocessor macro functions.
-        # All functions are aggregated into a single module and compiled together, thus must be handled together,
-        # and cannot be handled lazily.
-
+        # Functional style macros use templates, while preprocessor macros are direct substitution
         for name in self.taxonomy.category['define']:
             if name in self._skip_names:
                 continue
@@ -228,23 +225,11 @@ class LazyBinding(Binding):
                     self.c_preprocessor_define(node.get_text())
                 except self.DefinitionError:
                     pass
-        for name in self.pp_value_code:
-            try:
-                self._names[name] = self.__dict__[name] = self.c_get_constant_value(name)
-            except NotImplementedError:
-                pass
-        macro_ast_def = {}
-        for name in self.pp_func_code:
-            try:
-                macro_ast_def[name] = self.get_python_code_for_func_macro(name)
-            except NotImplementedError:
-                pass
-        macro_ast_module = ast.Module(list(macro_ast_def.values()))
-        ast.fix_missing_locations(macro_ast_module)
-        vulkan_macros = {}
-        exec(compile(macro_ast_module, '<vulkan.registry.#define>', 'exec'), vulkan_macros)
-        for name in macro_ast_def.keys():
-            self._names[name] = self.__dict__[name] = vulkan_macros[name]
+        # Access to macros is as follows:
+        # Functional style macros will generate FunctionMacro object whose __call__ will accept
+        # named parameters (the macro names). Calling this function will accept both ctypes and python native types,
+        # where the following types are accepted: int, float, bytes, str
+        # With int/float can be converted to ctypes according to dedicated convertion principles.
 
     def __dir__(self):
         return object.__dir__(self) + list(self._names)
@@ -271,7 +256,17 @@ class LazyBinding(Binding):
         if name not in self._names or name in self._skip_names:
             raise KeyError(name)
         name = self._resolve_alias(name)
+        if name in self.pp_value_code:
+            return self._resolve_pp_value_from_c_expression(self.pp_value_code[name])
+        if name in self.pp_func_code:
+            return self._resolve_pp_func_from_c_expression(self.pp_func_code[name])
         raise NotImplementedError('No vulkan binding for "%s"' % name)
+    
+    def _resolve_pp_value_from_c_expression(self, c_code: str):
+        c_ast = self.c_preprocess_code_ast(c_code)
+    
+    def _c_get_value_from_ast(node: pycparser.c_ast.Node, context: Mapping = {}):
+        pass
 
     def _resolve_alias(self, name: str):
         while name in self.taxonomy.category['alias']:
@@ -358,12 +353,12 @@ class LazyBinding(Binding):
             raise self.DuplicateDefinitionError(f'Macro "{name}" already defined.')
         self.pp_value_code[name] = code
 
-    def c_preprocess_code(self, code: str):
+    def c_preprocess_code_ast(self, code: str):
         ast = self.c_parser.parse(code)
         while self.c_preprocess_ast(ast):
             code = self.c_generator.visit(ast)
             ast = self.c_parser.parse(code)
-        return code
+        return ast
     
     def c_preprocess_ast(self, node: pycparser.c_ast.Node):
         has_substitution = False
