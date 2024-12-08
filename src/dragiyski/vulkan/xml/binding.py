@@ -1,9 +1,28 @@
-import sys, re, ast, ctypes, pycparser.c_generator, pycparser.c_parser, pycparser.c_ast
+import sys, re, ast, ctypes, operator, pycparser.c_generator, pycparser.c_parser, pycparser.c_ast
 from collections.abc import Mapping, Collection
 from types import MappingProxyType
 from logging import getLogger
 from .taxonomy import Taxonomy
 from .node import Node
+
+unary_operation = {
+    '~': operator.inv,
+    '+': operator.pos,
+    '-': operator.neg
+}
+
+binary_operation = {
+    '|': operator.or_,
+    '&': operator.and_,
+    '^': operator.xor,
+    '+': operator.add,
+    '-': operator.sub,
+    '*': operator.mul,
+    # '/': handled separately: maps to / for floating point, // for integer
+    '%': operator.mod,
+    '<<': operator.lshift,
+    '>>': operator.rshift
+}
 
 logger = getLogger('dragiyski.vulkan.binding')
 
@@ -109,7 +128,7 @@ class CParser(pycparser.CParser):
         raise ValueError('Invalid float value: %r' % value)
     
     @classmethod
-    def parse_c_string(cls, value):
+    def parse_c_string(cls, value) -> str:
         if len(value) < 2 or value[0] != '"' or value[-1] != '"':
             raise ValueError('Invalid string value (missing open or close quotes): %s' % value)
         value = value[1:-1]
@@ -119,7 +138,7 @@ class CParser(pycparser.CParser):
         value = re.sub(r'\\x([0-9A-Fa-f]{2})', cls.subst_unicode_hex, value)
         value = re.sub(r'\\([0-7]{3})', cls.subst_unicode_oct, value)
         value = re.sub(r'\\(.)', cls.subst_slash_escape, value)
-        return value.encode('utf-8')
+        return value
     
     @staticmethod
     def subst_unicode_hex(match):
@@ -191,8 +210,6 @@ class LazyBinding(Binding):
     def __init__(self, taxonomy: Taxonomy, *, skip_names: Collection = set()):
         self.taxonomy = taxonomy
 
-        # All names registered by Vulkan
-        self._names = {}
         # All types by both Vulkan and external
         self._types = {
             **c_native_types,
@@ -207,7 +224,9 @@ class LazyBinding(Binding):
             'VK_DEFINE_HANDLE',
             'VK_DEFINE_NON_DISPATCHABLE_HANDLE'
         }
-        self.c_parser = CParser(names=MappingProxyType(self._types))
+        # All names registered by Vulkan
+        self._names = set(self.taxonomy.nodes.keys()).difference(self._skip_names)
+        self.c_parser = CParser(types=MappingProxyType(self._types))
         self.c_generator = CGenerator()
         # Preprocessor definitions:
         self.pp_value_code = {}
@@ -231,14 +250,15 @@ class LazyBinding(Binding):
         # where the following types are accepted: int, float, bytes, str
         # With int/float can be converted to ctypes according to dedicated convertion principles.
 
-    def __dir__(self):
-        return object.__dir__(self) + list(self._names)
+    # def __dir__(self):
+        # return object.__dir__(self) + list(self._names)
     
-    def __getattr__(self, name: str):
-        try:
-            return self.__getitem__(name)
-        except KeyError:
-            raise AttributeError(name)
+    # def __getattr__(self, name: str):
+    #     try:
+    #         return self.__getitem__(name)
+    #     except KeyError:
+    #         raise AttributeError(name)
+
     def __getitem__(self, name: str):
         if name in self._names:
             if name in self.__dict__:
@@ -262,8 +282,13 @@ class LazyBinding(Binding):
             return self._resolve_pp_func_from_c_expression(self.pp_func_code[name])
         raise NotImplementedError('No vulkan binding for "%s"' % name)
     
-    def _resolve_pp_value_from_c_expression(self, c_code: str):
-        c_ast = self.c_preprocess_code_ast(c_code)
+    def _resolve_pp_value_from_c_expression(self, c_expr: str):
+        c_ast = self.c_preprocess_code_ast(f'int _ = {c_expr};')
+        assert c_ast.__class__ is pycparser.c_ast.FileAST, """c_ast.__class__ is pycparser.c_ast.FileAST"""
+        assert len(c_ast.ext) == 1, """len(c_ast.ext) == 1"""
+        assert c_ast.ext[0].__class__ is pycparser.c_ast.Decl, """c_ast.ext[0].__class__ is pycparser.c_ast.Decl"""
+        return self.c_ast_get_const_value(c_ast.ext[0].init).value
+        pass
     
     def _c_get_value_from_ast(node: pycparser.c_ast.Node, context: Mapping = {}):
         pass
@@ -499,6 +524,127 @@ class LazyBinding(Binding):
         code = self.c_preprocess_code(code)
         ast = self.c_parser.parse(code)
         return self.c_get_const_value_ast(ast.ext[0].init)
+    
+    # Determining the result of binary operation depend on the operator
+    # Rule 1: given two operands, always select the highest size type
+    # Rule 2: given rule 1, if one of the types is unsigned integer, convert the other to unsigned if integer.
+    # Rule 3: given rule 1, if one of the types is floating point, select floating point with at least the size of the integer.
+    def c_ast_get_binary_type(self, left, right):
+        try:
+            left_size = ctypes.sizeof(left)
+        except TypeError:
+            left_size = 0
+        try:
+            right_size = ctypes.sizeof(right)
+        except TypeError:
+            right_size = 0
+        max_size = max(left_size, right_size)
+        left_value = left.value if hasattr(left, 'value') else None
+        right_value = left.value if hasattr(left, 'value') else None
+        if left_value is None and left_size == 0:
+            left_value = left
+        if right_value is None and right_size == 0:
+            right_value = right
+        floating_point = isinstance(left, float) or isinstance(right_value, float)
+        if floating_point:
+            if max_size == ctypes.sizeof(ctypes.c_longdouble):
+                return ctypes.c_longdouble
+            elif max_size == ctypes.sizeof(ctypes.c_double):
+                return ctypes.c_double
+            elif max_size == ctypes.sizeof(ctypes.c_float):
+                return ctypes.c_float
+            elif max_size == 0:
+                return float
+            raise NotImplementedError('No known binary operation between "%s" and "%s"' % (type(left).__name__, type(right).__name__))
+        left_int = isinstance(left_value, int)
+        right_int = isinstance(right_value, int)
+        left_unsigned = left_int and left_size > 0 and type(left)(-1).value > 0
+        right_unsigned = right_int and right_size > 0 and type(right)(-1).value > 0
+        if left_unsigned or right_unsigned:
+            if max_size == ctypes.sizeof(ctypes.c_uint64):
+                return ctypes.c_uint64
+            if max_size == ctypes.sizeof(ctypes.c_uint32):
+                return ctypes.c_uint32
+            if max_size == ctypes.sizeof(ctypes.c_uint16):
+                return ctypes.c_uint16
+            if max_size == ctypes.sizeof(ctypes.c_uint8):
+                return ctypes.c_uint8
+        if left_int and right_int:
+            if left_size > right_size:
+                return type(left)
+            return type(right)
+        raise NotImplementedError('No known binary operation between "%s" and "%s"' % (type(left).__name__, type(right).__name__))
+
+    
+    def c_ast_get_const_value(self, node: pycparser.c_ast.Node, context: Mapping = {}):
+        node_type = type(node)
+        c_ast = pycparser.c_ast
+        if node_type is c_ast.Constant:
+            if 'int' in node.type:
+                return self._types[node.type](self.c_parser.parse_c_int(node.value))
+            elif node.type in ['float', 'double']:
+                return self._types[node.type](self.c_parser.parse_c_float(node.value))
+            elif node.type == 'string': # This is a special type contant, the actual type can be determined from prefix:
+                if node.value.startswith('L"'):
+                    return ctypes.c_wchar_p(self.c_parser.parse_c_string(node.value[1:]))
+                elif node.value.startswith('U"'):
+                    raise NotImplementedError('Unsupported C string prefix: U')
+                    # return ctypes.create_string_buffer(self.c_parser.parse_c_string(node.value[1:]).encode(f'utf_32_{sys.byteorder[0]}e') + bytes([0] * 4))
+                elif node.value.startswith('"'):
+                    return ctypes.c_char_p(self.c_parser.parse_c_string(node.value).encode('utf-8'))
+                else:
+                    raise NotImplementedError('Unsupported C string prefix or separator')
+        elif node_type is c_ast.UnaryOp:
+            op = self.c_ast_get_const_value(node.value, context)
+            op_value = op.value if hasattr(op, 'value') else op
+            op_type = type(op)
+            # TODO: negation (-) operator might promote unsigned into signed.
+            return op_type(unary_operation[node.op](op_value))
+            pass
+        elif node_type is c_ast.BinaryOp:
+            lop = self.c_ast_get_const_value(node.left, context)
+            rop = self.c_ast_get_const_value(node.right, context)
+            res_type = self.c_ast_get_binary_type(lop, rop)
+            lop_value = lop.value if hasattr(lop, 'value') else lop
+            rop_value = rop.value if hasattr(rop, 'value') else rop
+            if node.op == '/':
+                if isinstance(lop_value, int) and isinstance(rop_value, int):
+                    res_value = lop_value // rop_value
+                else:
+                    res_value = lop_value / rop_value
+            else:
+                res_value = binary_operation[node.op](lop_value, rop_value)
+            return res_type(res_value)
+        elif node_type is c_ast.Cast:
+            cast_value = self.c_ast_get_const_value(node.expr, context)
+            cast_type = self.c_ast_get_type_from_decl(node.to_type.type)
+            return cast_type(cast_value.value)
+        elif node_type is c_ast.ID:
+            raise NotImplementedError('TODO: ID Processing')
+            # get_type_from_typedecl? In runtime this should obtain ctypes.* class
+        raise NotImplementedError('TODO: C: Unsupported node type "%s"' % node_type.__name__)
+
+    def c_ast_get_type_from_decl(self, node: pycparser.c_ast.Node):
+        node_type = type(node)
+        c_ast = pycparser.c_ast
+        if node_type is c_ast.PtrDecl:
+            return ctypes.POINTER(self.c_ast_get_const_value(node.type))
+        if node_type is c_ast.ArrayDecl:
+            length = self.c_ast_get_const_value(node.dim).value
+            return self.c_ast_get_const_value(node.type) * length
+        if node_type is c_ast.TypeDecl:
+            if type(node.type) is pycparser.c_ast.IdentifierType:
+                type_name = ' '.join(node.type.names)
+            elif type(node.type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]:
+                type_name = node.type.name
+            else:
+                raise NotImplementedError('TODO: C: TypeDecl => %s' % type(node.type).__name__)
+            type_name = self._resolve_alias(type_name)
+            if type_name not in self._types:
+                raise pycparser.c_parser.ParseError('Reference to undefined type "%s"' % (type_name))
+            return self._types[type_name]
+        raise NotImplementedError('TODO: C: %s' % type(node).__name__)
+            
     
     def c_get_const_value_ast(self, node: pycparser.c_ast.Node):
         node_type = type(node)
