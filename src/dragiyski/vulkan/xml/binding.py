@@ -279,6 +279,17 @@ class LazyBinding(Binding):
         if name in self.pp_value_code:
             return self._resolve_pp_value_from_c_expression(self.pp_value_code[name])
         if name in self.pp_func_code:
+            # pp_func_macro will result in a function taking parameter.
+            # The function must convert python values to C as follows:
+            # int => C constant int: example 23
+            # float => C constant float: example 23.0
+            # str => C constant string: example "Hello world!" (using UTF-8)
+            # self.c_generator.Code => wraps str as C code for direct substitution
+            # Once converted, the expression: <MACRO_NAME>(ARG_1, ARG_2,... ) will be created using the macro name
+            # and converted arguments. Finally, the _resolve_pp_value_from_c_expression will be called with that expression,
+            # to substitute the provided data and compute the final expression value.
+            # Therefore, the "context" variable is not used here, as we do not expect IDs.
+            # The "context" can still be used later for struct context in evaluation of altlen="..." attribute expressions
             return self._resolve_pp_func_from_c_expression(self.pp_func_code[name])
         raise NotImplementedError('No vulkan binding for "%s"' % name)
     
@@ -620,6 +631,9 @@ class LazyBinding(Binding):
             cast_type = self.c_ast_get_type_from_decl(node.to_type.type)
             return cast_type(cast_value.value)
         elif node_type is c_ast.ID:
+            # ID will be processed as follows:
+            # from context, if specified - should be int, float, str or ctypes.* class
+            # if not present in context, but hasattr(self, ID) is True, use that value
             raise NotImplementedError('TODO: ID Processing')
             # get_type_from_typedecl? In runtime this should obtain ctypes.* class
         raise NotImplementedError('TODO: C: Unsupported node type "%s"' % node_type.__name__)
