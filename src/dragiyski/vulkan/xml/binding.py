@@ -5,6 +5,19 @@ from logging import getLogger
 from .taxonomy import Taxonomy
 from .node import Node
 
+def _c_sizeof(value):
+    try:
+        return ctypes.sizeof(value)
+    except TypeError:
+        return 0
+
+def _c_division(left, right):
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        if isinstance(left, float) or isinstance(right, float):
+            return left / right
+        return left // right
+    raise TypeError("unsupported operand type(s) for C-division: '%s' and '%s'" % (type(left).__name__, type(right).__name__))
+
 unary_operation = {
     '~': operator.inv,
     '+': operator.pos,
@@ -18,7 +31,7 @@ binary_operation = {
     '+': operator.add,
     '-': operator.sub,
     '*': operator.mul,
-    # '/': handled separately: maps to / for floating point, // for integer
+    '/': _c_division,
     '%': operator.mod,
     '<<': operator.lshift,
     '>>': operator.rshift
