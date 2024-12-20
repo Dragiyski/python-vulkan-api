@@ -1,5 +1,6 @@
-import re, math, ctypes, pycparser.c_ast, pycparser.c_generator
+import re, math, ctypes, operator, pycparser.c_ast, pycparser.c_generator
 from collections.abc import Mapping
+from functools import cached_property
 
 c_native_types = {
     'char': ctypes.c_char,
@@ -33,6 +34,28 @@ c_native_types = {
     'long long int': ctypes.c_longlong
 }
 
+c_type_category = {
+    'signed': {
+        1: ctypes.c_int8,
+        2: ctypes.c_int16,
+        4: ctypes.c_int32,
+        8: ctypes.c_int64
+    },
+    'unsigned': {
+        1: ctypes.c_uint8,
+        2: ctypes.c_uint16,
+        4: ctypes.c_uint32,
+        8: ctypes.c_uint64
+    },
+    'float': {
+        ctypes.sizeof(ctypes.c_float): ctypes.c_float,
+        ctypes.sizeof(ctypes.c_double): ctypes.c_double,
+    }
+}
+
+if ctypes.sizeof(ctypes.c_longdouble) not in c_type_category['float']:
+    c_type_category['float'][ctypes.sizeof(ctypes.c_longdouble)] = ctypes.c_longdouble
+
 c_external_types = {
     'VisualID': ctypes.c_uint32,  # X11/Xlib.h: CARD32
     'Window': ctypes.c_uint32,  # X11/Xlib.h: CARD32 => XID
@@ -57,6 +80,39 @@ c_external_types = {
     'NvSciBufObj': ctypes.c_void_p, # NV Sci Platform
 }
 
+class CTypeInfo:
+    _instance = {}
+
+    def __new__(cls, ctype):
+        if not isinstance(ctype, type):
+            ctype = type(ctype)
+        if ctype not in cls._instance:
+            self = cls._instance[ctype] = object.__new__(cls)
+            self.__type = ctype
+        return cls._instance[ctype]
+    
+    @cached_property
+    def size(self):
+        try:
+            return ctypes.sizeof(self.__type)
+        except TypeError:
+            return 0
+    
+    @cached_property
+    def type(self):
+        return self.__type
+
+    @cached_property
+    def is_unsigned(self):
+        return self.__type in c_type_category['unsigned'].values()
+    
+    @cached_property
+    def is_signed(self):
+        return self.__type in c_type_category['signed'].values()
+    
+    @cached_property
+    def is_float(self):
+        return self.__type in c_type_category['float'].values()
 
 class CParser(pycparser.CParser):
     REGEXP_MULTILINE_COMMENT = re.compile(r'\/\*.*\*\/')
@@ -354,7 +410,79 @@ class CContext:
             raise ValueError('Invalid C literal: expected string literals to start and end with quote (")')
         value = self.c_parser.parse_c_string(literal[start_index+1:-1])
         return method(value)
-        
+    
+    def get_ast_unary_operator(self, node: pycparser.c_ast.UnaryOp):
+        maybe_ctype = self.get_ast_expr_node_value(node.expr)
+        try:
+            ctype_sizeof = ctypes.sizeof(maybe_ctype)
+        except:
+            ctype_sizeof = 0
+        value = maybe_ctype
+        if ctype_sizeof > 0:
+            if not hasattr(maybe_ctype, 'value'):
+                raise TypeError(f'Invalid type for unary operator {node.op!r}: {maybe_ctype.__class__.__name__}')
+            value = maybe_ctype.value
+        if isinstance(value, bool):
+            value = int(value)
+        if isinstance(value, (int, float)):
+            if ctype_sizeof > 0:
+                match(node.op):
+                    case '+':
+                        return maybe_ctype.__class__(value)
+                    case '-':
+                        # C standard requires negation of unsigned integer types to be signed integer type.
+                        is_unsigned = maybe_ctype.__class__(-1) > 0
+                        if is_unsigned:
+                            match(ctype_sizeof):
+                                case 1:
+                                    return ctypes.c_int8(-value)
+                                case 2:
+                                    return ctypes.c_int16(-value)
+                                case 4:
+                                    return ctypes.c_int32(-value)
+                                case 8:
+                                    return ctypes.c_int64(-value)
+                                case _:
+                                    raise NotImplementedError(f'No known signed type for unsigned type: {maybe_ctype.__class__.__name__}')
+                        return maybe_ctype.__class__(-value)
+                    case '~':
+                        if not isinstance(value, int):
+                            raise TypeError(f'Wrong type argument to bit-complement: {maybe_ctype.__class__.__name__}')
+                        return maybe_ctype.__class__(~value)
+                    case '!':
+                        if not isinstance(value, (int, float, bool)):
+                            raise TypeError(f'Wrong type argument to not operator: {maybe_ctype.__class__.__name__}')
+                        return ctypes.c_bool(not value)
+                    case _:
+                        raise NotImplementedError(f'Unsupported unary operator: {node.op!r}')
+        raise NotImplementedError(f'Unsupported unary operation {node.op!r} on type {maybe_ctype.__class__.__name__}')
+
+    def get_ast_binary_operator(self, node: pycparser.c_ast.BinaryOp):
+        left_ctype = self.get_ast_expr_node_value(node.left)
+        right_ctype = self.get_ast_expr_node_value(node.right)
+        try:
+            left_size = ctypes.sizeof(left_ctype)
+        except TypeError:
+            left_size = 0
+        try:
+            right_size = ctypes.sizeof(right_ctype)
+        except TypeError:
+            right_size = 0
+        left_value = left_ctype
+        right_value = right_ctype
+        if left_size > 0:
+            if not hasattr(left_ctype, 'value'):
+                raise TypeError(f'Invalid type for binary operator {node.op!r}: {left_ctype.__class__.__name__}')
+            left_value = left_ctype.value
+        if right_size > 0:
+            if not hasattr(right_ctype, 'value'):
+                raise TypeError(f'Invalid type for binary operator {node.op!r}: {right_ctype.__class__.__name__}')
+            right_value = right_ctype.value
+        expand_size = max(left_size, right_size)
+        # If one is float, do float on expand_size: support only arithmetic operators: +, -, *, /, %, but no bitwise operations like |, &, ^
+        # If both are int, if one is unsigned, make it unsigned with the largest size, otherwise, use signed with the largest size.
+        # Operators &&, ||, ! can operate on any non-string type, returning ctypes.c_bool
+
     def get_ast_expr_node_value(self, node: pycparser.c_ast.Node):
         node_type = type(node)
         c_ast = pycparser.c_ast
@@ -366,6 +494,6 @@ class CContext:
             elif node.type == 'string':
                 return self._parse_string_literal_ctype(node.value)
         elif isinstance(node, c_ast.UnaryOp):
-            pass
+            return self.get_ast_unary_operator(node)
         elif isinstance(node, c_ast.BinaryOp):
             pass
