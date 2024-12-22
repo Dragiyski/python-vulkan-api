@@ -56,6 +56,65 @@ c_type_category = {
 if ctypes.sizeof(ctypes.c_longdouble) not in c_type_category['float']:
     c_type_category['float'][ctypes.sizeof(ctypes.c_longdouble)] = ctypes.c_longdouble
 
+def c_operator_div(left, right):
+    if isinstance(left, float) or isinstance(right, float):
+        return left / right
+    return left // right
+
+def c_boolean_and(left, right):
+    return bool(left) and bool(right)
+
+def c_boolean_or(left, right):
+    return bool(left) or bool(right)
+
+def c_increment(value):
+    return value + 1
+
+def c_decrement(value):
+    return value - 1
+
+def c_idle(value):
+    return value
+
+c_value_operators = {
+    'unary': {
+        '+': operator.pos,
+        '-': operator.neg,
+        '~': operator.inv,
+        '!': operator.not_,
+        '++': c_increment,
+        '--': c_decrement,
+        # We do not actually execute code. We do not care about future or previous expressions or memory/variable state.
+        # Instead we just get the value of a single expression.
+        # The the increment effect of ++X and X++ is ignored.
+        # Only the expression value of (++X) and (X++) matters. (X++) will be same as X prior the increment, thus X++, and X-- postfix have no visible effects.
+        'p++': c_idle,
+        'p--': c_idle,
+    },
+    'binary': {
+        '+': operator.add,
+        '-': operator.sub,
+        '*': operator.mul,
+        '/': c_operator_div,
+        '%': operator.mod,
+        '^': operator.xor,
+        '&': operator.and_,
+        '|': operator.or_,
+        '&&': c_boolean_and,
+        '||': c_boolean_or,
+        '==': operator.eq,
+        '!=': operator.neq,
+        '<': operator.lt,
+        '<=': operator.le,
+        '>': operator.gt,
+        '>=': operator.ge,
+        '<<': operator.lshift,
+        '>>': operator.rshift
+    }
+}
+
+c_boolean_operators = { '!', '&&', '||', '==', '!=', '<', '>', '<=', '>=' }
+
 c_external_types = {
     'VisualID': ctypes.c_uint32,  # X11/Xlib.h: CARD32
     'Window': ctypes.c_uint32,  # X11/Xlib.h: CARD32 => XID
@@ -108,11 +167,20 @@ class CTypeInfo:
     
     @cached_property
     def is_signed(self):
-        return self.__type in c_type_category['signed'].values()
+        return self.__type in c_type_category['signed'].values() or issubclass(self.__type, int)
     
     @cached_property
     def is_float(self):
-        return self.__type in c_type_category['float'].values()
+        return self.__type in c_type_category['float'].values() or issubclass(self.__type, float)
+
+    def get_value(self, object):
+        if self.size > 0 and hasattr(self.__type, 'value'):
+            value_attr = self.__type.value
+            if hasattr(value_attr, '__get__'):
+                getter = value_attr.__get__
+                if callable(getter):
+                    return getter(object)
+        return object
 
 class CParser(pycparser.CParser):
     REGEXP_MULTILINE_COMMENT = re.compile(r'\/\*.*\*\/')
@@ -412,76 +480,51 @@ class CContext:
         return method(value)
     
     def get_ast_unary_operator(self, node: pycparser.c_ast.UnaryOp):
-        maybe_ctype = self.get_ast_expr_node_value(node.expr)
-        try:
-            ctype_sizeof = ctypes.sizeof(maybe_ctype)
-        except:
-            ctype_sizeof = 0
-        value = maybe_ctype
-        if ctype_sizeof > 0:
-            if not hasattr(maybe_ctype, 'value'):
-                raise TypeError(f'Invalid type for unary operator {node.op!r}: {maybe_ctype.__class__.__name__}')
-            value = maybe_ctype.value
-        if isinstance(value, bool):
-            value = int(value)
-        if isinstance(value, (int, float)):
-            if ctype_sizeof > 0:
-                match(node.op):
-                    case '+':
-                        return maybe_ctype.__class__(value)
-                    case '-':
-                        # C standard requires negation of unsigned integer types to be signed integer type.
-                        is_unsigned = maybe_ctype.__class__(-1) > 0
-                        if is_unsigned:
-                            match(ctype_sizeof):
-                                case 1:
-                                    return ctypes.c_int8(-value)
-                                case 2:
-                                    return ctypes.c_int16(-value)
-                                case 4:
-                                    return ctypes.c_int32(-value)
-                                case 8:
-                                    return ctypes.c_int64(-value)
-                                case _:
-                                    raise NotImplementedError(f'No known signed type for unsigned type: {maybe_ctype.__class__.__name__}')
-                        return maybe_ctype.__class__(-value)
-                    case '~':
-                        if not isinstance(value, int):
-                            raise TypeError(f'Wrong type argument to bit-complement: {maybe_ctype.__class__.__name__}')
-                        return maybe_ctype.__class__(~value)
-                    case '!':
-                        if not isinstance(value, (int, float, bool)):
-                            raise TypeError(f'Wrong type argument to not operator: {maybe_ctype.__class__.__name__}')
-                        return ctypes.c_bool(not value)
-                    case _:
-                        raise NotImplementedError(f'Unsupported unary operator: {node.op!r}')
-        raise NotImplementedError(f'Unsupported unary operation {node.op!r} on type {maybe_ctype.__class__.__name__}')
-
+        arg = self.get_ast_expr_node_value(node.expr)
+        arg_info = CTypeInfo(arg)
+        arg_value = arg_info.get_value(arg)
+        if isinstance(arg, (int, float, bool)):
+            res_type = ctypes.c_bool if node.op in c_boolean_operators else arg_info.type
+            res_value = c_value_operators['unary'][node.op](arg_value)
+            return res_type(res_value)
+        raise TypeError(f'Unary operation {node.op!r} not defined for argument of type {arg_info.type.__name__!r}')
+    
     def get_ast_binary_operator(self, node: pycparser.c_ast.BinaryOp):
-        left_ctype = self.get_ast_expr_node_value(node.left)
-        right_ctype = self.get_ast_expr_node_value(node.right)
-        try:
-            left_size = ctypes.sizeof(left_ctype)
-        except TypeError:
-            left_size = 0
-        try:
-            right_size = ctypes.sizeof(right_ctype)
-        except TypeError:
-            right_size = 0
-        left_value = left_ctype
-        right_value = right_ctype
-        if left_size > 0:
-            if not hasattr(left_ctype, 'value'):
-                raise TypeError(f'Invalid type for binary operator {node.op!r}: {left_ctype.__class__.__name__}')
-            left_value = left_ctype.value
-        if right_size > 0:
-            if not hasattr(right_ctype, 'value'):
-                raise TypeError(f'Invalid type for binary operator {node.op!r}: {right_ctype.__class__.__name__}')
-            right_value = right_ctype.value
-        expand_size = max(left_size, right_size)
-        # If one is float, do float on expand_size: support only arithmetic operators: +, -, *, /, %, but no bitwise operations like |, &, ^
-        # If both are int, if one is unsigned, make it unsigned with the largest size, otherwise, use signed with the largest size.
-        # Operators &&, ||, ! can operate on any non-string type, returning ctypes.c_bool
+        left = self.get_ast_expr_node_value(node.left)
+        right = self.get_ast_expr_node_value(node.right)
+        left_info = CTypeInfo(left)
+        right_info = CTypeInfo(right)
+        left_value = left_info.get_value(left)
+        right_value = right_info.get_value(right)
+        # We do not know how to process any binary operations that are not on numbers:
+        if isinstance(left_value, (int, float, bool)) and isinstance(right_value, (int, float, bool)):
+            if node.op in c_boolean_operators:
+                res_type = ctypes.c_bool
+            else:
+                res_size = max(left_info.size, right_info.size)
+                if res_size > 0:
+                    if left_info.is_float or right_info.is_float:
+                        if res_size not in c_type_category['float']:
+                            raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
+                        res_type = c_type_category['float'][res_size]
+                    elif left_info.is_unsigned or right_info.is_unsigned:
+                        if res_size not in c_type_category['unsigned']:
+                            raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
+                        res_type = c_type_category['unsigned'][res_size]
+                    else:
+                        if res_size not in c_type_category['signed']:
+                            raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
+                        res_type = c_type_category['unsigned'][res_size]
+                else:
+                    if isinstance(left_value, float) or isinstance(right_value, float):
+                        res_type = float
+                    else:
+                        assert isinstance(left_value, int), """isinstance(left_value, int)"""
+                        assert isinstance(right_value, int), """isinstance(right_value, int)"""
+                        res_type = int
+            res_value = c_value_operators['binary'][node.op](left_value, right_value)
+            return res_type(res_value)
+        raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
 
     def get_ast_expr_node_value(self, node: pycparser.c_ast.Node):
         node_type = type(node)
@@ -496,4 +539,14 @@ class CContext:
         elif isinstance(node, c_ast.UnaryOp):
             return self.get_ast_unary_operator(node)
         elif isinstance(node, c_ast.BinaryOp):
-            pass
+            return self.get_ast_binary_operator(node)
+        elif isinstance(node, c_ast.Cast):
+            # Perform get_type_from_decl that recurse TypeDecl node.
+            # Casting should be handled for at least c_native_type, pointers and arrays.
+            # For array get_type_from_decl should use `get_ast_expr_node_value` to obtain a value for the length of the fixed array.
+            raise NotImplementedError(f'Work-in-progress: {node.__name__!r} node')
+        elif isinstance(node, c_ast.ID):
+            # ID is searched in:
+            # - context => named mapping on this function;
+            # - self.values => named defitions for this context (can change during work);
+            raise NotImplementedError(f'Work-in-progress: {node.__name__!r} node')
