@@ -103,7 +103,7 @@ c_value_operators = {
         '&&': c_boolean_and,
         '||': c_boolean_or,
         '==': operator.eq,
-        '!=': operator.neq,
+        '!=': operator.ne,
         '<': operator.lt,
         '<=': operator.le,
         '>': operator.gt,
@@ -172,14 +172,20 @@ class CTypeInfo:
     @cached_property
     def is_float(self):
         return self.__type in c_type_category['float'].values() or issubclass(self.__type, float)
-
-    def get_value(self, object):
+    
+    @cached_property
+    def _getter(self):
         if self.size > 0 and hasattr(self.__type, 'value'):
             value_attr = self.__type.value
             if hasattr(value_attr, '__get__'):
                 getter = value_attr.__get__
                 if callable(getter):
-                    return getter(object)
+                    return getter
+        return None
+
+    def get_value(self, object):
+        if callable(self._getter):
+            return self._getter(object)
         return object
 
 class CParser(pycparser.CParser):
@@ -320,7 +326,7 @@ class CParser(pycparser.CParser):
         if is_value_macro is not None:
             return cls._parser_preprocessor_value(is_value_macro)
     
-    @classmethod
+    @staticmethod
     def _parser_preprocessor_func(data: re.Match):
         arguments = [arg.strip() for arg in data.group(2).split(',')]
         code = data.group(3).strip()
@@ -421,132 +427,4 @@ class CContext:
         self.c_parser = CParser(self.types)
         self.c_generator = CGenerator()
     
-    def c_preprocess_code_ast(self, code: str):
-        ast = self.c_parser.parse(code)
-        while self.c_preprocess_ast(ast):
-            code = self.c_generator.visit(ast)
-            ast = self.c_parser.parse(code)
-        return ast
     
-    def c_preprocess_ast(self, node: pycparser.c_ast.Node):
-        has_substitution = False
-        for name, child_node in node.children():
-            if type(child_node) is pycparser.c_ast.ID and child_node.name in self.definitions and isinstance(self.definitions[child_node.name], str):
-                setattr(node, name, self.c_generator.Code(self.definitions[child_node.name]))
-                has_substitution = True
-                continue
-            if type(child_node) is pycparser.c_ast.FuncCall and child_node.name.name in self.definitions and isinstance(self.definitions[child_node.name.name], dict):
-                args = [self.c_generator.visit(x) for x in child_node.args]
-                macro = self.definitions[child_node.name.name]
-                if len(macro['arguments']) != len(args):
-                    raise self.c_parser.ParseError('Macro "%s" accept "%d" arguments, but called with "%d" arguments' % (child_node.name.name, len(macro['arguments'], len(args))))
-                code = []
-                for part in macro['template']:
-                    if isinstance(part, str):
-                        code.append(part)
-                    else:
-                        code.append(args[part['index']])
-                code = ''.join(code)
-                setattr(node, name, self.c_generator.Code(code))
-                has_substitution = True
-                continue
-            has_descendant_substitution = self.c_preprocess_ast(child_node)
-            has_substitution = has_substitution or has_descendant_substitution
-        return has_substitution
-    
-    def get_define_value(self, name):
-        if name in self.definitions and isinstance(self.definitions[name], str):
-            root = self.c_preprocess_code_ast(f'int var = {name};')
-            return self.get_ast_expr_node_value(root.ext[0])
-
-    @staticmethod
-    def _create_ctype_buffer_from_string(value: str):
-        return ctypes.create_string_buffer(value.encode())
-
-    def _parse_string_literal_ctype(self, literal: str):
-        start_index = 0
-        method = self._create_ctype_buffer_from_string
-        if literal.startswith('u8'):
-            start_index = 2
-        elif literal.startswith('L'):
-            start_index = 1
-            method = ctypes.create_unicode_buffer
-        elif literal.startswith('U'):
-            start_index = 1
-            raise NotImplementedError('Unicode literals are not implemented by this CParser, yet')
-        if (len(literal) - start_index) < 2 or literal[start_index] != '"' or literal[-1] != '"':
-            raise ValueError('Invalid C literal: expected string literals to start and end with quote (")')
-        value = self.c_parser.parse_c_string(literal[start_index+1:-1])
-        return method(value)
-    
-    def get_ast_unary_operator(self, node: pycparser.c_ast.UnaryOp):
-        arg = self.get_ast_expr_node_value(node.expr)
-        arg_info = CTypeInfo(arg)
-        arg_value = arg_info.get_value(arg)
-        if isinstance(arg, (int, float, bool)):
-            res_type = ctypes.c_bool if node.op in c_boolean_operators else arg_info.type
-            res_value = c_value_operators['unary'][node.op](arg_value)
-            return res_type(res_value)
-        raise TypeError(f'Unary operation {node.op!r} not defined for argument of type {arg_info.type.__name__!r}')
-    
-    def get_ast_binary_operator(self, node: pycparser.c_ast.BinaryOp):
-        left = self.get_ast_expr_node_value(node.left)
-        right = self.get_ast_expr_node_value(node.right)
-        left_info = CTypeInfo(left)
-        right_info = CTypeInfo(right)
-        left_value = left_info.get_value(left)
-        right_value = right_info.get_value(right)
-        # We do not know how to process any binary operations that are not on numbers:
-        if isinstance(left_value, (int, float, bool)) and isinstance(right_value, (int, float, bool)):
-            if node.op in c_boolean_operators:
-                res_type = ctypes.c_bool
-            else:
-                res_size = max(left_info.size, right_info.size)
-                if res_size > 0:
-                    if left_info.is_float or right_info.is_float:
-                        if res_size not in c_type_category['float']:
-                            raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
-                        res_type = c_type_category['float'][res_size]
-                    elif left_info.is_unsigned or right_info.is_unsigned:
-                        if res_size not in c_type_category['unsigned']:
-                            raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
-                        res_type = c_type_category['unsigned'][res_size]
-                    else:
-                        if res_size not in c_type_category['signed']:
-                            raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
-                        res_type = c_type_category['unsigned'][res_size]
-                else:
-                    if isinstance(left_value, float) or isinstance(right_value, float):
-                        res_type = float
-                    else:
-                        assert isinstance(left_value, int), """isinstance(left_value, int)"""
-                        assert isinstance(right_value, int), """isinstance(right_value, int)"""
-                        res_type = int
-            res_value = c_value_operators['binary'][node.op](left_value, right_value)
-            return res_type(res_value)
-        raise NotImplementedError(f'No operator {node.op!r} defined for types {left.__name__!r} and {right.__name__!r}')
-
-    def get_ast_expr_node_value(self, node: pycparser.c_ast.Node):
-        node_type = type(node)
-        c_ast = pycparser.c_ast
-        if isinstance(node, c_ast.Constant):
-            if 'int' in node.type:
-                return c_native_types[node_type](self.c_parser.parse_c_int(node.value))
-            elif node.type in ['float', 'double']:
-                return c_native_types[node_type](self.c_parser.parse_c_float(node.value))
-            elif node.type == 'string':
-                return self._parse_string_literal_ctype(node.value)
-        elif isinstance(node, c_ast.UnaryOp):
-            return self.get_ast_unary_operator(node)
-        elif isinstance(node, c_ast.BinaryOp):
-            return self.get_ast_binary_operator(node)
-        elif isinstance(node, c_ast.Cast):
-            # Perform get_type_from_decl that recurse TypeDecl node.
-            # Casting should be handled for at least c_native_type, pointers and arrays.
-            # For array get_type_from_decl should use `get_ast_expr_node_value` to obtain a value for the length of the fixed array.
-            raise NotImplementedError(f'Work-in-progress: {node.__name__!r} node')
-        elif isinstance(node, c_ast.ID):
-            # ID is searched in:
-            # - context => named mapping on this function;
-            # - self.values => named defitions for this context (can change during work);
-            raise NotImplementedError(f'Work-in-progress: {node.__name__!r} node')
