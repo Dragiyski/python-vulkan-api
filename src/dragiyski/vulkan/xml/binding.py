@@ -19,6 +19,73 @@ class Binding:
 # TODO: Create Api classes that accept binding and taxonomy
 # TODO: Api classes can use both to generate more pythonic version of vulkan commands.
 class LazyBinding(Binding):
+    class CMacro:
+        def __init__(self, binding: 'LazyBinding', name: str, template: list[str], arguments: list[str]):
+            self.binding = binding
+            self.template = template
+            self.name = name
+            if len(set(arguments)) != len(arguments):
+                raise ValueError('Found duplicate argument names')
+            self.arguments = arguments
+
+        @property
+        def __name__(self):
+            return self.name
+
+        def _convert_to_code(self, value):
+            if isinstance(value, CGenerator.Code):
+                return value
+            value = CTypeInfo(value).get_value(value)
+            if isinstance(value, (str, bytes)):
+                return CGenerator.Code(CGenerator.generate_c_string(value))
+            if isinstance(value, int):
+                return CGenerator.Code('%d' % value)
+            if isinstance(value, float):
+                string = '%g' % value
+                if '.' not in string:
+                    string += '.0'
+                return CGenerator.Code(string)
+            raise NotImplementedError('No known method for converting "%s" to "CGenerator.Code"' % (value.__qualname__))
+        
+        def __call__(self, *args, **kwargs):
+            context = {}
+            for i in range(min(len(self.arguments), len(args))):
+                context[self.arguments[i]] = self._convert_to_code(args[i])
+            for name, value in kwargs.items():
+                if name in context:
+                    raise TypeError('%s() got multiple values for argument %r' % (self.name, name))
+                context[name] = self._convert_to_code(value)
+            missing = set(self.arguments).difference(context.keys())
+            if len(missing) > 0:
+                missing_list = [x for x in self.arguments if x in missing]
+                raise TypeError('%s() missing %d required positional arguments:' % (self.name, len(missing_list), ', '.join(repr(x) for x in missing_list)))
+            macro_args = [context[name] for name in self.arguments]
+            macro_call = pycparser.c_ast.FuncCall(
+                name=pycparser.c_ast.ID(name=self.name),
+                args=pycparser.c_ast.ExprList(exprs=macro_args)
+            )
+            macro_decl = pycparser.c_ast.Decl(
+                name='_',
+                quals=[],
+                align=[],
+                storage=[],
+                funcspec=[],
+                bitsize=None,
+                type=pycparser.c_ast.TypeDecl(
+                    declname='_',
+                    quals=[],
+                    align=[],
+                    type=pycparser.c_ast.IdentifierType(names=['int'])
+                ),
+                init=macro_call
+            )
+            macro_ast = pycparser.c_ast.FileAST(ext=[macro_decl])
+            code = self.binding.c_generator.visit(macro_ast)
+            ast_root = self.binding.c_preprocess_code(code)
+            res_value = self.binding.c_get_ast_expr_node_value(ast_root.ext[0].init)
+            return CTypeInfo(res_value).get_value(res_value)
+            
+
     def __init__(self, taxonomy: Taxonomy, *, skip_names: Collection = set()):
         self.taxonomy = taxonomy
 
@@ -50,7 +117,10 @@ class LazyBinding(Binding):
                 if node.path[-2:] != ['types', 'type']:
                     continue
                 try:
-                    self.c_pp_definitions[name] = CParser.parse_preprocessor(node.get_text())
+                    macro = CParser.parse_preprocessor(node.get_text())
+                    if isinstance(macro, dict):
+                        macro = self.CMacro(self, name, macro['template'], macro['arguments'])
+                    self.c_pp_definitions[name] = macro
                 except ValueError:
                     pass
 
@@ -106,15 +176,17 @@ class LazyBinding(Binding):
                 setattr(node, name, self.c_generator.Code(self.c_pp_definitions[child_node.name]))
                 has_substitution = True
                 continue
-            if isinstance(child_node, pycparser.c_ast.FuncCall) and child_node.name.name in self.c_pp_definitions and isinstance(self.c_pp_definitions[child_node.name.name], dict):
+            if isinstance(child_node, pycparser.c_ast.FuncCall) and child_node.name.name in self.c_pp_definitions and isinstance(self.c_pp_definitions[child_node.name.name], self.CMacro):
                 args = [self.c_generator.visit(x) for x in child_node.args]
                 macro = self.c_pp_definitions[child_node.name.name]
-                if len(macro['arguments']) != len(args):
+                if len(macro.arguments) != len(args):
                     raise pycparser.c_parser.ParseError('Macro "%s" accept "%d" arguments, but called with "%d" arguments' % (child_node.name.name, len(macro['arguments'], len(args))))
                 code = []
-                for part in macro['template']:
+                for part in macro.template:
                     if isinstance(part, str):
                         code.append(part)
+                    elif part['string']:
+                        code.append(self.c_generator.generate_c_string(args[part['index']]))
                     else:
                         code.append(args[part['index']])
                 code = ''.join(code)
@@ -131,6 +203,8 @@ class LazyBinding(Binding):
                 c_ast = self.c_preprocess_code(f'int var = {name};')
                 value = self.c_get_ast_expr_node_value(c_ast.ext[0].init)
                 return CTypeInfo(value).get_value(value)
+            if isinstance(self.c_pp_definitions[name], self.CMacro):
+                return self.c_pp_definitions[name]
 
     @staticmethod
     def c_create_ctype_buffer_from_string(value: str):

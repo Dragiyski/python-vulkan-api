@@ -384,7 +384,8 @@ class CGenerator(pycparser.c_generator.CGenerator):
     def generate_c_string(cls, value: str | bytes, *, encoding='utf-8'):
         if isinstance(value, str):
             value = value.encode(encoding=encoding)
-        return '"' + re.sub(b'[\x00-\x1F\x7F-\xFF"\\]', cls._sub_string_escape, value) + '"'
+        value = re.sub(b'[\x00-\x1F\x7F-\xFF"\\\\]', cls._sub_string_escape, value).decode()
+        return f'"{value}"'
 
     @staticmethod
     def _sub_string_escape(match):
@@ -418,13 +419,3 @@ class CGenerator(pycparser.c_generator.CGenerator):
         if isinstance(value, (str, bytes)):
             return cls.Code(cls.generate_c_string(value, **kwargs))
         raise TypeError('Unsupported C literal type: %s' % type(value).__qualname__)
-
-class CContext:
-    def __init__(self, *, types: Mapping = {}, values: Mapping = {}, definitions: Mapping = {}):
-        self.types = types
-        self.values = values
-        self.definitions = definitions
-        self.c_parser = CParser(self.types)
-        self.c_generator = CGenerator()
-    
-    
