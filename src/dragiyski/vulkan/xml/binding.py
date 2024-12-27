@@ -8,6 +8,8 @@ from .c import CParser, CGenerator, CTypeInfo, c_native_types, c_external_types,
 
 logger = getLogger('dragiyski.vulkan.binding')
 
+REGEXP_INT_WORD = re.compile(r'\bint\b')
+
 class Binding:
     class DefinitionError(RuntimeError):
         pass
@@ -152,6 +154,11 @@ class LazyBinding(Binding):
         name = self._resolve_alias(name)
         if name in self.c_pp_definitions:
             return self.c_get_define_value(name)
+        if name in self._types:
+            return self._types[name]
+        if name in self.taxonomy.category['basetype']:
+            self._types[name] = self.c_get_basetype(name)
+            return self._types[name]
         raise NotImplementedError('No vulkan binding for "%s"' % name)
 
     def _resolve_alias(self, name: str):
@@ -161,6 +168,33 @@ class LazyBinding(Binding):
                 if node.has_attribute('alias'):
                     name = node.get_attribute('alias')
         return name
+    
+    def c_get_basetype(self, name: str):
+        for node in self.taxonomy.nodes[name]:
+            node: Node
+            if node.path[-2:] == ['types', 'type'] and 'name' in node.children:
+                words = [x.strip() for x in re.split(r'\b', ''.join([x.node_value for x in node.get_text_nodes_before(node.get('name'))]))]
+                words = [x for x in words if x]
+                if 'typedef' not in words:
+                    if words[-1] in ['struct', 'union']:
+                    # Opaque types are returned as None. While this is a bit hacky (as non-type values can also be None),
+                    # it works with ctypes.POINTER, so it does not break 
+                        return None
+                    raise RuntimeError(f'At {node.file_path}: Basetype "{name}" not a typedef or struct/union!')
+                words = words[len(words) - words[::-1].index('typedef'):]
+                ctype = ' '.join(words).strip()
+                ptr_count = 0
+                while ctype.endswith('*'):
+                    ctype = ctype[:-1].strip()
+                    ptr_count += 1
+                if 'struct' in words or 'union' in words:
+                    ctype = None
+                else:
+                    ctype = self[ctype]
+                while ptr_count > 0:
+                    ctype = ctypes.POINTER(ctype)
+                    ptr_count -= 1
+                return ctype
 
     def c_preprocess_code(self, code: str):
         ast = self.c_parser.parse(code)
@@ -276,10 +310,10 @@ class LazyBinding(Binding):
     def c_get_ast_expr_node_value(self, node: pycparser.c_ast.Node):
         c_ast = pycparser.c_ast
         if isinstance(node, c_ast.Constant):
-            if 'int' in node.type:
-                return c_native_types[node.type](self.c_parser.parse_c_int(node.value))
+            if REGEXP_INT_WORD.search(node.type) is not None:
+                return self._types[node.type](self.c_parser.parse_c_int(node.value))
             if node.type in ['float', 'double']:
-                return c_native_types[node.type](self.c_parser.parse_c_float(node.value))
+                return self._types[node.type](self.c_parser.parse_c_float(node.value))
             if node.type == 'string':
                 return self.c_parse_string_literal_ctype(node.value)
             raise NotImplementedError('TODO: C: Constant: %s' % node.type)
@@ -312,8 +346,15 @@ class LazyBinding(Binding):
             else:
                 raise NotImplementedError('TODO: C: TypeDecl => %s' % node.type.__name__)
             type_name = self._resolve_alias(type_name)
+            # TODO: {
+            # TODO: This must access to self[type_name] and then identify that returned value is type.
+            try:
+                self[type_name]
+            except KeyError:
+                pass
             if type_name not in self._types:
                 raise pycparser.c_parser.ParseError('Reference to undefined type "%s"' % (type_name))
             assert CTypeInfo(self._types[type_name]).size > 0, """CTypeInfo(self._types[type]).size > 0"""
             return self._types[type_name]
+            # TODO: }
         raise NotImplementedError(f'TODO: C: c_ast.{node.__name__}')
