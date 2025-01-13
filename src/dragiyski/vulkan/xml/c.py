@@ -1,5 +1,5 @@
 import re, math, ctypes, operator, pycparser.c_ast, pycparser.c_generator
-from collections.abc import Mapping
+from collections.abc import Container
 from collections import OrderedDict
 from functools import cached_property
 
@@ -196,7 +196,7 @@ class CParser(pycparser.CParser):
     REGEXP_FUNC_MACRO = re.compile(r'\s*#\s*define\s+(\w+)\(([^)]+)\)(.*)')
     REGEXP_VALUE_MACRO = re.compile(r'\s*#\s*define\s+(\w+)\s+(.*)')
 
-    def __init__(self, types: Mapping = {}, **kwargs):
+    def __init__(self, types: Container = (), **kwargs):
         super().__init__(**kwargs)
         self._types = types
     

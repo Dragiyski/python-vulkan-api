@@ -77,14 +77,14 @@ class Node:
     def path(self) -> 'list[str]':
         return (self.parent_node.path if self.parent_node is not None else []) + [self.node_name]
 
-    def get_text_nodes_before(self, node):
+    def get_text_nodes_before(self, node, *, skip_comments = True):
         items = []
-        self._get_text_nodes_before(node, items)
+        self._get_text_nodes_before(node, items, skip_comments=skip_comments)
         return items
 
-    def get_text_nodes_after(self, node):
+    def get_text_nodes_after(self, node, *, skip_comments = True):
         items = []
-        self._get_text_nodes_after(node, items)
+        self._get_text_nodes_after(node, items, skip_comments=skip_comments)
         return items
     
     def get_text_before(self, node, *, skip_comments = True):
