@@ -41,6 +41,9 @@ class Taxonomy:
                 return False
         return True
     
+    def finalize(self):
+        self.category['enum'].difference_update(self.bit_group_map.keys())
+    
     def add_root(self, root: Node):
         for tags_node in root.get_all('tags'):
             for tag_node in tags_node.get_all('tag'):

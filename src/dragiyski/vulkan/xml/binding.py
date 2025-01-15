@@ -1,9 +1,10 @@
 import sys, re, ast, ctypes, operator, pycparser.c_generator, pycparser.c_parser, pycparser.c_ast
 from collections.abc import Mapping, Collection
-from collections import Counter
+from collections import Counter, OrderedDict
 from types import MappingProxyType, new_class
 from logging import getLogger
 from functools import cached_property, partial
+from enum import IntFlag, IntEnum
 from .taxonomy import Taxonomy
 from .node import Node
 from .c import CParser, CGenerator, CTypeInfo, c_native_types, c_external_types, c_boolean_operators, c_value_operators, c_type_category
@@ -12,6 +13,25 @@ logger = getLogger('dragiyski.vulkan.binding')
 
 REGEXP_INT_WORD = re.compile(r'\bint\b')
 REGEXP_C_AST_CHILD_NAME = re.compile(r'([a-zA-Z_][a-zA-Z0-9_]*)(?:\[([0-9+])\])?')
+
+class _Alias:
+    __slots__ = ('name', 'target')
+    def __init__(self, name, target):
+        self.name = name
+        self.target = target
+
+def _count_bits(value):
+    bits = 0
+    while value > 0:
+        bits += value & 1
+        value >>= 1
+    return bits
+
+def _key_value_bitmask_sort_key(item):
+    return [_count_bits(item[1]), item[1]]
+
+def _key_enum_sort_key(item):
+    return item[1]
 
 def _c_ast_set_attribute(target, name, value):
     if isinstance(name, int):
@@ -110,7 +130,7 @@ class LazyDirectBinding:
         
         @property
         def ctype(self):
-            return self.binding[self.name]
+            return self.binding._get_ctype(self.name)
     
     class KnownCType:
         __slots__ = ('ctype')
@@ -127,18 +147,41 @@ class LazyDirectBinding:
             **{k: self.KnownCType(v) for k, v in c_native_types.items()},
             **{k: self.KnownCType(v) for k, v in c_external_types.items()}
         }
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['basetype'].difference(self._c_types.keys())})
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['external_type'].difference(self._c_types.keys())})
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['type'].difference(self._c_types.keys())})
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['complex'].difference(self._c_types.keys())})
-        self._c_parser = CParser(self._c_types.keys())
-        self._c_generator = CGenerator()
-        self._c_complex_resolve_stack = []
-
         self._skip_names = set(skip_names) | {
             'VK_DEFINE_HANDLE',
             'VK_DEFINE_NON_DISPATCHABLE_HANDLE'
         }
+
+        # Skip VkStructureType values that refer to types node included in the current API.
+        skip_callbacks = set()
+        skip_structure_types = {member_node.get_attribute('values') for name in taxonomy.category['complex'] for node in taxonomy.nodes[name] for member_node in node.get_all('member') if 'name' in member_node.children and member_node.get('name').get_text() == 'sType' and member_node.has_attribute('values')}.difference(taxonomy.group_value_map['VkStructureType'])
+        skip_structures = {name for name in taxonomy.category['complex'] for node in taxonomy.nodes[name] for member_node in node.get_all('member') if 'name' in member_node.children and member_node.get('name').get_text() == 'sType' and member_node.has_attribute('values') and member_node.get_attribute('values') in skip_structure_types}
+        skip_structures_len = len(skip_structures)
+        while True:
+            skip_callbacks |= {name for name in self.taxonomy.category['callback'] for node in self.taxonomy.nodes[name] for type_node in node.get_all('type') if type_node.get_text() in skip_structures}
+            skip_structures |= {name for name in taxonomy.category['complex'] for node in taxonomy.nodes[name] for member_node in node.get_all('member') if 'type' in member_node.children and (member_node.get('type').get_text() in skip_structure_types or member_node.get('type').get_text() in skip_callbacks)}
+            if skip_structures_len == len(skip_structures):
+                break
+            skip_structures_len = len(skip_structures)
+        skip_structure_callback = skip_structures | skip_callbacks
+        skip_commands = set()
+        for command_name, command_node in ((name, node) for name in self.taxonomy.category['command'] for node in self.taxonomy.nodes[name] if 'proto' in node.children):
+            command_types = set(command_node.get('proto').get('type').get_text()) | {param_node.get('type').get_text() for param_node in command_node.get_all('param')}
+            if len(command_types & skip_structure_callback) > 0:
+                skip_commands.add(command_name)
+        self._skip_names |= skip_callbacks
+        self._skip_names |= skip_commands
+        self._skip_names |= skip_structures
+        self._skip_names |= {x[4:] for x in skip_callbacks if x.startswith('PFN_')}
+
+        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['basetype'].difference(self._c_types.keys()).difference(self._skip_names)})
+        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['external_type'].difference(self._c_types.keys()).difference(self._skip_names)})
+        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['type'].difference(self._c_types.keys()).difference(self._skip_names)})
+        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['complex'].difference(self._c_types.keys()).difference(self._skip_names)})
+        self._c_parser = CParser(self._c_types.keys())
+        self._c_generator = CGenerator()
+        self._c_complex_resolve_stack = []
+        pass
 
         self._names = set(self.taxonomy.nodes.keys()).difference(self._skip_names)
 
@@ -176,13 +219,21 @@ class LazyDirectBinding:
             return CTypeInfo(c_value).get_value(c_value)
         if name in self._c_preprocessor_macro:
             return self._c_preprocessor_macro[name]
-        if name in self.taxonomy.category['basetype']:
-            return self._c_resolve_base_type(name)
+        if name in self._c_types:
+            return self._c_types[name].ctype
         if name in self.taxonomy.category['handle']:
             return self._c_types[name].ctype
         if name in self.taxonomy.category['bitmask']:
             return self._vulkan_compile_bitmask(name)
-    
+        if name in self.taxonomy.category['enum']:
+            return self._vulkan_compile_enum(name)
+        if name in self.taxonomy.value_group_map:
+            return self[self.taxonomy.bit_group_map[self.taxonomy.value_group_map[name]]][name]
+
+    def _get_ctype(self, name):
+        if name in self.taxonomy.category['basetype']:
+            return self._c_resolve_base_type(name)
+
     def _c_init_preprocessor(self):
         for name in self.taxonomy.category['define']:
             if name in self._skip_names:
@@ -380,15 +431,74 @@ class LazyDirectBinding:
         raise KeyError(name)
 
     def _vulkan_compile_bitmask(self, name: str):
-        from enum import IntFlag
-        return new_class(name, (IntFlag,), None, lambda ns: self._vulkan_bitmask_class_prepare(name, ns))
-        pass
-
-    def _vulkan_bitmask_class_prepare(self, name: str, namespace: dict):
+        alias_map = {}
+        value_map = {}
         if name in self.taxonomy.group_bit_map:
             bits_name = self.taxonomy.group_bit_map[name]
             if bits_name in self.taxonomy.group_value_map:
                 bit_values = self.taxonomy.group_value_map[bits_name]
                 for bit_name in bit_values:
-                    namespace[bit_name] = cached_property(partial(self.__getitem__, bit_name))
-        pass
+                    value = self._get_group_value(bit_name)
+                    if isinstance(value, _Alias):
+                        assert value.name == bit_name, """value.name == bit_name"""
+                        if value.name not in alias_map:
+                            alias_map[value.name] = value.target
+                        elif alias_map[value.name] != value.target:
+                            raise ValueError(f'Invalid alias: {value.name} already points to {alias_map[value.name]}, but a second declaration points to {value.target}')
+                    else:
+                        value_map[bit_name] = value
+        bitmask_class = new_class(name, (IntFlag,), None, lambda ns: ns.update(OrderedDict(sorted(value_map.items(), key=_key_value_bitmask_sort_key))))
+        for bit_name, value in alias_map.items():
+            setattr(bitmask_class, bit_name, bitmask_class[value])
+            bitmask_class._member_map_[bit_name] = bitmask_class[value]
+        return bitmask_class
+
+    def _vulkan_compile_enum(self, name: str):
+        alias_map = {}
+        value_map = {}
+        if name in self.taxonomy.group_value_map:
+            enum_values = self.taxonomy.group_value_map[name]
+            for enum_value_name in enum_values:
+                value = self._get_group_value(enum_value_name)
+                if isinstance(value, _Alias):
+                    assert value.name == enum_value_name, """value.name == bit_name"""
+                    if value.name not in alias_map:
+                        alias_map[value.name] = value.target
+                    elif alias_map[value.name] != value.target:
+                        raise ValueError(f'Invalid alias: {value.name} already points to {alias_map[value.name]}, but a second declaration points to {value.target}')
+                else:
+                    value_map[enum_value_name] = value
+        enum_class = new_class(name, (IntEnum,), None, lambda ns: ns.update(OrderedDict(sorted(value_map.items(), key=_key_enum_sort_key))))
+        for enum_value_name, value in alias_map.items():
+            setattr(enum_class, enum_value_name, enum_class[value])
+            enum_class._member_map_[enum_value_name] = enum_class[value]
+        return enum_class
+    
+    def _get_group_value(self, value_name: str):
+        for node in self.taxonomy.nodes[value_name]:
+            node: Node
+            factor = 1
+            if node.get_attribute('dir') == '-':
+                factor = -1
+            if node.has_attribute('alias'):
+                assert factor == 1, """factor == 1"""
+                return _Alias(value_name, self._resolve_alias(value_name))
+            if node.has_attribute('bitpos'):
+                assert factor == 1, """factor == 1"""
+                bitpos = self._c_parser.parse_c_int(node.get_attribute('bitpos'))
+                return 1 << bitpos
+            if node.has_attribute('value'):
+                return factor * self._c_parser.parse_c_int(node.get_attribute('value'))
+            if node.has_attribute('offset'):
+                if not node.has_attribute('extnumber'):
+                    assert 'extension' in node.path, """'extension' in node.path"""
+                    extension_node = node
+                    while extension_node is not None and extension_node.path[-1] != 'extension':
+                        extension_node = extension_node.parent_node
+                    assert extension_node is not None and extension_node.has_attribute('number'), """extension_node is not None and extension_node.has_attribute('number')"""
+                    extnumber = self._c_parser.parse_c_int(extension_node.get_attribute('number'))
+                else:
+                    extnumber = self._c_parser.parse_c_int(node.get_attribute('extnumber'))
+                offset = self._c_parser.parse_c_int(node.get_attribute('offset'))
+                return factor * (1000000000 + (extnumber - 1) * 1000 + offset)
+        raise NotImplementedError(f'Bitmask node {value_name} has no sufficient information for determining its value.')
