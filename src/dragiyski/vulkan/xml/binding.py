@@ -219,20 +219,33 @@ class LazyDirectBinding:
             return CTypeInfo(c_value).get_value(c_value)
         if name in self._c_preprocessor_macro:
             return self._c_preprocessor_macro[name]
-        if name in self._c_types:
-            return self._c_types[name].ctype
-        if name in self.taxonomy.category['handle']:
-            return self._c_types[name].ctype
         if name in self.taxonomy.category['bitmask']:
             return self._vulkan_compile_bitmask(name)
         if name in self.taxonomy.category['enum']:
             return self._vulkan_compile_enum(name)
         if name in self.taxonomy.value_group_map:
             return self[self.taxonomy.bit_group_map[self.taxonomy.value_group_map[name]]][name]
+        if name in self._c_types:
+            return self._c_types[name].ctype
+        if name in self.taxonomy.category['handle']:
+            return self._c_types[name].ctype
+        if name in self.taxonomy.category['value']:
+            return self._vulkan_compile_value(name)
 
     def _get_ctype(self, name):
+        name = self._resolve_alias(name)
         if name in self.taxonomy.category['basetype']:
             return self._c_resolve_base_type(name)
+        if name in self.taxonomy.category['external_type']:
+            return None
+        if name in self.taxonomy.category['bitmask'] or name in self.taxonomy.category['enum']:
+            ctype = self._c_types['int'].ctype
+            for node in self.taxonomy.nodes[name]:
+                if 'type' in node.children:
+                    node_ctype = node.get('type').get_text()
+                    assert node_ctype in self._c_types
+                    ctype = self._c_types[node_ctype].ctype
+            return ctype
 
     def _c_init_preprocessor(self):
         for name in self.taxonomy.category['define']:
@@ -324,7 +337,7 @@ class LazyDirectBinding:
         arg = self._c_get_ast_expr_node_value(node.expr)
         arg_info = CTypeInfo(arg)
         arg_value = arg_info.get_value(arg)
-        if isinstance(arg, (int, float, bool)):
+        if isinstance(arg_value, (int, float, bool)):
             res_type = ctypes.c_bool if node.op in c_boolean_operators else arg_info.type
             res_value = c_value_operators['unary'][node.op](arg_value)
             return res_type(res_value)
@@ -438,7 +451,7 @@ class LazyDirectBinding:
             if bits_name in self.taxonomy.group_value_map:
                 bit_values = self.taxonomy.group_value_map[bits_name]
                 for bit_name in bit_values:
-                    value = self._get_group_value(bit_name)
+                    value = self._get_vulkan_value(bit_name)
                     if isinstance(value, _Alias):
                         assert value.name == bit_name, """value.name == bit_name"""
                         if value.name not in alias_map:
@@ -459,7 +472,7 @@ class LazyDirectBinding:
         if name in self.taxonomy.group_value_map:
             enum_values = self.taxonomy.group_value_map[name]
             for enum_value_name in enum_values:
-                value = self._get_group_value(enum_value_name)
+                value = self._get_vulkan_value(enum_value_name)
                 if isinstance(value, _Alias):
                     assert value.name == enum_value_name, """value.name == bit_name"""
                     if value.name not in alias_map:
@@ -474,7 +487,12 @@ class LazyDirectBinding:
             enum_class._member_map_[enum_value_name] = enum_class[value]
         return enum_class
     
-    def _get_group_value(self, value_name: str):
+    def _vulkan_compile_value(self, name):
+        value = self._get_vulkan_value(name)
+        return value
+        pass
+    
+    def _get_vulkan_value(self, value_name: str):
         for node in self.taxonomy.nodes[value_name]:
             node: Node
             factor = 1
@@ -488,7 +506,13 @@ class LazyDirectBinding:
                 bitpos = self._c_parser.parse_c_int(node.get_attribute('bitpos'))
                 return 1 << bitpos
             if node.has_attribute('value'):
-                return factor * self._c_parser.parse_c_int(node.get_attribute('value'))
+                code = self._c_preprocess_code(f'int _ = {node.get_attribute('value')};')
+                value = self._c_get_ast_expr_node_value(code.ext[0].init)
+                value = CTypeInfo(value).get_value(value)
+                if isinstance(value, (int, float)):
+                    return factor * value
+                assert factor == 1, """factor == 1"""
+                return value
             if node.has_attribute('offset'):
                 if not node.has_attribute('extnumber'):
                     assert 'extension' in node.path, """'extension' in node.path"""
