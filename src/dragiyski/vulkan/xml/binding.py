@@ -1,4 +1,11 @@
-import sys, re, ast, ctypes, operator, pycparser.c_generator, pycparser.c_parser, pycparser.c_ast
+import sys
+import re
+import ast
+import ctypes
+import operator
+import pycparser.c_generator
+import pycparser.c_parser
+import pycparser.c_ast
 from collections.abc import Mapping, Collection
 from collections import Counter, OrderedDict
 from types import MappingProxyType, new_class
@@ -14,11 +21,14 @@ logger = getLogger('dragiyski.vulkan.binding')
 REGEXP_INT_WORD = re.compile(r'\bint\b')
 REGEXP_C_AST_CHILD_NAME = re.compile(r'([a-zA-Z_][a-zA-Z0-9_]*)(?:\[([0-9+])\])?')
 
+
 class _Alias:
     __slots__ = ('name', 'target')
+
     def __init__(self, name, target):
         self.name = name
         self.target = target
+
 
 def _count_bits(value):
     bits = 0
@@ -27,11 +37,14 @@ def _count_bits(value):
         value >>= 1
     return bits
 
+
 def _key_value_bitmask_sort_key(item):
     return [_count_bits(item[1]), item[1]]
 
+
 def _key_enum_sort_key(item):
     return item[1]
+
 
 def _c_ast_set_attribute(target, name, value):
     if isinstance(name, int):
@@ -50,10 +63,12 @@ def _c_ast_set_attribute(target, name, value):
     else:
         setattr(target, pattern.group(1), value)
 
+
 class LazyDirectBinding:
     class CFunctionMacro:
         __slots__ = ('binding', 'template', 'name', 'arguments', '__weakref__')
-        def __init__(self, binding: 'LazyDirectBinding', name: str, template: list[str|dict], arguments: list[str]):
+
+        def __init__(self, binding: 'LazyDirectBinding', name: str, template: list[str | dict], arguments: list[str]):
             if len(set(arguments)) != len(arguments):
                 duplicates = ', '.join(repr(x) for x in sorted(name for name, count in Counter(arguments) if count > 1))
                 raise ValueError(f'In macro {name}, Found duplicate argument names: {duplicates}')
@@ -61,10 +76,10 @@ class LazyDirectBinding:
             self.template = template
             self.arguments = arguments
             self.name = name
-        
+
         def __repr__(self):
             return f'<{self.__qualname__} ({self.name}) object at {hex(id(self))}>'
-        
+
         def _convert_to_code(self, value):
             if isinstance(value, self.binding._c_generator.Code):
                 return value
@@ -83,7 +98,7 @@ class LazyDirectBinding:
         def __repr__(self):
             args = ', '.join(self.arguments)
             return f'<#define {self.name}({args}) object at {hex(id(self))}>'
-        
+
         def __call__(self, *args, **kwargs):
             context = {}
             for i in range(min(len(self.arguments), len(args))):
@@ -121,23 +136,52 @@ class LazyDirectBinding:
             ast_root = self.binding._c_preprocess_code(code)
             res_value = self.binding._c_get_ast_expr_node_value(ast_root.ext[0].init)
             return CTypeInfo(res_value).get_value(res_value)
-    
+
     class LazyCType:
         __slots__ = ('binding', 'name', '__weakref__')
+
         def __init__(self, binding, name):
             self.binding = binding
             self.name = name
-        
+
         @property
         def ctype(self):
             return self.binding._get_ctype(self.name)
-    
+
     class KnownCType:
         __slots__ = ('ctype')
+
         def __init__(self, ctype):
             self.ctype = ctype
-    
-    __slots__ = ('taxonomy', '_skip_names', '_names', '_c_preprocessor_value', '_c_preprocessor_macro', '_c_types', '_c_lazy_types', '_c_complex_resolve_stack', '_c_parser', '_c_generator', '__dict__', '__weakref__')
+
+    class ComplexResolveContext:
+        __slots__ = ('binding', 'name')
+
+        def __init__(self, binding, name):
+            self.binding = binding
+            self.name = name
+
+        def __enter__(self):
+            self.binding._resolve_complex_type_enter(self.name)
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.binding._resolve_complex_type_exit(self.name)
+
+    __slots__ = (
+        'taxonomy',
+            '_skip_names', 
+            '_names', 
+            '_c_preprocessor_value', 
+            '_c_preprocessor_macro', 
+            '_c_types', 
+            '_c_lazy_types', 
+            '_c_complex_resolve_stack', 
+            '_c_complex_resolve_set', 
+            '_c_parser', 
+            '_c_generator', 
+            '__dict__', 
+            '__weakref__'
+        )
 
     def __init__(self, taxonomy: Taxonomy, *, skip_names: Collection = ()):
         self.taxonomy = taxonomy
@@ -174,20 +218,19 @@ class LazyDirectBinding:
         self._skip_names |= skip_structures
         self._skip_names |= {x[4:] for x in skip_callbacks if x.startswith('PFN_')}
 
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['basetype'].difference(self._c_types.keys()).difference(self._skip_names)})
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['external_type'].difference(self._c_types.keys()).difference(self._skip_names)})
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['type'].difference(self._c_types.keys()).difference(self._skip_names)})
-        self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category['complex'].difference(self._c_types.keys()).difference(self._skip_names)})
+        for category in ['basetype', 'external_type', 'type', 'bitmask', 'enum', 'complex']:
+            self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category[category].difference(self._c_types.keys()).difference(self._skip_names)})
         self._c_parser = CParser(self._c_types.keys())
         self._c_generator = CGenerator()
         self._c_complex_resolve_stack = []
+        self._c_complex_resolve_set = set()
         pass
 
         self._names = set(self.taxonomy.nodes.keys()).difference(self._skip_names)
 
         self._c_init_preprocessor()
         self._vulkan_init_handles()
-    
+
     def __getitem__(self, name: str):
         if name in self._names:
             if name in self.__dict__:
@@ -200,7 +243,7 @@ class LazyDirectBinding:
             self.__dict__[name] = value
             return value
         raise KeyError(name)
-    
+
     def _resolve_alias(self, name: str):
         while name in self.taxonomy.category['alias']:
             for node in self.taxonomy.nodes[name]:
@@ -224,7 +267,10 @@ class LazyDirectBinding:
         if name in self.taxonomy.category['enum']:
             return self._vulkan_compile_enum(name)
         if name in self.taxonomy.value_group_map:
-            return self[self.taxonomy.bit_group_map[self.taxonomy.value_group_map[name]]][name]
+            group_name = self.taxonomy.value_group_map[name]
+            if group_name in self.taxonomy.bit_group_map:
+                group_name = self.taxonomy.bit_group_map[group_name]
+            return self[group_name][name]
         if name in self._c_types:
             return self._c_types[name].ctype
         if name in self.taxonomy.category['handle']:
@@ -246,6 +292,32 @@ class LazyDirectBinding:
                     assert node_ctype in self._c_types
                     ctype = self._c_types[node_ctype].ctype
             return ctype
+        if name in self.taxonomy.category['complex']:
+            return self._resolve_complex_type(name)
+    
+    def _resolve_complex_type(self, name):
+        if name not in self._c_complex_resolve_set:
+            with self.ComplexResolveContext(self, name):
+                for node in self.taxonomy.nodes[name]:
+                    node: Node
+                    if 'member' in node.children:
+                        for member_node in node.get_all('member'):
+                            if 'type' in member_node.children:
+                                member_type = member_node.get('type').get_text()
+                                if member_type in self.taxonomy.category['complex']:
+                                    self._resolve_complex_type(member_type)
+        if name in self.taxonomy.category['struct']:
+            BaseClass = ctypes.Structure
+        elif name in self.taxonomy.category['union']:
+            BaseClass = ctypes.Union
+        else:
+            raise RuntimeError(f'Unknown complex type category: {name}')
+        Type = new_class(name, (BaseClass,))
+        self._c_types[name] = self.KnownCType(Type)
+        if len(self._c_complex_resolve_stack) == 0:
+            self._c_resolve_all_complex_type_fields()
+        return Type
+
 
     def _c_init_preprocessor(self):
         for name in self.taxonomy.category['define']:
@@ -332,7 +404,7 @@ class LazyDirectBinding:
             raise ValueError('Invalid C literal: expected string literals to start and end with quote (")')
         value = self._c_parser.parse_c_string(literal[start_index+1:-1])
         return method(value)
-    
+
     def _c_get_ast_unary_operator(self, node: pycparser.c_ast.UnaryOp):
         arg = self._c_get_ast_expr_node_value(node.expr)
         arg_info = CTypeInfo(arg)
@@ -342,7 +414,7 @@ class LazyDirectBinding:
             res_value = c_value_operators['unary'][node.op](arg_value)
             return res_type(res_value)
         raise TypeError(f'Unary operation {node.op!r} not defined for argument of type {arg_info.type.__name__!r}')
-    
+
     def _c_get_ast_binary_operator(self, node: pycparser.c_ast.BinaryOp):
         left = self._c_get_ast_expr_node_value(node.left)
         right = self._c_get_ast_expr_node_value(node.right)
@@ -399,11 +471,16 @@ class LazyDirectBinding:
             res_value = CTypeInfo(res_value).get_value(res_value)
             return res_type(res_value)
         raise NotImplementedError(f'TODO: C: pycparser.c_ast.{node.__name__}')
-    
+
     def _c_get_ast_type_from_decl(self, node: pycparser.c_ast.Node):
         c_ast = pycparser.c_ast
         if isinstance(node, c_ast.PtrDecl):
-            return ctypes.POINTER(self._c_get_ast_type_from_decl(node.type))
+            ptr_type = self._c_get_ast_type_from_decl(node.type)
+            if ptr_type is ctypes.c_char:
+                return ctypes.c_char_p
+            if ptr_type is ctypes.c_wchar:
+                return ctypes.c_wchar_p
+            return ctypes.POINTER(ptr_type)
         if isinstance(node, c_ast.ArrayDecl):
             length = self._c_get_ast_expr_node_value(node.dim)
             length = CTypeInfo(length).get_value(length)
@@ -421,10 +498,10 @@ class LazyDirectBinding:
             if type_name not in self._c_types:
                 raise pycparser.c_parser.ParseError('Reference to undefined type "%s"' % (type_name))
             c_type = self._c_types[type_name].ctype
-            assert c_type is None or CTypeInfo(c_type).size > 0, """c_type is None or CTypeInfo(c_type).size > 0"""
+            assert c_type is None or issubclass(c_type, (ctypes.Structure, ctypes.Union)) or CTypeInfo(c_type).size > 0, """c_type is None or issubclass(c_type, (ctypes.Structure, ctypes.Union)) or CTypeInfo(c_type).size > 0"""
             return c_type
         raise NotImplementedError(f'TODO: C: c_ast.{node.__name__}')
-    
+
     def _c_resolve_base_type(self, name):
         for node in self.taxonomy.nodes[name]:
             node: Node
@@ -486,12 +563,55 @@ class LazyDirectBinding:
             setattr(enum_class, enum_value_name, enum_class[value])
             enum_class._member_map_[enum_value_name] = enum_class[value]
         return enum_class
-    
+
     def _vulkan_compile_value(self, name):
         value = self._get_vulkan_value(name)
         return value
         pass
+
+    def _resolve_complex_type_enter(self, name):
+        if name in self._c_complex_resolve_stack:
+            raise RuntimeError(f'Cyclic reference detected: {name}')
+        self._c_complex_resolve_set.add(name)
+        self._c_complex_resolve_stack.append(name)
+
+    def _resolve_complex_type_exit(self, name):
+        if self._c_complex_resolve_stack[-1] != name:
+            raise RuntimeError(f'Complex type stack mismatch: {name} != {self._c_complex_resolve_stack[-1]}')
+        self._c_complex_resolve_stack.pop()
+
+    def _c_resolve_all_complex_type_fields(self):
+        for name in self._c_complex_resolve_set:
+            self._c_resolve_complex_type_fields(name)
+        self._c_complex_resolve_set.clear()
     
+    def _c_resolve_complex_type_fields(self, name):
+        c_code = ''
+        if name in self.taxonomy.category['struct']:
+            c_code += 'struct'
+        elif name in self.taxonomy.category['union']:
+            c_code += 'union'
+        else:
+            raise RuntimeError(f'Unknown complex type category: {name}')
+        c_code += ' %s {' % name
+        c_code = [c_code]
+        for node in self.taxonomy.nodes[name]:
+            node: Node
+            if 'member' in node.children:
+                for member_node in node.get_all('member'):
+                    c_code.append('    %s;' % member_node.get_text())
+        c_code.append('};')
+        c_ast = self._c_preprocess_code('\n'.join(c_code))
+        fields = []
+        for decl in c_ast.ext[0].type.decls:
+            if decl.bitsize is not None:
+                field = (decl.name, self._c_get_ast_type_from_decl(decl.type), decl.bitsize)
+            else:
+                field = (decl.name, self._c_get_ast_type_from_decl(decl.type))
+            fields.append(field)
+        self._c_types[name].ctype._fields_ = fields
+
+
     def _get_vulkan_value(self, value_name: str):
         for node in self.taxonomy.nodes[value_name]:
             node: Node
