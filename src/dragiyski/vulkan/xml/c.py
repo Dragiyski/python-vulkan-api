@@ -1,5 +1,5 @@
 import re, math, ctypes, operator, pycparser.c_ast, pycparser.c_generator
-from collections.abc import Container
+from collections.abc import Container, Callable
 from collections import OrderedDict
 from functools import cached_property
 
@@ -196,14 +196,17 @@ class CParser(pycparser.CParser):
     REGEXP_FUNC_MACRO = re.compile(r'\s*#\s*define\s+(\w+)\(([^)]+)\)(.*)')
     REGEXP_VALUE_MACRO = re.compile(r'\s*#\s*define\s+(\w+)\s+(.*)')
 
-    def __init__(self, types: Container = (), **kwargs):
+    def __init__(self, types: Container = (), type_check: Callable = lambda name: False, **kwargs):
         super().__init__(**kwargs)
         self._types = types
+        self._type_check = type_check
     
     def _lex_type_lookup_func(self, name):
         if super()._lex_type_lookup_func(name):
             return True
-        return name in self._types
+        if name in self._types:
+            return True
+        return self._type_check(name)
     
     @staticmethod
     def parse_c_int(value):

@@ -138,15 +138,20 @@ class LazyDirectBinding:
             return CTypeInfo(res_value).get_value(res_value)
 
     class LazyCType:
-        __slots__ = ('binding', 'name', '__weakref__')
+        __slots__ = ('binding', 'name', '_cached', '_value', '__weakref__')
 
         def __init__(self, binding, name):
             self.binding = binding
             self.name = name
+            self._cached = False
 
         @property
         def ctype(self):
-            return self.binding._get_ctype(self.name)
+            if self._cached:
+                return self._value
+            self._value = self.binding._get_ctype(self.name)
+            self._cached = True
+            return self._value
 
     class KnownCType:
         __slots__ = ('ctype')
@@ -179,12 +184,14 @@ class LazyDirectBinding:
             '_c_complex_resolve_set', 
             '_c_parser', 
             '_c_generator', 
+            'VKAPI_PTR',
             '__dict__', 
             '__weakref__'
         )
 
     def __init__(self, taxonomy: Taxonomy, *, skip_names: Collection = ()):
         self.taxonomy = taxonomy
+        self.VKAPI_PTR = ctypes.WINFUNCTYPE if (hasattr(ctypes, 'WINFUNCTYPE') and callable(ctypes.WINFUNCTYPE)) else ctypes.CFUNCTYPE
         self._c_preprocessor_macro = {}
         self._c_preprocessor_value = {}
         self._c_types = {
@@ -218,15 +225,19 @@ class LazyDirectBinding:
         self._skip_names |= skip_structures
         self._skip_names |= {x[4:] for x in skip_callbacks if x.startswith('PFN_')}
 
-        for category in ['basetype', 'external_type', 'type', 'bitmask', 'enum', 'complex']:
+        for category in ['basetype', 'external_type', 'type', 'bitmask', 'enum', 'complex', 'command']:
             self._c_types.update({k: self.LazyCType(self, k) for k in self.taxonomy.category[category].difference(self._c_types.keys()).difference(self._skip_names)})
-        self._c_parser = CParser(self._c_types.keys())
+        callback_names = {x[4:] if x.startswith('PFN_') else x for x in self.taxonomy.category['callback']}
+        self._c_types.update({k: self.LazyCType(self, k) for k in callback_names.difference(self._c_types.keys()).difference(self._skip_names)})
+        self._c_parser = CParser(self._c_types.keys(), self._is_c_type)
         self._c_generator = CGenerator()
         self._c_complex_resolve_stack = []
         self._c_complex_resolve_set = set()
         pass
 
         self._names = set(self.taxonomy.nodes.keys()).difference(self._skip_names)
+        pfn_names = {x for x in self._names.intersection(self.taxonomy.category['callback']) if x.startswith('PFN_')}
+        self._names = self._names.difference(pfn_names).union({x[4:] for x in pfn_names})
 
         self._c_init_preprocessor()
         self._vulkan_init_handles()
@@ -294,6 +305,48 @@ class LazyDirectBinding:
             return ctype
         if name in self.taxonomy.category['complex']:
             return self._resolve_complex_type(name)
+        if name in self.taxonomy.category['callback'] or f'PFN_{name}' in self.taxonomy.category['callback']:
+            return self._resolve_callback_type(name[4:] if name.startswith('PFN_') else name)
+        if name in self.taxonomy.category['command']:
+            return self._resolve_command_type(name)
+    
+    def _is_c_type(self, name):
+        if name.startswith('PFN_'):
+            return name in self.taxonomy.category['callback']
+        return False
+
+    def _resolve_callback_type(self, name):
+        node_name = 'PFN_' + name if 'PFN_' + name in self.taxonomy.nodes else name
+        for node in self.taxonomy.nodes[node_name]:
+            node: Node
+            c_code = node.get_text()
+            if c_code.startswith('typedef '):
+                c_code = re.sub(r'\bVKAPI_PTR\b', '', c_code)
+                c_ast = self._c_preprocess_code(c_code)
+                assert isinstance(c_ast.ext[0], pycparser.c_ast.Typedef), """isinstance(c_ast.ext[0], pycparser.c_ast.Typedef)"""
+                assert isinstance(c_ast.ext[0].type, pycparser.c_ast.PtrDecl), """isinstance(c_ast.ext[0].type, pycparser.c_ast.PtrDecl)"""
+                assert isinstance(c_ast.ext[0].type.type, pycparser.c_ast.FuncDecl), """isinstance(c_ast.ext[0].type.type, pycparser.c_ast.FuncDecl)"""
+                c_ast_func = c_ast.ext[0].type.type
+                ret_type = self._c_get_ast_type_from_decl(c_ast_func.type)
+                arg_types = [self._c_get_ast_type_from_decl(arg.type) for arg in c_ast_func.args.params]
+                return self.VKAPI_PTR(ret_type, *arg_types)
+        raise KeyError(name)
+    
+    def _resolve_command_type(self, name):
+        node_name = 'PFN_' + name if 'PFN_' + name in self.taxonomy.nodes else name
+        for node in self.taxonomy.nodes[node_name]:
+            node: Node
+            if 'proto' in node.children:
+                proto = node.get('proto')
+                ret_type = self._c_resolve_type(proto.get_text_before(proto.get('name')))
+                arg_types = [self._c_resolve_type(arg.get_text_before(arg.get('name'))) for arg in node.get_all('param')]
+                return self.VKAPI_PTR(ret_type, *arg_types)
+        raise KeyError(name)
+    
+    def _c_resolve_type(self, type_code):
+        c_code = f'typedef {type_code} _;'
+        c_ast = self._c_preprocess_code(c_code)
+        return self._c_get_ast_type_from_decl(c_ast.ext[0].type)
     
     def _resolve_complex_type(self, name):
         if name not in self._c_complex_resolve_set:
@@ -495,6 +548,8 @@ class LazyDirectBinding:
             else:
                 raise NotImplementedError('TODO: C: TypeDecl => %s' % node.type.__name__)
             type_name = self._resolve_alias(type_name)
+            if type_name.startswith('PFN_'):
+                type_name = type_name[4:]
             if type_name not in self._c_types:
                 raise pycparser.c_parser.ParseError('Reference to undefined type "%s"' % (type_name))
             c_type = self._c_types[type_name].ctype
