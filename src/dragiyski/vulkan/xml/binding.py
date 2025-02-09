@@ -242,6 +242,9 @@ class LazyDirectBinding:
         self._c_init_preprocessor()
         self._vulkan_init_handles()
 
+    def __contains__(self, name: str):
+        return name in self._names
+
     def __getitem__(self, name: str):
         if name in self._names:
             if name in self.__dict__:
@@ -309,6 +312,7 @@ class LazyDirectBinding:
             return self._resolve_callback_type(name[4:] if name.startswith('PFN_') else name)
         if name in self.taxonomy.category['command']:
             return self._resolve_command_type(name)
+        raise NotImplementedError(f'No known method for resolving type "{name}"')
     
     def _is_c_type(self, name):
         if name.startswith('PFN_'):
@@ -329,6 +333,8 @@ class LazyDirectBinding:
                 c_ast_func = c_ast.ext[0].type.type
                 ret_type = self._c_get_ast_type_from_decl(c_ast_func.type)
                 arg_types = [self._c_get_ast_type_from_decl(arg.type) for arg in c_ast_func.args.params]
+                if len(arg_types) == 1 and arg_types[0] is None:
+                    arg_types = []
                 return self.VKAPI_PTR(ret_type, *arg_types)
         raise KeyError(name)
     
@@ -365,12 +371,14 @@ class LazyDirectBinding:
             BaseClass = ctypes.Union
         else:
             raise RuntimeError(f'Unknown complex type category: {name}')
-        Type = new_class(name, (BaseClass,))
+        Type = new_class(name, (BaseClass,), None, self._init_complex_type)
         self._c_types[name] = self.KnownCType(Type)
         if len(self._c_complex_resolve_stack) == 0:
             self._c_resolve_all_complex_type_fields()
         return Type
 
+    def _init_complex_type(self, namespace):
+        namespace['__module__'] = self.__module__
 
     def _c_init_preprocessor(self):
         for name in self.taxonomy.category['define']:
