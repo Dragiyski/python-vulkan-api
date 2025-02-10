@@ -27,7 +27,7 @@ class Loader(ABC):
             binding = self.binding[name]
         except KeyError:
             raise NotImplementedError(f'Function {name} is not implemented')
-        if issubclass(binding, ctypes._CFuncPtr):
+        if isinstance(binding, type) and issubclass(binding, ctypes._CFuncPtr):
             ptr = self._get_function_address(name)
             if ptr is None:
                 raise NotImplementedError(f'Function {name} is not implemented')

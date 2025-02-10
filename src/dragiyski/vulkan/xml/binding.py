@@ -531,6 +531,8 @@ class LazyDirectBinding:
             res_value = self._c_get_ast_expr_node_value(node.expr)
             res_value = CTypeInfo(res_value).get_value(res_value)
             return res_type(res_value)
+        if isinstance(node, pycparser.c_ast.ID) and node.name in self.taxonomy.category['value']:
+            return self[node.name]
         raise NotImplementedError(f'TODO: C: pycparser.c_ast.{node.__name__}')
 
     def _c_get_ast_type_from_decl(self, node: pycparser.c_ast.Node):
