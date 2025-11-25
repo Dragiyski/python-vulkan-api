@@ -1,4 +1,4 @@
-import ctypes
+import ctypes.util
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
@@ -38,9 +38,21 @@ class Loader(ABC):
     def _get_function_address(self, name: str) -> int:
         pass
 
+SysDLL = ctypes.WinDLL if hasattr(ctypes, 'WinDLL') else ctypes.CDLL
+
+def _default_library_loader(binding):
+    vulkan_name = ctypes.util.find_library('vulkan')
+    if vulkan_name is None:
+        raise RuntimeError('Unable to find vulkan library')
+    vulkan = SysDLL(vulkan_name)
+    return ctypes.cast(vulkan.vkGetInstanceProcAddr, ctypes.c_void_p).value
+
+
 class LibraryLoader(Loader):
     __slots__ = ('binding', 'vkGetInstanceProcAddr')
-    def __init__(self, binding, vkGetInstanceProcAddr: Callable|int):
+    def __init__(self, binding, vkGetInstanceProcAddr: Callable|int|None = None):
+        if vkGetInstanceProcAddr is None:
+            vkGetInstanceProcAddr = _default_library_loader(binding)
         if isinstance(vkGetInstanceProcAddr, ctypes._CFuncPtr):
             vkGetInstanceProcAddr = ctypes.cast(vkGetInstanceProcAddr, ctypes.c_void_p).value
         if isinstance(vkGetInstanceProcAddr, int):

@@ -217,7 +217,7 @@ class LazyDirectBinding:
         skip_structure_callback = skip_structures | skip_callbacks
         skip_commands = set()
         for command_name, command_node in ((name, node) for name in self.taxonomy.category['command'] for node in self.taxonomy.nodes[name] if 'proto' in node.children):
-            command_types = set(command_node.get('proto').get('type').get_text()) | {param_node.get('type').get_text() for param_node in command_node.get_all('param')}
+            command_types = set([command_node.get('proto').get('type').get_text()]) | {param_node.get('type').get_text() for param_node in command_node.get_all('param')}
             if len(command_types & skip_structure_callback) > 0:
                 skip_commands.add(command_name)
         self._skip_names |= skip_callbacks
