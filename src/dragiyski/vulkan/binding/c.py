@@ -1,6 +1,5 @@
 import re, math, ctypes, operator, pycparser.c_ast, pycparser.c_generator
 from collections.abc import Container, Callable
-from collections import OrderedDict
 from functools import cached_property
 
 c_native_types = {
@@ -363,12 +362,6 @@ class CParser(pycparser.CParser):
     @staticmethod
     def _parser_preprocessor_value(data: re.Match):
         return data.group(2)
-
-def c_uchar_string_setter_check(value):
-    if not isinstance(value, str):
-        raise TypeError(f'unicode string expected instead of {value.__class__.__name__} instance')
-    if len(value) != 1:
-        raise TypeError('one character unicode string expected')
 
 class CGenerator(pycparser.c_generator.CGenerator):
     """

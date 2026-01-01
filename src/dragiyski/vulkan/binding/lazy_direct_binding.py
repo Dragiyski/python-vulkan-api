@@ -1,19 +1,15 @@
 import sys
 import re
-import ast
 import ctypes
-import operator
-import pycparser.c_generator
 import pycparser.c_parser
 import pycparser.c_ast
-from collections.abc import Mapping, Collection
+from collections.abc import Collection
 from collections import Counter, OrderedDict
-from types import MappingProxyType, new_class
+from types import new_class
 from logging import getLogger
-from functools import cached_property, partial
 from enum import IntFlag, IntEnum
-from .taxonomy import Taxonomy
-from .node import Node
+from ..xml.taxonomy import Taxonomy
+from ..xml.node import Node
 from .c import CParser, CGenerator, CTypeInfo, c_native_types, c_external_types, c_boolean_operators, c_value_operators, c_type_category
 
 logger = getLogger('dragiyski.vulkan.binding')

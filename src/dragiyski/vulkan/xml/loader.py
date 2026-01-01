@@ -61,7 +61,8 @@ class LibraryLoader(Loader):
         self.vkGetInstanceProcAddr = vkGetInstanceProcAddr
     
     def _get_function_address(self, name):
-        return ctypes.cast(self.vkGetInstanceProcAddr(None, name.encode()), ctypes.c_void_p).value
+        vk_ptr_result = self.vkGetInstanceProcAddr(None, name.encode())
+        return ctypes.cast(vk_ptr_result, ctypes.c_void_p).value
     
 class VkInstanceLoader(Loader):
     __slots__ = ('loader', 'instance')
@@ -70,7 +71,8 @@ class VkInstanceLoader(Loader):
         self.instance = instance
     
     def _get_function_address(self, name: str) -> int:
-        return ctypes.cast(self.loader.vkGetInstanceProcAddr(self.instance, name.encode()), ctypes.c_void_p).value
+        vk_ptr_result = self.vkGetInstanceProcAddr(self.instance, name.encode())
+        return ctypes.cast(vk_ptr_result, ctypes.c_void_p).value
     
     @property
     def binding(self):
@@ -83,7 +85,8 @@ class VkDeviceLoader(Loader):
         self.device = device
     
     def _get_function_address(self, name: str) -> int:
-        return ctypes.cast(self.loader.vkGetDeviceProcAddr(self.device, name.encode()), ctypes.c_void_p).value
+        vk_ptr_result = self.vkGetDeviceProcAddr(self.device, name.encode())
+        return ctypes.cast(vk_ptr_result, ctypes.c_void_p).value
     
     @property
     def binding(self):

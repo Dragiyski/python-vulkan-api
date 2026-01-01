@@ -1,6 +1,5 @@
 from logging import getLogger
 from pathlib import Path
-from weakref import WeakKeyDictionary
 from .node import Node, parse_xml
 
 logger = getLogger('vulkan.registry')
