@@ -82,7 +82,7 @@ class Compiler:
                     elif category == 'struct' or category == 'union':
                         self._enumerate_type_node(context, [category, 'complex', 'all'], self.get_node_name_from_attribute, type_node)
                     elif category == 'funcpointer':
-                        self._enumerate_type_node(context, [category, 'all'], self.get_node_name_from_children, type_node)
+                        self._enumerate_type_node(context, [category, 'all'], self.get_node_name_from_attribute_or_proto, type_node)
 
     @staticmethod
     def get_node_name(node):
@@ -93,9 +93,9 @@ class Compiler:
                 raise MultipleChildrenNodeError(node=node, name='name', count=len(node.children['name']))
             return node.get('name').get_text()
         raise CompileNodeError('Missing node name: expected either attribute @name or child element <name>', node=node)
-    
+
     @staticmethod
-    def get_node_name_from_children(node):
+    def get_node_name_from_children(node: Node):
         if 'name' not in node.children:
             raise CompileNodeError('Missing node name: expected child element <name>', node=node)
         if len(node.children['name']) > 1:
@@ -103,10 +103,20 @@ class Compiler:
         return node.get('name').get_text()
     
     @staticmethod
-    def get_node_name_from_attribute(node):
+    def get_node_name_from_attribute(node: Node):
         if not node.has_attribute('name'):
             raise CompileNodeError('Missing node name: expected attribute @name', node=node)
         return node.get_attribute('name')
+    
+    @staticmethod
+    def get_node_name_from_attribute_or_proto(node: Node):
+        if node.has_attribute('name'):
+            return node.get_attribute('name')
+        if 'proto' in node.children:
+            proto = node.get('proto')
+            if 'name' in proto.children:
+                return proto.get('name').get_text()
+        raise CompileNodeError('Missing node name', node=node)
     
     def _enumerate_alias_node(self, context: Context, node: Node):
         assert node.has_attribute('alias'), "node.has_attribute('alias')"

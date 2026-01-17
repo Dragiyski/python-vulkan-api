@@ -25,7 +25,7 @@ class Node:
         if override or not self.has_attribute(name):
             self.attributes[name] = value
 
-    def get(self, name: str, default=None):
+    def get(self, name: str, default=None) -> 'Node':
         if name not in self.children:
             return default
         node_list = self.children[name]

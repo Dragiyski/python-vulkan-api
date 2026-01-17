@@ -1,9 +1,7 @@
 import pathlib
 import os
 import sys
-from datetime import datetime, timezone
 import urllib.parse
-from setuptools import Command
 from .compiler import Compiler
 from .generator import Generator
 
@@ -35,10 +33,12 @@ def update(target):
     return files
 
 
-class GenerateVulkanSourceFiles(Command):
-    user_options = [
-        ('vk-dir=', None, 'Vulkan Headers registry directory')
-    ]
+class GenerateVulkanSourceFiles:
+    def __init__(self, vk_directory: pathlib.Path|str = pathlib.Path(__file__).resolve().parent.parent):
+        if isinstance(vk_directory, str):
+            vk_directory = pathlib.Path(vk_directory).resolve()
+        self.vk_directory = vk_directory
+        
 
     def initialize_options(self):
         self.vk_directory = pathlib.Path(os.getcwd()).resolve().joinpath('var/vulkan-headers')
@@ -50,8 +50,7 @@ class GenerateVulkanSourceFiles(Command):
 
     def run(self):
         files = update(self.vk_directory)
-        project_dir = pathlib.Path(__file__).resolve().parent.parent
-        src_dir = project_dir.joinpath('src')
+        src_dir = self.vk_directory.joinpath('src')
         package_dir = src_dir.joinpath('dragiyski/vulkan')
         generated_dir = package_dir.joinpath('_generated')
         generated_dir.mkdir(mode=0o755, parents=True, exist_ok=True)

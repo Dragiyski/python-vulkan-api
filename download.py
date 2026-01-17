@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 HTTP_DATE_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
 
 repository_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/main/'
-target_dir = Path(__file__).resolve().parent.joinpath('src/dragiyski/vulkan/xml')
+target_dir = Path(__file__).resolve().parent.joinpath('var')
 
 metadata_files = [
     'registry/vk.xml',  # The main registry, containing the basic structure data

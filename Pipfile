@@ -7,6 +7,3 @@ name = "pypi"
 pycparser = "*"
 
 [dev-packages]
-
-[requires]
-python_version = "3.13"
