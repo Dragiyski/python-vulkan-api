@@ -786,19 +786,23 @@ class Compiler:
         name: str
         node: Node
         for name, node in context.type_node_map['funcpointer'].items():
-            code = self._get_member_code(context, node)
+            if 'proto' not in node.children:
+                continue
+            proto_code = node.get('proto').get_text()
+            param_code = []
+            for param_node in node.get_all('param'):
+                param_code.append(self._get_member_code(context, param_node))
+            code = '%s(%s);' % (proto_code, ', '.join(param_code))
             code = re.sub(r'\bVKAPI_PTR\b', '', code)
             code = context.preprocess_c_code(code)
             ast = context.cparser.parse(code)
-            assert type(ast.ext[0]) == pycparser.c_ast.Typedef, 'type(ast.ext[0]) == pycparser.c_ast.Typedef'
+            assert type(ast.ext[0]) == pycparser.c_ast.Decl, 'type(ast.ext[0]) == pycparser.c_ast.Decl'
             assert ast.ext[0].name == name, 'ast.ext[0].name == name'
-            assert type(ast.ext[0].type == pycparser.c_ast.PtrDecl), 'type(ast.ext[0].type == pycparser.c_ast.PtrDecl)'
-            assert type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl), 'type(ast.ext[0].type.type == pycparser.c_ast.FuncDecl)'
             assert name.startswith('PFN_'), "name.startswith('PFN_')"
             assert name in context.ctypes_map, 'name in self.ctypes_map'
             assert name[4:] in context.ctypes_map, 'name[4:] in self.ctypes_map'
             assert context.ctypes_map[name[4:]] is context.ctypes_map[name]
-            fn_decl = ast.ext[0].type.type
+            fn_decl = ast.ext[0].type
             ctype = context.ctypes_map[name[4:]]
             assert isinstance(ctype, CFunctionType), 'isinstance(ctype, CFunctionType)'
             ctype.constructor = 'VKAPI_PTR'
@@ -809,13 +813,14 @@ class Compiler:
                 'arg_list': [],
                 'arg_map': {}
             }
-            for param in fn_decl.args.params:
-                param_ctype = context.get_type_from_decl(param.type)
-                ctype.argument_types.append(param_ctype)
-                callback_info['arg_list'].append(param.name)
-                callback_info['arg_map'][param.name] = param_ctype
-                if param.name == 'pUserData':
-                    ctype['user_data'] = len(ctype.argument_types) - 1
+            if fn_decl.args is not None:
+                for param in fn_decl.args.params:
+                    param_ctype = context.get_type_from_decl(param.type)
+                    ctype.argument_types.append(param_ctype)
+                    callback_info['arg_list'].append(param.name)
+                    callback_info['arg_map'][param.name] = param_ctype
+                    if param.name == 'pUserData':
+                        ctype['user_data'] = len(ctype.argument_types) - 1
             if len(ctype.argument_types) == 1 and ctype.argument_types[0] is context.ctypes_map['void']:
                 ctype.argument_types.pop()
                 callback_info['arg_map'].clear()
@@ -978,7 +983,8 @@ class Compiler:
         remove_complex_len = len(remove_complex)
         while True:
             for ptr_name, node in context.type_node_map['funcpointer'].items():
-                for type_node in node.get_all('type'):
+                for param_node in node.get_all('param'):
+                    type_node = param_node.get('type')
                     fn_type = type_node.get_text()
                     if fn_type in context.type_node_map['complex']:
                         if fn_type in remove_complex:
