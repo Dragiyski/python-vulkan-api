@@ -13,3 +13,4 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)"
 ]
+dependencies = ["pycparser>=2.18"]

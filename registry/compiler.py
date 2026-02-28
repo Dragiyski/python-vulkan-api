@@ -307,7 +307,7 @@ class Compiler:
         for name, node in context.type_node_map['handle'].items():
             typedef = node.get('type').get_text()
             # One of [VK_NULL_HANDLE, VK_DEFINE_NON_DISPATCHABLE_HANDLE]
-            ctype = CHandleType(name)
+            ctype = CHandleType(name, typedef)
             if name in context.ctypes_map:
                 raise CompileNodeError('Handle node type "%s" already defined as %r' % (name, context.ctypes_map[name]), node=node)
             context.ctypes_map[name] = ctype

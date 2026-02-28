@@ -118,7 +118,7 @@ class Context:
                 has_substitution = True
                 continue
             if type(child_node) is pycparser.c_ast.FuncCall and child_node.name.name in self.func_macro_map:
-                args = [self.cgenerator.visit(x) for x in child_node.args]
+                args = [self.cgenerator.visit(x) for x in child_node.args.exprs]
                 macro = self.func_macro_map[child_node.name.name]
                 if len(macro['arguments']) != len(args):
                     raise self.cparser.ParseError('Macro "%s" accept "%d" arguments, but called with "%d" arguments' % (child_node.name.name, len(macro['arguments'], len(args))))

@@ -235,12 +235,13 @@ class CWideCharType(CPlainType):
         return ctypes_map['c_wchar_p']
 
 class CHandleType(CIntType):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, constructor, **kwargs):
         super().__init__('c_uint64', **kwargs)
         self.name = name
+        self.constructor = constructor
     
     def get_runtime_source(self):
-        return '%s(%r)' % ('CHandleType', self.name)
+        return '%s(%r)' % (self.constructor, self.name)
 
     def __repr__(self):
         return '<CHandleType: %s>' % self.name

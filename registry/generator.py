@@ -94,7 +94,8 @@ class Generator:
 
         ctype = context.ctypes_map[name]
         module.add_dep('ctypes', False)
-        module.add_dep('..._ctypes', True)
+        if ctype.constructor in ['VKAPI_CALL', 'VKAPI_PTR']:
+            module.add_dep('..._vk_base', ctype.constructor)
         check_type_dep(ctype.return_type)
         for arg in ctype.argument_types:
             check_type_dep(arg)
@@ -111,8 +112,6 @@ class Generator:
             module.lines.append('%s.__doc__ = %r' % (name, 'https://docs.vulkan.org/refpages/latest/refpages/source/PFN_%s.html' % name))
         else:
             module.lines.append('%s.__doc__ = %r' % (name, 'https://docs.vulkan.org/refpages/latest/refpages/source/%s.html' % name))
-        module.lines.append('%s._vulkan_type_ = %s' % (ctype.name, ctype.get_runtime_source()))
-        module.lines.append('%s._vulkan_type_._class_ = %s' % (ctype.name, ctype.name))
         if is_callback:
             module.lines.append('%s._vulkan_callback_ = %r' % (name, f'PFN_{name}'))
 
@@ -146,7 +145,7 @@ class Generator:
         else:
             module.lines.append('    pass')
         module.lines.append('')
-        module.lines.append('%s.__doc__ = %r' % (enum_name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % enum_name))
+        module.lines.append('%s.__doc__ = %r' % (enum_name, 'https://docs.vulkan.org/refpages/latest/refpages/source/%s.html' % enum_name))
         module.lines.append('')
         module.update_file(self.base_dir)
 
@@ -155,7 +154,9 @@ class Generator:
             return
         module = GeneratedModule(['_vulkan_enum', '__init__'])
         for enum_name in context.enum_map:
+            self._write_vulkan_enum(context, enum_name)
             module.add_dep(f'.{enum_name}', enum_name)
+        module.flush_dep()
         module.lines.append('')
         alias_enum = { k: v for k, v in context.alias_map.items() if v in context.enum_map }
         for alias_name in sorted(alias_enum.keys()):
@@ -212,11 +213,13 @@ class Generator:
         module = GeneratedModule(['_vulkan_callback', name])
         self._create_function_source(context, name, module)
         info = context.callback_map[f'PFN_{name}']
-        module.lines.append('%s._vulkan_type_.return_type = %s' % (name, info['return'].get_runtime_source()))
+        module.lines.append('')
+        module.lines.append('%s._vulkan_ctype_return_ = %s' % (name, info['return'].to_source()))
+        module.lines.append('%s._vulkan_ctype_arguments_ = {}' % (name))
         for arg_index, arg_name in enumerate(info['arg_list']):
             arg_type = info['arg_map'][arg_name]
             info['node'].children['param'][arg_index]
-            module.lines.append('%s._vulkan_ctype_.arguments[%r] = %s' % (name, arg_name, arg_type.get_runtime_source()))
+            module.lines.append('%s._vulkan_ctype_arguments_[%r] = %s' % (name, arg_name, arg_type.to_source()))
         module.lines.append('')
         module.update_file(self.base_dir)
     
@@ -233,7 +236,7 @@ class Generator:
             stream.write(linesep.join(code))
     
     def _write_vulkan_type(self, context: Context, name: str):
-        code = ['import ctypes', 'from ..._ctypes import *', '']
+        code = ['import ctypes', '']
         ctype = context.ctypes_map[name]
         ctype: CComplexType
         info = context.struct_map[name]
@@ -271,7 +274,7 @@ class Generator:
                 code.append('%s(%r, %s),' % ('    ' * indent, member_name, member_desc['ctype'].to_source()))
         code.append('    ' * (indent - 1) + ']')
         code.append('')
-        code.append('%s.__doc__ = %r' % (name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % name))
+        code.append('%s.__doc__ = %r' % (name, 'https://docs.vulkan.org/refpages/latest/refpages/source/%s.html' % name))
         code.append('')
         if in_class_body:
             generate_class_body()
@@ -347,14 +350,16 @@ class Generator:
                 code.append('from .._vulkan_value import %s' % ', '.join(sorted(member_deps['value'])))
         code.append('')
 
-        code.append('%s._vulkan_ctype_ = %s' % (name, ctype.get_runtime_source()))
-        code.append('%s._vulkan_ctype_._class_ = %s' % (name, name))
+        code.append('%s._vulkan_ctype_ = {' % name)
+        code.append("    'self': %s," % ctype.to_source())
+        code.append("    'fields': {")
         for member_name in ctype.member_list:
-            code.append('%s._vulkan_ctype_.fields[%r] = %s' % (
-                name,
+            code.append('        %r: %s,' % (
                 member_name,
-                ctype.member_map[member_name]['ctype'].get_runtime_source()
+                ctype.member_map[member_name]['ctype'].to_source()
             ))
+        code.append('    },')
+        code.append('}')
 
         code.append('%s._vulkan_fields_ = {' % name)
         for member_code in members.values():
@@ -385,7 +390,7 @@ class Generator:
             stream.write(linesep.join(code))
 
     def _write_vulkan_handles(self, context: Context):
-        code = ['from .._ctypes import *', '']
+        code = ['from .._vk_base import VK_DEFINE_HANDLE, VK_DEFINE_NON_DISPATCHABLE_HANDLE', '']
         for handle_name in context.handle_map:
             handle_info = context.handle_map[handle_name]
             code.append('%s = %s' % (handle_name, handle_info['ctype'].get_runtime_source()))
@@ -411,9 +416,8 @@ class Generator:
         module = GeneratedModule(['_vulkan_command', name])
         info = context.command_map[name]
         dep_map = { 'enum': set(), 'struct': set(), 'callback': set() }
-        module.lines.extend(['import ctypes', 'from collections import OrderedDict', 'from ..._ctypes import *'])
+        module.lines.extend(['import ctypes', 'from collections import OrderedDict'])
         module.add_dep('ctypes', False)
-        module.add_dep('...ctypes', True)
         module.add_dep('collections', 'OrderedDict')
         for arg_name in info['argument_list']:
             arg_info = info['argument_map'][arg_name]
@@ -441,11 +445,11 @@ class Generator:
         if return_status:
             module.add_dep('.._vulkan_enum.VkResult', 'VkResult')
         self._create_function_source(context, name, module)
-        module.lines.append('%s.__doc__ = %r' % (name, 'https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/%s.html' % name))
-        module.lines.append('%s._vulkan_ctype_.return_type = %s' % (name, info['return']['ctype'].get_runtime_source()))
+        module.lines.append('%s._vulkan_ctype_return_ = %s' % (name, info['return']['ctype'].to_source()))
+        module.lines.append('%s._vulkan_ctype_arguments_ = {}' % (name))
         for arg_name in info['argument_list']:
             arg_type = info['argument_map'][arg_name]['ctype']
-            module.lines.append('%s._vulkan_ctype_.arguments[%r] = %s' % (name, arg_name, arg_type.get_runtime_source()))
+            module.lines.append('%s._vulkan_ctype_arguments_[%r] = %s' % (name, arg_name, arg_type.to_source()))
         module.lines.append('')
         if return_status or info['return']['type'] == 'void':
             return_arguments = [arg_name for arg_name in info['argument_list'] if info['argument_map'][arg_name]['output']]
