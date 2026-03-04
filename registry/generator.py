@@ -211,11 +211,13 @@ class Generator:
 
     def _write_vulkan_callback(self, context: Context, name: str):
         module = GeneratedModule(['_vulkan_callback', name])
+        module.add_dep('ctypes', False)
+        module.add_dep('collections', 'OrderedDict')
         self._create_function_source(context, name, module)
         info = context.callback_map[f'PFN_{name}']
         module.lines.append('')
         module.lines.append('%s._vulkan_ctype_return_ = %s' % (name, info['return'].to_source()))
-        module.lines.append('%s._vulkan_ctype_arguments_ = {}' % (name))
+        module.lines.append('%s._vulkan_ctype_arguments_ = OrderedDict()' % (name))
         for arg_index, arg_name in enumerate(info['arg_list']):
             arg_type = info['arg_map'][arg_name]
             info['node'].children['param'][arg_index]
@@ -446,7 +448,7 @@ class Generator:
             module.add_dep('.._vulkan_enum.VkResult', 'VkResult')
         self._create_function_source(context, name, module)
         module.lines.append('%s._vulkan_ctype_return_ = %s' % (name, info['return']['ctype'].to_source()))
-        module.lines.append('%s._vulkan_ctype_arguments_ = {}' % (name))
+        module.lines.append('%s._vulkan_ctype_arguments_ = OrderedDict()' % (name))
         for arg_name in info['argument_list']:
             arg_type = info['argument_map'][arg_name]['ctype']
             module.lines.append('%s._vulkan_ctype_arguments_[%r] = %s' % (name, arg_name, arg_type.to_source()))

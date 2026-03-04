@@ -234,14 +234,26 @@ class CWideCharType(CPlainType):
     def pointer(self):
         return ctypes_map['c_wchar_p']
 
+handle_type_name_map = {
+    'VK_DEFINE_HANDLE': 'c_void_p',
+    'VK_DEFINE_NON_DISPATCHABLE_HANDLE': 'c_uint64'
+}
+
 class CHandleType(CIntType):
     def __init__(self, name, constructor, **kwargs):
-        super().__init__('c_uint64', **kwargs)
+        super().__init__(handle_type_name_map.get(constructor, 'c_uint64'), **kwargs)
         self.name = name
         self.constructor = constructor
     
     def get_runtime_source(self):
         return '%s(%r)' % (self.constructor, self.name)
+    
+    def to_source(self, *args, prefix='ctypes.', **kwargs):
+        if self.constructor == 'VK_DEFINE_HANDLE':
+            return '%s%s' % (prefix, 'c_void_p')
+        elif self.constructor == 'VK_DEFINE_NON_DISPATCHABLE_HANDLE':
+            return '%s%s if %ssizeof(%sc_void_p) == 8 else %s%s' % (prefix, 'c_void_p', prefix, prefix, prefix, 'c_uint64')
+        return super().to_source(*args, prefix=prefix, **kwargs)
 
     def __repr__(self):
         return '<CHandleType: %s>' % self.name
@@ -342,7 +354,8 @@ platform_ctypes = {
 object_macro_map = {}
 func_macro_map = {}
 handle_type_map = {
-    'VK_DEFINE_HANDLE': ctypes_map['c_void_p']
+    'VK_DEFINE_HANDLE': ctypes_map['c_void_p'],
+    'VK_DEFINE_NON_DISPATCHABLE_HANDLE': ctypes_map['c_uint64']
 }
 
 # vk.xml has preprocessor macros in <types>/<type category="define">
@@ -354,7 +367,6 @@ handle_type_map = {
 if ctypes.sizeof(ctypes.c_void_p) == 8:
     object_macro_map['VK_USE_64_BIT_PTR_DEFINES'] = { 'code': '(1)', 'node': None }
     object_macro_map['VK_NULL_HANDLE'] = { 'code': '((void*)0)', 'node': None }
-    handle_type_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = ctypes_map['c_void_p']
     func_macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = {
         'arguments': ['object'],
         'template': [
@@ -377,7 +389,6 @@ else:
     object_macro_map['VK_USE_64_BIT_PTR_DEFINES'] = { 'code': '(0)', 'node': None }
     object_macro_map['VK_NULL_HANDLE'] = { 'code': '(0ULL)', 'node': None }
     func_macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE']
-    handle_type_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = ctypes_map['c_uint64']
     func_macro_map['VK_DEFINE_NON_DISPATCHABLE_HANDLE'] = {
         'arguments': ['object'],
         'template': ['typedef uint64_t ', {'name': 'object', 'index': 0, 'string': False}, ';']

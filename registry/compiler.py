@@ -699,11 +699,13 @@ class Compiler:
         assert type(ast.ext[0]) is pycparser.c_ast.Decl, 'type(ast.ext[0]) is pycparser.c_ast.Decl'
         assert type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union], 'type(ast.ext[0].type) in [pycparser.c_ast.Struct, pycparser.c_ast.Union]'
         assert ast.ext[0].type.name == name, 'ast.ext[0].type.name == name'
+        context.ctypes_map[name]['cdecl'] = ast.ext[0]
         for decl in ast.ext[0].type.decls:
             type_decl = decl.type
             member_type = context.get_type_from_decl(type_decl)
             assert decl.name in ctype.member_map, 'decl.name in ctype.member_map'
             ctype.member_map[decl.name]['ctype'] = member_type
+            ctype.member_map[decl.name]['cdecl'] = decl
             if decl.bitsize is not None:
                 if type(decl.bitsize) is not pycparser.c_ast.Constant:
                     raise CompileNodeError('In struct %s, member %s: bitsize is not specified as constant' % (name, decl.name), node=member_node)
@@ -908,6 +910,7 @@ class Compiler:
                     command_descriptor['error_code_list'] = [x for x in [context.resolve_alias(s.strip()) for s in command_node.get_attribute('errorcodes').split(',')] if x in context.enum_map['VkResult']['values']]
                 else:
                     command_descriptor['error_code_list'] = []
+            command_descriptor['cdecl'] = context.fn_decl_map[command_name]
             param_node: Node
             param_index = 0
             decl_param_map = {}
@@ -927,12 +930,14 @@ class Compiler:
                     param_descriptor['externsync'] = param_node.get_attribute('externsync')
                 command_descriptor['argument_map'].set(param_name, param_descriptor)
                 param_descriptor['output'] = False
+                param_type = decl_param_map[param_name].type
+                param_descriptor['cdecl'] = param_type
                 if isinstance(param_descriptor['ctype'], CPointerType):
-                    param_type = decl_param_map[param_name].type
                     while isinstance(param_type, pycparser.c_ast.PtrDecl):
                         param_type = param_type.type
                     if 'const' not in param_type.quals:
                         param_descriptor['output'] = True
+                        command_descriptor['output'] = param_name
                 if type_name in context.type_node_map['complex']:
                     # Structures given by value or structures given by constant pointer are inputs
                     struct_descriptor = context.struct_map[type_name]

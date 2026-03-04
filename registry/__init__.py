@@ -49,9 +49,8 @@ class GenerateVulkanSourceFiles:
                 self.vk_directory = pathlib.Path(self.vk_directory)
 
     def run(self):
-        files = update(self.vk_directory)
-        src_dir = self.vk_directory.joinpath('src')
-        package_dir = src_dir.joinpath('dragiyski/vulkan')
+        files = update(self.vk_directory.parent.joinpath('var'))
+        package_dir = self.vk_directory.joinpath('dragiyski/vulkan/binding')
         generated_dir = package_dir.joinpath('_generated')
         generated_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         compiler = Compiler()
