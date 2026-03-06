@@ -1,10 +1,11 @@
 [build-system]
-requires = ["pdm-backend"]
+requires = ["pdm-backend", "pycparser>=2.18"]
 build-backend = "pdm.backend"
 
 [project]
 name="dragiyski.vulkan"
 version = "0.0.1"
+requires-python = ">=3.12"
 authors = [
     { name = "Plamen Dragiyski", email = "plamen@dragiyski.org" }
 ]
@@ -13,9 +14,19 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)"
 ]
+
 dependencies = [
     "pycparser>=2.18"
 ]
 
 [tool.pdm.build]
-package-dir = "src"
+package-dir = "package"
+excludes = ["pdm_build.py", "sh_build.py"]
+
+[tool.pdm.scripts]
+build = "python build.py"
+
+[dependency-groups]
+dev = [
+    "build>=1.4.0",
+]

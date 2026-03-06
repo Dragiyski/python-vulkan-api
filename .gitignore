@@ -5,6 +5,7 @@ var/
 build/
 generated/
 dist/
+package/
 **/*.egg-info/
 .idea/
 src/dragiyski/vulkan/_generated

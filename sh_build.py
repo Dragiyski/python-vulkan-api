@@ -4,7 +4,7 @@ from registry import GenerateVulkanSourceFiles
 
 def main():
     project_dir = pathlib.Path(__file__).resolve().parent
-    dist_dir = project_dir.joinpath('dist')
+    dist_dir = project_dir.joinpath('package')
     src_dir = project_dir.joinpath('src')
     var_dir = project_dir.joinpath('var')
     generator = GenerateVulkanSourceFiles(src_dir, dist_dir, var_dir)
