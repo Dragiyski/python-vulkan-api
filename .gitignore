@@ -8,6 +8,3 @@ dist/
 package/
 **/*.egg-info/
 .idea/
-src/dragiyski/vulkan/_generated
-src/dragiyski/vulkan/binding/type.pyi
-
