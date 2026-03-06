@@ -1,29 +1,14 @@
-def VK_MAKE_VERSION(major: int, minor: int, patch: int) -> int:
-    return (major << 22) | (minor << 12) | patch
-
-def VK_VERSION_MAJOR(version: int) -> int:
-    return version >> 22
-
-def VK_VERSION_MINOR(version: int) -> int:
-    return (version >> 12) & 0x3ff
-
-def VK_VERSION_PATCH(version: int) -> int:
-    return version & 0xfff
-
-def VK_MAKE_API_VERSION(variant: int, major: int, minor: int, patch: int) -> int:
-    return (variant << 29) | (major << 22) | (minor << 12) | patch
-
-def VK_API_VERSION_VARIANT(version: int) -> int:
-    return version >> 29
-
-def VK_API_VERSION_MAJOR(version: int) -> int:
-    return (version >> 22) & 0x7f
-
-def VK_API_VERSION_MINOR(version: int) -> int:
-    return (version >> 12) & 0x3ff
-
-def VK_API_VERSION_PATCH(version: int) -> int:
-    return version & 0xfff
+from ._generated._vulkan_value import (
+    VK_MAKE_VERSION,
+    VK_VERSION_MAJOR,
+    VK_VERSION_MINOR,
+    VK_VERSION_PATCH,
+    VK_MAKE_API_VERSION,
+    VK_API_VERSION_VARIANT,
+    VK_API_VERSION_MAJOR,
+    VK_API_VERSION_MINOR,
+    VK_API_VERSION_PATCH,
+)
 
 
 class VkVersion(int):

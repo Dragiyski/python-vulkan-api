@@ -1,16 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Mapping, Sequence
+from functools import partial
+from typing import Callable
 import ctypes.util
-
-from numpy.strings import index
-
-
-class ValueAdapter:
-    def __init__(self):
-        exec('from ._generated._vulkan_enum import *', globals(), self.__dict__)
-        exec('from ._generated._vulkan_value import *', globals(), self.__dict__)
-        exec('from ._generated._vulkan_type import *', globals(), self.__dict__)
-        exec('from ._generated._vulkan_handle import *', globals(), self.__dict__)
 
 
 class _VulkanNotFoundError:
@@ -26,7 +17,7 @@ _vulkan_callbacks_.pop('vkVoidFunction', None)
 _vulkan_callbacks_.pop('vkGetInstanceProcAddrLUNARG', None)
 
 
-class CommandAdapter:
+class CommandAdapter(ABC):
     __slots__ = ('__dict__', '__weakref__')
 
     def __getattr__(self, name: str):
@@ -123,52 +114,6 @@ class CallbackAdapter:
     __slots__ = ('__dict__', '__weakref__')
     _callback_map = {}
 
-    class VulkanCallback:
-        __slots__ = ('binding', 'value', '_args_', '_kwargs_')
-
-        def __init__(self, binding: 'CallbackAdapter.VulkanCallbackBinding', callback: Callable, args: Sequence | None = None, kwargs: Mapping | None = None):
-            if not callable(callback):
-                raise ValueError('Callback must be callable')
-
-            self.value = callback
-            self.binding = binding
-            keys = list(binding.ctype._vulkan_ctype_arguments_.keys())
-            self._args_ = [keys.index(name) for name in args]
-            self._kwargs_ = {k: keys.index(v) for k, v in kwargs.items()} if kwargs is not None else {}
-
-            if len(self._args_) != len(set(self._args_)):
-                raise ValueError(f'Arguments in args for callback {binding.name} must be unique')
-
-            if kwargs is not None:
-                if len(set(self._kwargs_.values())) != len(kwargs):
-                    raise ValueError(f'Arguments in kwargs for callback {binding.name} must be unique')
-                if len(args) + len(kwargs) != len(set(self._args_) | set(self._kwargs_.values())):
-                    raise ValueError(f'Arguments in args and kwargs for callback {binding.name} must be unique')
-
-        def as_user_data(self) -> ctypes.c_void_p:
-            return ctypes.cast(ctypes.pointer(ctypes.py_object(self)), ctypes.c_void_p)
-
-    class VulkanCallbackBinding:
-        __slots__ = ('name', 'ctype', 'value', '_index_')
-
-        def __init__(self, name: str, ctype: type[ctypes._CFuncPtr]):
-            self.name = name
-            self.ctype = ctype
-            self.value = ctype(self.invoke)
-            self._index_ = list(ctype._vulkan_ctype_arguments_.keys()).index('pUserData')
-
-        def invoke(self, *args, **kwargs):
-            callback = ctypes.cast(args[self._index_], ctypes.POINTER(ctypes.py_object)).contents.value
-            callback: CallbackAdapter.VulkanCallback
-            invoke_args = [args[i] for i in callback._args_]
-            invoke_kwargs = {k: args[v] for k, v in callback._kwargs_.items()}
-            if self.ctype._vulkan_ctype_return_ is not None:
-                return callback.value(*invoke_args, **invoke_kwargs)
-            callback.value(*invoke_args, **invoke_kwargs)
-
-        def __call__(self, callback: Callable, /, *args, **kwargs):
-            return CallbackAdapter.VulkanCallback(self, callback, args, kwargs)
-
     def __getattr__(self, name: str):
         if name.startswith('_'):
             raise AttributeError(name)
@@ -190,28 +135,29 @@ class CallbackAdapter:
         return value
 
     def _get_implementation(self, name: str):
-        ctype = _vulkan_callbacks_.get(name, None)
-        if ctype is None:
-            raise _VulkanNotFoundError(f'Callback {name} does not exist')
-        if 'pUserData' not in ctype._vulkan_ctype_arguments_:
-            raise _VulkanNotFoundError(f'Callback {name} is not a user data callback')
         if name not in self._callback_map:
-            self._callback_map[name] = self.VulkanCallbackBinding(name, ctype)
-        return self._callback_map[name]
+            if name not in _vulkan_callbacks_:
+                raise _VulkanNotFoundError(f'Callback {name} does not exist')
+            ctype = _vulkan_callbacks_[name]
+            if 'pUserData' not in ctype._vulkan_ctype_arguments_:
+                raise _VulkanNotFoundError(f'Callback {name} does not have pUserData argument')
+            user_data_index = list(ctype._vulkan_ctype_arguments_.keys()).index('pUserData')
+            self._callback_map[name] = _unwrap_callback_factory(ctype, user_data_index)
+        return partial(_wrap_callback, self._callback_map[name])
 
 
-class VulkanAdapter:
-    def __init__(
-        self,
-        *,
-        value: ValueAdapter | None = None,
-        callback: CallbackAdapter | None = None,
-        base: GlobalCommandAdapter | None = None,
-        instance: InstanceCommandAdapter | None = None,
-        device: DeviceCommandAdapter | None = None,
-    ):
-        self.value = value or ValueAdapter()
-        self.callback = callback or CallbackAdapter()
-        self.base = base or GlobalCommandAdapter()
-        self.instance = instance
-        self.device = device
+def _unwrap_callback_factory(ctype, callback_index):
+    def _unwrap_callback(*args):
+        nonlocal ctype
+        ptr_callback = ctypes.cast(args[callback_index], ctypes.POINTER(ctypes.py_object))
+        arguments = args[:callback_index] + args[callback_index+1:]
+        return ptr_callback.contents.value(*arguments)
+
+    return ctype(_unwrap_callback)
+
+
+def _wrap_callback(wrapped_callback, callback: Callable):
+    if not callable(callback):
+        raise ValueError('Callback must be callable')
+    ptr_callback = ctypes.pointer(ctypes.py_object(callback))
+    return wrapped_callback, ctypes.cast(ptr_callback, ctypes.c_void_p)

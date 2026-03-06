@@ -1,6 +1,7 @@
 import pathlib
 import os
 import sys
+import shutil
 import urllib.parse
 from .compiler import Compiler
 from .generator import Generator
@@ -34,23 +35,28 @@ def update(target):
 
 
 class GenerateVulkanSourceFiles:
-    def __init__(self, vk_directory: pathlib.Path|str = pathlib.Path(__file__).resolve().parent.parent):
-        if isinstance(vk_directory, str):
-            vk_directory = pathlib.Path(vk_directory).resolve()
-        self.vk_directory = vk_directory
-        
-
-    def initialize_options(self):
-        self.vk_directory = pathlib.Path(os.getcwd()).resolve().joinpath('var/vulkan-headers')
-
-    def finalize_options(self):
-        if self.vk_directory:
-            if not isinstance(self.vk_directory, pathlib.Path):
-                self.vk_directory = pathlib.Path(self.vk_directory)
+    def __init__(self, src_dir, dist_dir, var_dir):
+        if isinstance(src_dir, str):
+            src_dir = pathlib.Path(src_dir).resolve()
+        if isinstance(dist_dir, str):
+            dist_dir = pathlib.Path(dist_dir).resolve()
+        if isinstance(var_dir, str):
+            var_dir = pathlib.Path(var_dir).resolve()
+        self.src_directory = src_dir
+        self.dist_directory = dist_dir
+        self.var_directory = var_dir
+    
+    def copy(self):
+        for item in self.src_directory.iterdir():
+            target = self.dist_directory / item.name
+            if item.is_dir():
+                shutil.copytree(item, target, dirs_exist_ok=True)
+            else:
+                shutil.copy2(item, target)
 
     def run(self):
-        files = update(self.vk_directory.parent.joinpath('var'))
-        package_dir = self.vk_directory.joinpath('dragiyski/vulkan/binding')
+        files = update(self.var_directory)
+        package_dir = self.dist_directory.joinpath('dragiyski/vulkan/binding')
         generated_dir = package_dir.joinpath('_generated')
         generated_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         compiler = Compiler()
@@ -59,4 +65,4 @@ class GenerateVulkanSourceFiles:
         context = compiler.compile()
         generator = Generator(generated_dir)
         generator.generate(context)
-        pass
+        self.copy()

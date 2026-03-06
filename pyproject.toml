@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools", "pycparser", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project]
 name="dragiyski.vulkan"
@@ -13,4 +13,9 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)"
 ]
-dependencies = ["pycparser>=2.18"]
+dependencies = [
+    "pycparser>=2.18"
+]
+
+[tool.pdm.build]
+package-dir = "src"
