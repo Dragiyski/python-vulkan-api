@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name="dragiyski.vulkan"
-version = "0.0.1"
+version = "1.0.0"
 requires-python = ">=3.12"
 authors = [
     { name = "Plamen Dragiyski", email = "plamen@dragiyski.org" }
