@@ -252,7 +252,7 @@ class CHandleType(CIntType):
         if self.constructor == 'VK_DEFINE_HANDLE':
             return '%s%s' % (prefix, 'c_void_p')
         elif self.constructor == 'VK_DEFINE_NON_DISPATCHABLE_HANDLE':
-            return '%s%s if %ssizeof(%sc_void_p) == 8 else %s%s' % (prefix, 'c_void_p', prefix, prefix, prefix, 'c_uint64')
+            return '%s%s' % (prefix, 'c_uint64')
         return super().to_source(*args, prefix=prefix, **kwargs)
 
     def __repr__(self):

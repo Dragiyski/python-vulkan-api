@@ -792,7 +792,16 @@ class Compiler:
                 continue
             proto_code = node.get('proto').get_text()
             param_code = []
+            callback_info = {
+                'name': name,
+                'node': node,
+                'argument_list': [],
+                'argument_map': {},
+            }
             for param_node in node.get_all('param'):
+                param_name = self.get_node_name_from_children(param_node)
+                callback_info['argument_list'].append(param_name)
+                callback_info['argument_map'][param_name] = { 'node': param_node, 'type': param_node.get('type').get_text() }
                 param_code.append(self._get_member_code(context, param_node))
             code = '%s(%s);' % (proto_code, ', '.join(param_code))
             code = re.sub(r'\bVKAPI_PTR\b', '', code)
@@ -804,31 +813,33 @@ class Compiler:
             assert name in context.ctypes_map, 'name in self.ctypes_map'
             assert name[4:] in context.ctypes_map, 'name[4:] in self.ctypes_map'
             assert context.ctypes_map[name[4:]] is context.ctypes_map[name]
-            fn_decl = ast.ext[0].type
+            callback_info['cdecl'] = ast.ext[0].type
             ctype = context.ctypes_map[name[4:]]
+            callback_info['ctype'] = ctype
             assert isinstance(ctype, CFunctionType), 'isinstance(ctype, CFunctionType)'
             ctype.constructor = 'VKAPI_PTR'
-            callback_info = {
-                'name': name,
-                'node': node,
-                'ctype': ctype,
-                'arg_list': [],
-                'arg_map': {}
-            }
-            if fn_decl.args is not None:
-                for param in fn_decl.args.params:
+
+            if callback_info['cdecl'].args is not None:
+                for index, param in enumerate(callback_info['cdecl'].args.params):
                     param_ctype = context.get_type_from_decl(param.type)
+                    param_name = param.name
+                    param_descriptor = callback_info['argument_map'][param_name]
+                    param_descriptor['ctype'] = param_ctype
+                    param_descriptor['cdecl'] = param
                     ctype.argument_types.append(param_ctype)
-                    callback_info['arg_list'].append(param.name)
-                    callback_info['arg_map'][param.name] = param_ctype
                     if param.name == 'pUserData':
-                        ctype['user_data'] = len(ctype.argument_types) - 1
+                        ctype['user_data'] = index
+                        callback_info['user_data'] = index
             if len(ctype.argument_types) == 1 and ctype.argument_types[0] is context.ctypes_map['void']:
                 ctype.argument_types.pop()
-                callback_info['arg_map'].clear()
-                callback_info['arg_list'].clear()
-            return_ctype = context.get_type_from_decl(fn_decl.type)
-            callback_info['return'] = return_ctype
+                callback_info['argument_map'].clear()
+                callback_info['argument_list'].clear()
+            return_ctype = context.get_type_from_decl(callback_info['cdecl'].type)
+            callback_info['return'] = {
+                'ctype': return_ctype,
+                'type': node.get('proto').get('type').get_text(),
+                'cdecl': callback_info['cdecl'].type,
+            }
             context.callback_map.set(name, callback_info)
             ctype.return_type = return_ctype
 

@@ -319,8 +319,10 @@ class Context:
         return name
 
     @staticmethod
-    def make_python_name(name):
+    def make_python_name(name, skip_prefixes = ()):
         words = name.split('_')
         words = [re.findall(r'(?:[A-Z][A-Z0-9]*|^)[a-z0-9]*', word) for word in words]
         words = [word.lower() for x in words for word in x]
-        return words
+        if len(words) > 1 and words[0] in skip_prefixes:
+            words = words[1:]
+        return '_'.join(words)
