@@ -4,7 +4,7 @@ import pycparser.c_ast
 from collections import OrderedDict
 from pathlib import Path
 from .context import Context
-from .platform import CPointerType, CArrayType, CComplexType, CFunctionType
+from .platform import CType, CPointerType, CArrayType, CComplexType, CFunctionType
 from os import linesep
 
 enum_class_suffix = {
@@ -21,13 +21,16 @@ enum_base_class = {
 
 ctypes_types = [name for name in dir(ctypes) if name.startswith('c_')]
 
+
 def module_sorted(modules):
     return sorted([m for m in modules if not m.startswith('.')]) + sorted([m for m in modules if m.startswith('.')])
+
 
 class GeneratorError(RuntimeError):
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
         self.__dict__.update(**kwargs)
+
 
 class GeneratedModule:
     def __init__(self, path: list):
@@ -42,6 +45,7 @@ class GeneratedModule:
         self.default_slot = 'main'
         self.default_import_slot = 'import'
         self.current_indent = 0
+        self.started_line = None
 
     def add_dep(self, module: str, selector: str | bool, *, slot=None):
         if slot is None:
@@ -52,7 +56,7 @@ class GeneratedModule:
             self.deps[slot][module] = {}
         if selector not in self.deps[slot][module]:
             self.deps[slot][module][selector] = False
-    
+
     def add_slot(self, name: str, is_import: bool = False):
         if name in self.slots:
             raise RuntimeError(f'Slot "{name}" already exists')
@@ -96,16 +100,21 @@ class GeneratedModule:
     def append_lines(self, *lines: str, slot=None):
         if slot is None:
             slot = self.default_slot
-        self.slots[slot].extend([('    ' * self.current_indent) + line + linesep for line in lines])
-    
+        for line in lines:
+            if self.started_line is not None:
+                line = self.started_line + line
+                self.started_line = None
+            self.slots[slot].append((('    ' * self.current_indent) + line + linesep) if line.strip() else linesep)
+
     def update_file(self, base_path: Path):
         for slot in self.deps:
             self.flush_dep(slot)
         path = base_path.joinpath('/'.join(self.path) + '.py')
-        path.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        path.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
         with open(path, 'w') as stream:
             for slot in self.slots:
                 stream.writelines(self.slots[slot])
+
 
 class Generator:
     def __init__(self, base_dir):
@@ -143,12 +152,13 @@ class Generator:
         else:
             module.append_lines('%s.__doc__ = %r' % (name, 'https://docs.vulkan.org/refpages/latest/refpages/source/%s.html' % name))
 
-    
     def _write_vulkan_database(self, context: Context):
         module = GeneratedModule(['_vulkan_database'])
         module.append_lines('vendor_suffix = [')
+        module.current_indent += 1
         for name in sorted(context.tag_set):
-            module.append_lines('    %r,' % name)
+            module.append_lines('%r,' % name)
+        module.current_indent -= 1
         module.append_lines(']', '')
         module.update_file(self.base_dir)
 
@@ -186,7 +196,7 @@ class Generator:
         for enum_name in context.enum_map:
             self._write_vulkan_enum(context, enum_name)
             module.add_dep(f'.{enum_name}', enum_name)
-        alias_enum = { k: v for k, v in context.alias_map.items() if v in context.enum_map }
+        alias_enum = {k: v for k, v in context.alias_map.items() if v in context.enum_map}
         for alias_name in sorted(alias_enum.keys()):
             enum_name = alias_enum[alias_name]
             module.append_lines('%s = %s' % (alias_name, enum_name))
@@ -240,40 +250,53 @@ class Generator:
         info = context.callback_map[f'PFN_{name}']
         module.append_lines('')
         module.append_lines('%s._vulkan_ = {' % name)
-        module.append_lines('    %r: {' % ('return'))
-        module.append_lines('        %r: %r,' % ('type', info['return']['type']))
-        module.append_lines('        %r: %s,' % ('ctype', info['return']['ctype'].to_source()))
-        module.append_lines('        %r: %r,' % ('class', self._get_type_class(context, info['return']['type'])))
-        module.append_lines('    },')
-        module.append_lines('    %r: OrderedDict([' % ('arguments'))
+        module.current_indent += 1
+        module.append_lines('%r: {' % ('return'))
+        module.current_indent += 1
+        module.append_lines('%r: %r,' % ('type', info['return']['type']))
+        module.append_lines('%r: %s,' % ('ctype', info['return']['ctype'].to_source()))
+        module.append_lines('%r: %r,' % ('class', self._get_type_class(context, info['return']['type'])))
+        module.current_indent -= 1
+        module.append_lines('},')
+        module.append_lines('%r: OrderedDict([' % ('arguments'))
+        module.current_indent += 1
         for arg_name in info['argument_list']:
             arg_info = info['argument_map'][arg_name]
-            module.append_lines('        (')
-            module.append_lines('            %r,' % arg_name)
-            module.append_lines('            {')
-            module.append_lines('                %r: %r,' % ('type', arg_info['type']))
-            module.append_lines('                %r: %s,' % ('ctype', arg_info['ctype'].to_source()))
-            module.append_lines('                %r: %r,' % ('class', self._get_type_class(context, arg_info['type'])))
+            module.append_lines('(')
+            module.current_indent += 1
+            module.append_lines('%r,' % arg_name)
+            module.append_lines('{')
+            module.current_indent += 1
+            module.append_lines('%r: %r,' % ('type', arg_info['type']))
+            module.append_lines('%r: %s,' % ('ctype', arg_info['ctype'].to_source()))
+            module.append_lines('%r: %r,' % ('class', self._get_type_class(context, arg_info['type'])))
+            if 'cdecl' in arg_info:
+                module.started_line = '%r: ' % ('cdecl')
+                self._write_cdecl_source(context, module, arg_info['cdecl'])
             for attribute_name in arg_info['node'].attributes:
-                module.append_lines('                %r: %r,' % (f'@{attribute_name}', arg_info['node'].get_attribute(attribute_name)))
-            module.append_lines('                %r: %r,' % ('python_name', context.make_python_name(arg_name, skip_prefixes = ('p', 'pp', 's'))))
-            module.append_lines('            },')
-            module.append_lines('        ),')
-        module.append_lines('    ]),')
+                module.append_lines('%r: %r,' % (f'@{attribute_name}', arg_info['node'].get_attribute(attribute_name)))
+            module.append_lines('%r: %r,' % ('python_name', context.make_python_name(arg_name, skip_prefixes=('p', 'pp', 's'))))
+            module.current_indent -= 1
+            module.append_lines('},')
+            module.current_indent -= 1
+            module.append_lines('),')
+        module.current_indent -= 1
+        module.append_lines(']),')
         for attribute_name in info['node'].attributes:
-            module.append_lines('    %r: %r,' % (f'@{attribute_name}', info['node'].get_attribute(attribute_name)))
+            module.append_lines('%r: %r,' % (f'@{attribute_name}', info['node'].get_attribute(attribute_name)))
+        module.current_indent -= 1
         module.append_lines('}')
         module.append_lines('')
 
         module.update_file(self.base_dir)
-    
+
     def _write_vulkan_callbacks(self, context: Context):
         module = GeneratedModule(['_vulkan_callback', '__init__'])
         for name in [context.ctypes_map[k].name for k in context.type_node_map['funcpointer'].keys()]:
             self._write_vulkan_callback(context, name)
             module.add_dep('.%s' % name, name)
         module.update_file(self.base_dir)
-    
+
     def _write_vulkan_type(self, context: Context, name: str):
         module = GeneratedModule(['_vulkan_type', name])
         module.add_dep('ctypes', False)
@@ -314,9 +337,9 @@ class Generator:
         for member_name in ctype.member_list:
             member_desc = ctype.member_map[member_name]
             if 'bitsize' in member_desc:
-                module.append_lines('    (%r, %s, %d),' % (member_name, member_desc['ctype'].to_source(), member_desc['bitsize']))
+                module.append_lines('(%r, %s, %d),' % (member_name, member_desc['ctype'].to_source(), member_desc['bitsize']))
             else:
-                module.append_lines('    (%r, %s),' % (member_name, member_desc['ctype'].to_source()))
+                module.append_lines('(%r, %s),' % (member_name, member_desc['ctype'].to_source()))
         module.current_indent -= 1
         module.append_lines(']')
         while module.current_indent > 0:
@@ -374,47 +397,23 @@ class Generator:
             if 'type' in member_info:
                 module.append_lines('%r: %r,' % ('type', member_info['type']))
                 module.append_lines('%r: %r,' % ('class', self._get_type_class(context, member_info['type'])))
+            elif 'type' in member_info['node'].children:
+                member_type = member_info['node'].get('type').get_text()
+                if member_type not in context.ctypes_map or context.ctypes_map[member_type].__class__ == CType:
+                    module.append_lines('%r: %r,' % ('type', member_type))
+                    module.append_lines('%r: %r,' % ('class', 'external'))
+                else:
+                    module.append_lines('%r: %r,' % ('type', member_type))
+                    module.append_lines('%r: %r,' % ('class', 'ctypes'))
             else:
                 module.append_lines('%r: %r,' % ('class', 'ctypes'))
             module.append_lines('%r: %s,' % ('ctype', member_info['ctype'].to_source()))
             if member_name not in hidden_fields:
-                module.append_lines('%r: %r,' % ('python_name', context.make_python_name(member_name, skip_prefixes = ('p', 'pp', 's'))))
+                module.append_lines('%r: %r,' % ('python_name', context.make_python_name(member_name, skip_prefixes=('p', 'pp', 's'))))
             member_node = member_info['node']
-            cdecl = member_info['cdecl']
-            ptr_ctype = cdecl.type
-            ptr_dir = []
-            skip_ptr_dir = False
-            if is_extensible_struct and member_name == 'pNext':
-                skip_ptr_dir = True
-            if not skip_ptr_dir:
-                while isinstance(ptr_ctype, pycparser.c_ast.PtrDecl):
-                    if 'quals' not in ptr_ctype.attr_names:
-                        break
-                    if 'const' in ptr_ctype.quals:
-                        ptr_dir.append('in')
-                    else:
-                        ptr_dir.append('out')
-                    ptr_ctype = ptr_ctype.type
-                if len(ptr_dir) > 0:
-                    if 'quals' in ptr_ctype.attr_names:
-                        if 'const' in ptr_ctype.quals:
-                            ptr_dir.append('in')
-                        else:
-                            ptr_dir.append('out')
-                    if ptr_dir[0] == 'out':
-                        # Top-level pointer without `const` will inherit the const-ness of how it is included:
-                        # Included by value (passed as value parameter or included by value in another struct) -> `inherit` = `in`
-                        # Included by `const` pointer: `inherit` = `in`
-                        # Included by non-`const` pointer: `inherit` = `out`
-                        # Note: `const char* member_name` is `['inherit', 'in']` meaning the pointed `char` (or other `char` in that array) cannot be modified, but the pointer itself may be modified if the structure is pointed by non-const pointer
-                        # However, `const char* const member_name` is `['in', 'in']`, even for non-const structure pointer, the `member_name` cannot be modified. Vulkan does not seem to use top-level `const` members in their structure.
-                        ptr_dir[0] = 'inherit'
-                if len(ptr_dir) > 0:
-                    # 'out' here does not guarantee true `out`
-                    # 1. It should be ignored for `pNext`, unless `pNext` chain is mutable (i.e. the command calling return this structure or this structure is included in returned chain).
-                    # 2. Returned type should not be external type: certain opaque pointers to external structures are always non-const (the command can modify the pointed structure, but we do not see its members).
-
-                    module.append_lines('%r: %s,' % ('pointer_dir', ptr_dir))
+            if 'cdecl' in member_info:
+                module.started_line = '%r: ' % ('cdecl')
+                self._write_cdecl_source(context, module, member_info['cdecl'])
             for attribute_name in member_node.attributes:
                 module.append_lines('%r: %r,' % (f'@{attribute_name}', member_node.get_attribute(attribute_name)))
             module.current_indent -= 1
@@ -433,7 +432,7 @@ class Generator:
         for name in context.type_node_map['complex']:
             self._write_vulkan_type(context, name)
             module.add_dep('.%s' % name, name)
-        alias_map = { k: v for k, v in context.alias_map.items() if v in context.type_node_map['complex'] }
+        alias_map = {k: v for k, v in context.alias_map.items() if v in context.type_node_map['complex']}
         for alias_name in sorted(alias_map.keys()):
             type_name = alias_map[alias_name]
             module.append_lines('%s = %s' % (alias_name, type_name))
@@ -457,13 +456,13 @@ class Generator:
                 module.append_lines('%s.parent = %s' % (handle_name, handle_info['parent']))
         module.append_lines('')
 
-        handle_alias = { k: v for k, v in context.alias_map.items() if v in context.handle_map }
+        handle_alias = {k: v for k, v in context.alias_map.items() if v in context.handle_map}
         for alias_name, handle_name in handle_alias.items():
             module.append_lines('%s = %s' % (alias_name, handle_name))
         module.append_lines('')
-        
+
         module.update_file(self.base_dir)
-    
+
     def _get_type_class(self, context: Context, type_name: str):
         type_class = 'ctypes'
         if type_name in context.enum_map:
@@ -479,7 +478,7 @@ class Generator:
     def _write_vulkan_command(self, context: Context, name: str):
         module = GeneratedModule(['_vulkan_command', name])
         info = context.command_map[name]
-        dep_map = { 'enum': set(), 'struct': set(), 'callback': set() }
+        dep_map = {'enum': set(), 'struct': set(), 'callback': set()}
         module.add_dep('ctypes', False)
         module.add_dep('collections', 'OrderedDict')
         for arg_name in info['argument_list']:
@@ -511,65 +510,90 @@ class Generator:
         self._create_function_source(context, name, module)
         module.append_lines('')
         module.append_lines('%s._vulkan_ = {' % name)
-        module.append_lines('    %r: {' % ('return'))
-        module.append_lines('        %r: %r,' % ('type', info['return']['type']))
-        module.append_lines('        %r: %s,' % ('ctype', info['return']['ctype'].to_source()))
-        module.append_lines('        %r: %r,' % ('class', self._get_type_class(context, info['return']['type'])))
-        module.append_lines('        %r: %r,' % ('arguments', return_arguments))
-        module.append_lines('        %r: %r,' % ('status', return_status))
+        module.current_indent += 1
+        module.append_lines('%r: {' % ('return'))
+        module.current_indent += 1
+        module.append_lines('%r: %r,' % ('type', info['return']['type']))
+        module.append_lines('%r: %s,' % ('ctype', info['return']['ctype'].to_source()))
+        module.append_lines('%r: %r,' % ('class', self._get_type_class(context, info['return']['type'])))
+        module.append_lines('%r: %r,' % ('arguments', return_arguments))
+        module.append_lines('%r: %r,' % ('status', return_status))
         if return_status:
             if 'success_code_list' in info:
-                module.append_lines('        %r: [%s],' % ('success', ', '.join(f'VkResult.{x}' for x in sorted(info['success_code_list']))))
+                module.append_lines('%r: [%s],' % ('success', ', '.join(f'VkResult.{x}' for x in sorted(info['success_code_list']))))
             else:
-                module.append_lines('        %r: [],' % ('success'))
+                module.append_lines('%r: [],' % ('success'))
             if 'error_code_list' in info:
-                module.append_lines('        %r: [%s],' % ('error', ', '.join(f'VkResult.{x}' for x in sorted(info['error_code_list']))))
+                module.append_lines('%r: [%s],' % ('error', ', '.join(f'VkResult.{x}' for x in sorted(info['error_code_list']))))
             else:
-                module.append_lines('        %r: [],' % ('error'))
-        module.append_lines('    },')
-        module.append_lines('    %r: OrderedDict([' % ('arguments'))
+                module.append_lines('%r: [],' % ('error'))
+        module.current_indent -= 1
+        module.append_lines('},')
+        module.append_lines('%r: OrderedDict([' % ('arguments'))
+        module.current_indent += 1
         for arg_name in info['argument_list']:
             arg_info = info['argument_map'][arg_name]
-            module.append_lines('        (')
-            module.append_lines('            %r,' % arg_name)
-            module.append_lines('            {')
-            module.append_lines('                %r: %r,' % ('type', arg_info['type']))
-            module.append_lines('                %r: %s,' % ('ctype', arg_info['ctype'].to_source()))
-            module.append_lines('                %r: %r,' % ('class', self._get_type_class(context, arg_info['type'])))
-            module.append_lines('                %r: %r,' % ('output', arg_info['output'] if 'output' in arg_info else False))
-            module.append_lines('                %r: %r,' % ('is_string', arg_info['is_string'] if 'is_string' in arg_info else False))
+            module.append_lines('(')
+            module.current_indent += 1
+            module.append_lines('%r,' % arg_name)
+            module.append_lines('{')
+            module.current_indent += 1
+            module.append_lines('%r: %r,' % ('type', arg_info['type']))
+            module.append_lines('%r: %s,' % ('ctype', arg_info['ctype'].to_source()))
+            module.append_lines('%r: %r,' % ('class', self._get_type_class(context, arg_info['type'])))
+            module.append_lines('%r: %r,' % ('output', arg_info['output'] if 'output' in arg_info else False))
+            module.append_lines('%r: %r,' % ('is_string', arg_info['is_string'] if 'is_string' in arg_info else False))
+            if 'cdecl' in arg_info:
+                module.started_line = '%r: ' % ('cdecl')
+                self._write_cdecl_source(context, module, arg_info['cdecl'])
             for attribute_name in arg_info['node'].attributes:
-                module.append_lines('                %r: %r,' % (f'@{attribute_name}', arg_info['node'].get_attribute(attribute_name)))
-            module.append_lines('                %r: %r,' % ('python_name', context.make_python_name(arg_name, skip_prefixes = ('p', 'pp', 's'))))
-            module.append_lines('            },')
-            module.append_lines('        ),')
-        module.append_lines('    ]),')
+                module.append_lines('%r: %r,' % (f'@{attribute_name}', arg_info['node'].get_attribute(attribute_name)))
+            module.append_lines('%r: %r,' % ('python_name', context.make_python_name(arg_name, skip_prefixes=('p', 'pp', 's'))))
+            module.current_indent -= 1
+            module.append_lines('},')
+            module.current_indent -= 1
+            module.append_lines('),')
+        module.current_indent -= 1
+        module.append_lines(']),')
         for attribute_name in info['node'].attributes:
-            module.append_lines('    %r: %r,' % (f'@{attribute_name}', info['node'].get_attribute(attribute_name)))
+            module.append_lines('%r: %r,' % (f'@{attribute_name}', info['node'].get_attribute(attribute_name)))
+        module.current_indent -= 1
         module.append_lines('}')
         module.append_lines('')
 
         module.update_file(self.base_dir)
-
 
     def _write_vulkan_commands(self, context: Context):
         code = []
         for name in context.command_map:
             self._write_vulkan_command(context, name)
             code.append('from .%s import %s' % (name, name))
-        alias_map = { k: v for k, v in context.alias_map.items() if v in context.command_map }
+        alias_map = {k: v for k, v in context.alias_map.items() if v in context.command_map}
         for alias_name in sorted(alias_map.keys()):
             name = alias_map[alias_name]
             code.append('%s = %s' % (alias_name, name))
         code.append('')
 
         file = self.base_dir.joinpath('_vulkan_command/__init__.py')
-        file.parent.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        file.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
         with open(file, 'w') as stream:
             stream.write(linesep.join(code))
 
+    def _write_cdecl_source(self, context: Context, module: GeneratedModule, node: pycparser.c_ast.Node):
+        module.add_dep('pycparser.c_ast', False, slot='import')
+        module.append_lines('pycparser.c_ast.%s(' % node.__class__.__name__)
+        module.current_indent += 1
+        for attr in node.attr_names:
+            value = getattr(node, attr)
+            module.append_lines('%s=%r,' % (attr, value))
+        for child_name, child in node.children():
+            module.started_line = '%s=' % child_name
+            self._write_cdecl_source(context, module, child)
+        module.current_indent -= 1
+        module.append_lines('),')
+
     def generate(self, context: Context):
-        self.base_dir.mkdir(mode = 0o755, parents = True, exist_ok = True)
+        self.base_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         self._write_vulkan_database(context)
         self._write_vulkan_enums(context)
         self._write_vulkan_value(context)
