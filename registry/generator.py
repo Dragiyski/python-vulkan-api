@@ -583,12 +583,20 @@ class Generator:
         module.add_dep('pycparser.c_ast', False, slot='import')
         module.append_lines('pycparser.c_ast.%s(' % node.__class__.__name__)
         module.current_indent += 1
+        slots = set()
         for attr in node.attr_names:
+            slots.add(attr)
             value = getattr(node, attr)
             module.append_lines('%s=%r,' % (attr, value))
         for child_name, child in node.children():
+            slots.add(child_name)
             module.started_line = '%s=' % child_name
             self._write_cdecl_source(context, module, child)
+        if hasattr(node.__class__, '__slots__'):
+            for slot in node.__class__.__slots__:
+                if slot.startswith('_') or slot in slots:
+                    continue
+                module.append_lines('%s=None,' % slot)
         module.current_indent -= 1
         module.append_lines('),')
 
