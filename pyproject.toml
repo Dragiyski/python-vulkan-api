@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name="dragiyski.vulkan"
-version = "1.0.0"
+version = "1.1.0"
 requires-python = ">=3.12"
 authors = [
     { name = "Plamen Dragiyski", email = "plamen@dragiyski.org" }
@@ -22,9 +22,6 @@ dependencies = [
 [tool.pdm.build]
 package-dir = "package"
 excludes = ["pdm_build.py", "sh_build.py"]
-
-[tool.pdm.scripts]
-build = "python build.py"
 
 [dependency-groups]
 dev = [
