@@ -1,10 +1,10 @@
 import ctypes
 import ast
-import re
+import pycparser.c_ast
 from collections import OrderedDict
 from pathlib import Path
 from .context import Context
-from .platform import CPlainType, CPointerType, CArrayType, CComplexType, CFunctionType
+from .platform import CPointerType, CArrayType, CComplexType, CFunctionType
 from os import linesep
 
 enum_class_suffix = {
@@ -380,6 +380,41 @@ class Generator:
             if member_name not in hidden_fields:
                 module.append_lines('%r: %r,' % ('python_name', context.make_python_name(member_name, skip_prefixes = ('p', 'pp', 's'))))
             member_node = member_info['node']
+            cdecl = member_info['cdecl']
+            ptr_ctype = cdecl.type
+            ptr_dir = []
+            skip_ptr_dir = False
+            if is_extensible_struct and member_name == 'pNext':
+                skip_ptr_dir = True
+            if not skip_ptr_dir:
+                while isinstance(ptr_ctype, pycparser.c_ast.PtrDecl):
+                    if 'quals' not in ptr_ctype.attr_names:
+                        break
+                    if 'const' in ptr_ctype.quals:
+                        ptr_dir.append('in')
+                    else:
+                        ptr_dir.append('out')
+                    ptr_ctype = ptr_ctype.type
+                if len(ptr_dir) > 0:
+                    if 'quals' in ptr_ctype.attr_names:
+                        if 'const' in ptr_ctype.quals:
+                            ptr_dir.append('in')
+                        else:
+                            ptr_dir.append('out')
+                    if ptr_dir[0] == 'out':
+                        # Top-level pointer without `const` will inherit the const-ness of how it is included:
+                        # Included by value (passed as value parameter or included by value in another struct) -> `inherit` = `in`
+                        # Included by `const` pointer: `inherit` = `in`
+                        # Included by non-`const` pointer: `inherit` = `out`
+                        # Note: `const char* member_name` is `['inherit', 'in']` meaning the pointed `char` (or other `char` in that array) cannot be modified, but the pointer itself may be modified if the structure is pointed by non-const pointer
+                        # However, `const char* const member_name` is `['in', 'in']`, even for non-const structure pointer, the `member_name` cannot be modified. Vulkan does not seem to use top-level `const` members in their structure.
+                        ptr_dir[0] = 'inherit'
+                if len(ptr_dir) > 0:
+                    # 'out' here does not guarantee true `out`
+                    # 1. It should be ignored for `pNext`, unless `pNext` chain is mutable (i.e. the command calling return this structure or this structure is included in returned chain).
+                    # 2. Returned type should not be external type: certain opaque pointers to external structures are always non-const (the command can modify the pointed structure, but we do not see its members).
+
+                    module.append_lines('%r: %s,' % ('pointer_dir', ptr_dir))
             for attribute_name in member_node.attributes:
                 module.append_lines('%r: %r,' % (f'@{attribute_name}', member_node.get_attribute(attribute_name)))
             module.current_indent -= 1
